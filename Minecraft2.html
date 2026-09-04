@@ -1,0 +1,2421 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+
+<meta name="viewport"
+content="width=device-width,
+initial-scale=1.0,
+maximum-scale=1.0,
+user-scalable=no">
+
+<title>BLOCK WORLD 3D</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+
+    user-select:none;
+    -webkit-user-select:none;
+
+    touch-action:none;
+}
+
+html,body{
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    background:#79c9e8;
+    font-family:Arial,sans-serif;
+}
+
+#game{
+    position:fixed;
+    inset:0;
+}
+
+canvas{
+    display:block;
+}
+
+#crosshair{
+    position:fixed;
+    left:50%;
+    top:50%;
+
+    width:24px;
+    height:24px;
+
+    transform:translate(-50%,-50%);
+
+    z-index:20;
+    pointer-events:none;
+}
+
+#crosshair::before,
+#crosshair::after{
+    content:"";
+
+    position:absolute;
+
+    background:white;
+
+    box-shadow:
+    0 0 3px black;
+}
+
+#crosshair::before{
+    width:2px;
+    height:24px;
+
+    left:11px;
+}
+
+#crosshair::after{
+    width:24px;
+    height:2px;
+
+    top:11px;
+}
+
+#info{
+    position:fixed;
+
+    left:14px;
+    top:12px;
+
+    color:white;
+
+    font-weight:bold;
+
+    text-shadow:
+    0 2px 4px black;
+
+    z-index:30;
+
+    line-height:1.5;
+}
+
+#health{
+    position:fixed;
+
+    left:14px;
+    top:70px;
+
+    font-size:21px;
+
+    z-index:30;
+
+    text-shadow:
+    0 2px 4px black;
+}
+
+#message{
+    position:fixed;
+
+    left:50%;
+    top:68%;
+
+    transform:
+    translate(-50%,-50%);
+
+    color:white;
+
+    font-size:20px;
+
+    font-weight:bold;
+
+    text-shadow:
+    0 2px 5px black;
+
+    z-index:100;
+
+    opacity:0;
+
+    transition:.2s;
+
+    pointer-events:none;
+
+    white-space:nowrap;
+}
+
+/* -------------------------
+   ジョイスティック
+------------------------- */
+
+#joystick{
+    position:fixed;
+
+    left:24px;
+    bottom:25px;
+
+    width:145px;
+    height:145px;
+
+    border-radius:50%;
+
+    background:
+    rgba(255,255,255,.18);
+
+    border:
+    3px solid
+    rgba(255,255,255,.6);
+
+    z-index:50;
+}
+
+#stick{
+    position:absolute;
+
+    width:62px;
+    height:62px;
+
+    left:38px;
+    top:38px;
+
+    border-radius:50%;
+
+    background:
+    rgba(255,255,255,.5);
+
+    border:
+    2px solid white;
+}
+
+/* -------------------------
+   ボタン
+------------------------- */
+
+.control{
+    position:fixed;
+
+    width:70px;
+    height:70px;
+
+    border-radius:18px;
+
+    border:
+    2px solid white;
+
+    background:
+    rgba(30,60,80,.65);
+
+    color:white;
+
+    font-size:25px;
+
+    z-index:50;
+
+    touch-action:none;
+}
+
+#jump{
+    right:22px;
+    bottom:120px;
+}
+
+#break{
+    right:105px;
+    bottom:28px;
+}
+
+#place{
+    right:22px;
+    bottom:28px;
+}
+
+#run{
+    right:105px;
+    bottom:120px;
+
+    font-size:20px;
+}
+
+#save{
+    position:fixed;
+
+    right:15px;
+    top:15px;
+
+    z-index:60;
+
+    padding:
+    10px 14px;
+
+    border-radius:13px;
+
+    border:
+    2px solid white;
+
+    background:
+    rgba(30,60,80,.65);
+
+    color:white;
+
+    font-weight:bold;
+}
+
+/* -------------------------
+   ホットバー
+------------------------- */
+
+#hotbar{
+    position:fixed;
+
+    left:50%;
+    bottom:15px;
+
+    transform:
+    translateX(-50%);
+
+    display:flex;
+
+    gap:5px;
+
+    z-index:45;
+}
+
+.slot{
+    width:57px;
+    height:57px;
+
+    border:
+    3px solid white;
+
+    border-radius:9px;
+
+    background:
+    rgba(0,0,0,.45);
+
+    color:white;
+
+    display:flex;
+
+    flex-direction:column;
+
+    align-items:center;
+
+    justify-content:center;
+
+    font-size:11px;
+
+    text-shadow:
+    0 1px 2px black;
+}
+
+.slot.selected{
+    border-color:yellow;
+
+    transform:
+    translateY(-5px);
+}
+
+.icon{
+    width:27px;
+    height:27px;
+
+    margin-bottom:2px;
+
+    border:
+    2px solid
+    rgba(0,0,0,.35);
+}
+
+/* -------------------------
+   エラー画面
+------------------------- */
+
+#error{
+    display:none;
+
+    position:fixed;
+
+    left:50%;
+    top:50%;
+
+    transform:
+    translate(-50%,-50%);
+
+    width:85%;
+
+    padding:20px;
+
+    border-radius:15px;
+
+    background:
+    rgba(0,0,0,.8);
+
+    color:white;
+
+    z-index:1000;
+
+    text-align:center;
+
+    line-height:1.6;
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="game"></div>
+
+<div id="crosshair"></div>
+
+<div id="info">
+🌍 BLOCK WORLD 3D<br>
+選択中：<span id="selectedName">草</span>
+</div>
+
+<div id="health">
+❤️❤️❤️❤️❤️
+</div>
+
+<div id="message"></div>
+
+<div id="error">
+<h2>⚠️ 3Dエンジンを読み込めませんでした</h2>
+<p>
+インターネット接続を確認して、<br>
+ページを再読み込みしてください。
+</p>
+</div>
+
+<div id="joystick">
+    <div id="stick"></div>
+</div>
+
+<button id="jump" class="control">⬆️</button>
+<button id="break" class="control">⛏️</button>
+<button id="place" class="control">🧱</button>
+<button id="run" class="control">🏃</button>
+
+<button id="save">💾 保存</button>
+
+<div id="hotbar"></div>
+
+
+<script>
+
+/* =================================================
+   Three.js ローダー
+   2つのCDNを順番に試す
+================================================= */
+
+(function(){
+
+    const sources=[
+
+        "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js",
+
+        "https://unpkg.com/three@0.160.0/build/three.min.js"
+
+    ];
+
+    let index=0;
+
+    function load(){
+
+        if(index>=sources.length){
+
+            document
+            .getElementById("error")
+            .style.display="block";
+
+            return;
+        }
+
+        const s=
+        document.createElement("script");
+
+        s.src=sources[index++];
+
+        s.onload=function(){
+
+            startGame();
+
+        };
+
+        s.onerror=function(){
+
+            load();
+
+        };
+
+        document
+        .head
+        .appendChild(s);
+    }
+
+    load();
+
+})();
+
+
+/* =================================================
+   GAME
+================================================= */
+
+function startGame(){
+
+"use strict";
+
+
+/* =================================================
+   SCENE
+================================================= */
+
+const scene=
+new THREE.Scene();
+
+scene.background=
+new THREE.Color(0x7ec8e3);
+
+scene.fog=
+new THREE.Fog(
+    0x7ec8e3,
+    28,
+    65
+);
+
+
+/* =================================================
+   CAMERA
+================================================= */
+
+const camera=
+new THREE.PerspectiveCamera(
+    75,
+    innerWidth/innerHeight,
+    .1,
+    150
+);
+
+
+/* =================================================
+   RENDERER
+================================================= */
+
+const renderer=
+new THREE.WebGLRenderer({
+
+    antialias:false,
+
+    powerPreference:
+    "high-performance"
+
+});
+
+renderer.setSize(
+    innerWidth,
+    innerHeight
+);
+
+renderer.setPixelRatio(
+    Math.min(
+        window.devicePixelRatio,
+        1.5
+    )
+);
+
+document
+.getElementById("game")
+.appendChild(
+    renderer.domElement
+);
+
+
+/* =================================================
+   LIGHT
+================================================= */
+
+const ambient=
+new THREE.HemisphereLight(
+    0xffffff,
+    0x4d5960,
+    1.5
+);
+
+scene.add(ambient);
+
+const sun=
+new THREE.DirectionalLight(
+    0xffffff,
+    1.8
+);
+
+sun.position.set(
+    20,
+    40,
+    15
+);
+
+scene.add(sun);
+
+
+/* =================================================
+   BLOCK MATERIAL
+================================================= */
+
+const materials={
+
+    grass:
+    new THREE.MeshLambertMaterial({
+        color:0x4caf50
+    }),
+
+    dirt:
+    new THREE.MeshLambertMaterial({
+        color:0x8b572a
+    }),
+
+    stone:
+    new THREE.MeshLambertMaterial({
+        color:0x777777
+    }),
+
+    wood:
+    new THREE.MeshLambertMaterial({
+        color:0x9b622e
+    }),
+
+    leaves:
+    new THREE.MeshLambertMaterial({
+        color:0x258c38
+    }),
+
+    glass:
+    new THREE.MeshLambertMaterial({
+        color:0x9eeeff,
+        transparent:true,
+        opacity:.5
+    }),
+
+    water:
+    new THREE.MeshLambertMaterial({
+        color:0x268cff,
+        transparent:true,
+        opacity:.6
+    })
+};
+
+const names={
+
+    grass:"草",
+    dirt:"土",
+    stone:"石",
+    wood:"木",
+    glass:"ガラス"
+
+};
+
+const colors={
+
+    grass:"#4caf50",
+    dirt:"#8b572a",
+    stone:"#777777",
+    wood:"#9b622e",
+    glass:"#9eeeff"
+
+};
+
+
+/* =================================================
+   BLOCK SYSTEM
+================================================= */
+
+const geometry=
+new THREE.BoxGeometry(
+    1,1,1
+);
+
+const blocks=[];
+
+const blockMap=
+new Map();
+
+function blockKey(x,y,z){
+
+    return (
+        x+","+y+","+z
+    );
+}
+
+
+function addBlock(
+    x,
+    y,
+    z,
+    type
+){
+
+    x=Math.round(x);
+    y=Math.round(y);
+    z=Math.round(z);
+
+    const k=
+    blockKey(x,y,z);
+
+    if(blockMap.has(k))
+        return null;
+
+    const mesh=
+    new THREE.Mesh(
+        geometry,
+        materials[type] ||
+        materials.grass
+    );
+
+    mesh.position.set(
+        x,y,z
+    );
+
+    mesh.userData.type=
+    type;
+
+    scene.add(mesh);
+
+    blocks.push(mesh);
+
+    blockMap.set(
+        k,
+        mesh
+    );
+
+    return mesh;
+}
+
+
+function removeBlock(mesh){
+
+    scene.remove(mesh);
+
+    const i=
+    blocks.indexOf(mesh);
+
+    if(i!==-1)
+        blocks.splice(i,1);
+
+    blockMap.delete(
+        blockKey(
+            mesh.position.x,
+            mesh.position.y,
+            mesh.position.z
+        )
+    );
+}
+
+
+function getBlock(
+    x,y,z
+){
+
+    return blockMap.get(
+        blockKey(
+            Math.floor(x),
+            Math.floor(y),
+            Math.floor(z)
+        )
+    );
+}
+
+
+/* =================================================
+   TERRAIN
+   ★軽量化版
+================================================= */
+
+const WORLD=12;
+
+function getHeight(x,z){
+
+    return Math.floor(
+        2
+        +
+        Math.sin(x*.3)*.7
+        +
+        Math.cos(z*.27)*.7
+    );
+}
+
+
+for(
+    let x=-WORLD;
+    x<=WORLD;
+    x++
+){
+
+    for(
+        let z=-WORLD;
+        z<=WORLD;
+        z++
+    ){
+
+        const h=
+        getHeight(x,z);
+
+        for(
+            let y=0;
+            y<=h;
+            y++
+        ){
+
+            let type;
+
+            if(y===h)
+                type="grass";
+
+            else if(y>=h-2)
+                type="dirt";
+
+            else
+                type="stone";
+
+            addBlock(
+                x,y,z,type
+            );
+        }
+    }
+}
+
+
+/* =================================================
+   TREES
+================================================= */
+
+function makeTree(x,z){
+
+    const ground=
+    getHeight(x,z);
+
+    for(
+        let y=1;
+        y<=4;
+        y++
+    ){
+
+        addBlock(
+            x,
+            ground+y,
+            z,
+            "wood"
+        );
+    }
+
+    for(
+        let dx=-1;
+        dx<=1;
+        dx++
+    ){
+
+        for(
+            let dz=-1;
+            dz<=1;
+            dz++
+        ){
+
+            for(
+                let dy=3;
+                dy<=5;
+                dy++
+            ){
+
+                if(
+                    Math.abs(dx)+
+                    Math.abs(dz)+
+                    Math.abs(dy-4)
+                    <=2
+                ){
+
+                    addBlock(
+                        x+dx,
+                        ground+dy,
+                        z+dz,
+                        "leaves"
+                    );
+                }
+            }
+        }
+    }
+}
+
+
+let treeCount=0;
+
+while(treeCount<8){
+
+    const x=
+    Math.floor(
+        (Math.random()-.5)*20
+    );
+
+    const z=
+    Math.floor(
+        (Math.random()-.5)*20
+    );
+
+    if(
+        Math.abs(x)<4 &&
+        Math.abs(z)<4
+    )
+        continue;
+
+    makeTree(x,z);
+
+    treeCount++;
+}
+
+
+/* =================================================
+   WATER
+================================================= */
+
+for(
+    let x=-10;
+    x<=10;
+    x++
+){
+
+    for(
+        let z=-10;
+        z<=10;
+        z++
+    ){
+
+        if(
+            getHeight(x,z)<=1
+        ){
+
+            addBlock(
+                x,
+                2,
+                z,
+                "water"
+            );
+        }
+    }
+}
+
+
+/* =================================================
+   CLOUDS
+================================================= */
+
+const cloudMaterial=
+new THREE.MeshBasicMaterial({
+    color:0xffffff,
+    transparent:true,
+    opacity:.75
+});
+
+for(
+    let i=0;
+    i<12;
+    i++
+){
+
+    const cloud=
+    new THREE.Mesh(
+        new THREE.BoxGeometry(
+            3,0.5,2
+        ),
+        cloudMaterial
+    );
+
+    cloud.position.set(
+        (Math.random()-.5)*50,
+        14+Math.random()*4,
+        (Math.random()-.5)*50
+    );
+
+    scene.add(cloud);
+}
+
+
+/* =================================================
+   SUN
+================================================= */
+
+const sunMesh=
+new THREE.Mesh(
+
+    new THREE.SphereGeometry(
+        2.5,
+        16,
+        16
+    ),
+
+    new THREE.MeshBasicMaterial({
+        color:0xffff88
+    })
+
+);
+
+scene.add(sunMesh);
+
+
+/* =================================================
+   MOON
+================================================= */
+
+const moonMesh=
+new THREE.Mesh(
+
+    new THREE.SphereGeometry(
+        1.8,
+        16,
+        16
+    ),
+
+    new THREE.MeshBasicMaterial({
+        color:0xe8e8ff
+    })
+
+);
+
+scene.add(moonMesh);
+
+
+/* =================================================
+   STARS
+================================================= */
+
+const starMaterial=
+new THREE.MeshBasicMaterial({
+    color:0xffffff
+});
+
+for(
+    let i=0;
+    i<80;
+    i++
+){
+
+    const star=
+    new THREE.Mesh(
+        new THREE.BoxGeometry(
+            .08,.08,.08
+        ),
+        starMaterial
+    );
+
+    star.position.set(
+        (Math.random()-.5)*100,
+        25+Math.random()*35,
+        (Math.random()-.5)*100
+    );
+
+    scene.add(star);
+}
+
+
+/* =================================================
+   PLAYER
+================================================= */
+
+const player={
+
+    x:0,
+
+    y:7,
+
+    z:6,
+
+    width:.58,
+
+    depth:.58,
+
+    height:1.8,
+
+    vy:0,
+
+    grounded:false,
+
+    speed:.075,
+
+    sprint:.12,
+
+    jump:.235,
+
+    health:5
+
+};
+
+
+/* =================================================
+   CAMERA
+================================================= */
+
+let yaw=0;
+
+let pitch=0;
+
+
+/* =================================================
+   COLLISION
+   ★重要
+================================================= */
+
+function solidAt(
+    x,y,z
+){
+
+    const block=
+    getBlock(x,y,z);
+
+    if(!block)
+        return false;
+
+    const type=
+    block.userData.type;
+
+    return type!=="water";
+}
+
+
+/*
+    プレイヤーの箱が
+    ブロックと重なっているか
+*/
+
+function collision(){
+
+    const minX=
+    player.x-
+    player.width/2;
+
+    const maxX=
+    player.x+
+    player.width/2;
+
+    const minY=
+    player.y;
+
+    const maxY=
+    player.y+
+    player.height;
+
+    const minZ=
+    player.z-
+    player.depth/2;
+
+    const maxZ=
+    player.z+
+    player.depth/2;
+
+
+    for(
+        let x=Math.floor(minX);
+        x<=Math.floor(maxX);
+        x++
+    ){
+
+        for(
+            let y=Math.floor(minY);
+            y<=Math.floor(maxY);
+            y++
+        ){
+
+            for(
+                let z=Math.floor(minZ);
+                z<=Math.floor(maxZ);
+                z++
+            ){
+
+                if(
+                    solidAt(x,y,z)
+                ){
+
+                    return {
+                        x:x,
+                        y:y,
+                        z:z
+                    };
+                }
+            }
+        }
+    }
+
+    return null;
+}
+
+
+/*
+    X方向
+*/
+
+function moveX(dx){
+
+    if(dx===0)
+        return;
+
+    player.x+=dx;
+
+    const hit=
+    collision();
+
+    if(!hit)
+        return;
+
+    if(dx>0){
+
+        player.x=
+        hit.x-
+        player.width/2-
+        .001;
+
+    }else{
+
+        player.x=
+        hit.x+1+
+        player.width/2+
+        .001;
+    }
+}
+
+
+/*
+    Z方向
+*/
+
+function moveZ(dz){
+
+    if(dz===0)
+        return;
+
+    player.z+=dz;
+
+    const hit=
+    collision();
+
+    if(!hit)
+        return;
+
+    if(dz>0){
+
+        player.z=
+        hit.z-
+        player.depth/2-
+        .001;
+
+    }else{
+
+        player.z=
+        hit.z+1+
+        player.depth/2+
+        .001;
+    }
+}
+
+
+/*
+    Y方向
+*/
+
+function moveY(dy){
+
+    if(dy===0)
+        return;
+
+    player.y+=dy;
+
+    const hit=
+    collision();
+
+    if(!hit){
+
+        player.grounded=false;
+
+        return;
+    }
+
+
+    if(dy>0){
+
+        /* 天井 */
+
+        player.y=
+        hit.y-
+        player.height-
+        .001;
+
+        player.vy=0;
+
+    }else{
+
+        /* 地面 */
+
+        player.y=
+        hit.y+1+
+        .001;
+
+        player.vy=0;
+
+        player.grounded=true;
+    }
+}
+
+
+/* =================================================
+   JOYSTICK
+================================================= */
+
+const joystick=
+document.getElementById(
+    "joystick"
+);
+
+const stick=
+document.getElementById(
+    "stick"
+);
+
+let joyX=0;
+
+let joyY=0;
+
+let joyId=null;
+
+
+function updateJoystick(
+    x,y
+){
+
+    const r=
+    joystick.getBoundingClientRect();
+
+    const cx=
+    r.left+r.width/2;
+
+    const cy=
+    r.top+r.height/2;
+
+    let dx=x-cx;
+
+    let dy=y-cy;
+
+    const max=42;
+
+    const length=
+    Math.sqrt(
+        dx*dx+dy*dy
+    );
+
+    if(length>max){
+
+        dx=
+        dx/length*max;
+
+        dy=
+        dy/length*max;
+    }
+
+    stick.style.transform=
+    "translate("+dx+"px,"+
+    dy+"px)";
+
+    joyX=dx/max;
+
+    joyY=dy/max;
+}
+
+
+joystick.addEventListener(
+    "touchstart",
+    function(e){
+
+        const t=
+        e.changedTouches[0];
+
+        joyId=
+        t.identifier;
+
+        updateJoystick(
+            t.clientX,
+            t.clientY
+        );
+
+        e.preventDefault();
+
+    },
+    {passive:false}
+);
+
+
+joystick.addEventListener(
+    "touchmove",
+    function(e){
+
+        for(
+            const t of
+            e.changedTouches
+        ){
+
+            if(
+                t.identifier===
+                joyId
+            ){
+
+                updateJoystick(
+                    t.clientX,
+                    t.clientY
+                );
+            }
+        }
+
+        e.preventDefault();
+
+    },
+    {passive:false}
+);
+
+
+joystick.addEventListener(
+    "touchend",
+    function(e){
+
+        for(
+            const t of
+            e.changedTouches
+        ){
+
+            if(
+                t.identifier===
+                joyId
+            ){
+
+                joyId=null;
+
+                joyX=0;
+                joyY=0;
+
+                stick.style.transform=
+                "translate(0,0)";
+            }
+        }
+
+    }
+);
+
+
+/* =================================================
+   LOOK
+================================================= */
+
+let lookId=null;
+
+let lastX=0;
+
+let lastY=0;
+
+
+renderer.domElement.addEventListener(
+    "touchstart",
+    function(e){
+
+        for(
+            const t of
+            e.changedTouches
+        ){
+
+            if(
+                t.clientX>
+                innerWidth*.32
+            ){
+
+                lookId=
+                t.identifier;
+
+                lastX=
+                t.clientX;
+
+                lastY=
+                t.clientY;
+            }
+        }
+    },
+    {passive:false}
+);
+
+
+renderer.domElement.addEventListener(
+    "touchmove",
+    function(e){
+
+        for(
+            const t of
+            e.touches
+        ){
+
+            if(
+                t.identifier===
+                lookId
+            ){
+
+                const dx=
+                t.clientX-lastX;
+
+                const dy=
+                t.clientY-lastY;
+
+                yaw-=dx*.004;
+
+                pitch-=dy*.004;
+
+                pitch=
+                Math.max(
+                    -1.45,
+                    Math.min(
+                        1.45,
+                        pitch
+                    )
+                );
+
+                lastX=
+                t.clientX;
+
+                lastY=
+                t.clientY;
+
+                e.preventDefault();
+            }
+        }
+
+    },
+    {passive:false}
+);
+
+
+renderer.domElement.addEventListener(
+    "touchend",
+    function(e){
+
+        for(
+            const t of
+            e.changedTouches
+        ){
+
+            if(
+                t.identifier===
+                lookId
+            ){
+
+                lookId=null;
+            }
+        }
+    }
+);
+
+
+/* =================================================
+   JUMP
+================================================= */
+
+document
+.getElementById("jump")
+.addEventListener(
+    "touchstart",
+    function(e){
+
+        if(
+            player.grounded
+        ){
+
+            player.vy=
+            player.jump;
+
+            player.grounded=false;
+        }
+
+        e.preventDefault();
+
+    },
+    {passive:false}
+);
+
+
+/* =================================================
+   SPRINT
+================================================= */
+
+const run=
+document.getElementById(
+    "run"
+);
+
+run.addEventListener(
+    "touchstart",
+    function(e){
+
+        sprint=true;
+
+        e.preventDefault();
+
+    },
+    {passive:false}
+);
+
+run.addEventListener(
+    "touchend",
+    function(){
+
+        sprint=false;
+
+    }
+);
+
+let sprint=false;
+
+
+/* =================================================
+   BLOCK TARGET
+================================================= */
+
+const raycaster=
+new THREE.Raycaster();
+
+
+function getTarget(){
+
+    raycaster.setFromCamera(
+        new THREE.Vector2(0,0),
+        camera
+    );
+
+    const hits=
+    raycaster.intersectObjects(
+        blocks,
+        false
+    );
+
+    if(
+        hits.length===0
+    )
+        return null;
+
+    if(
+        hits[0].distance>6
+    )
+        return null;
+
+    return hits[0];
+}
+
+
+/* =================================================
+   BREAK BLOCK
+================================================= */
+
+function breakBlock(){
+
+    const hit=
+    getTarget();
+
+    if(!hit)
+        return;
+
+    const block=
+    hit.object;
+
+    const type=
+    block.userData.type;
+
+    if(type==="water")
+        return;
+
+    if(
+        block.position.y<=0
+    )
+        return;
+
+    removeBlock(block);
+
+    showMessage(
+        "⛏️ "+names[type]+
+        "を壊しました！"
+    );
+}
+
+
+document
+.getElementById("break")
+.addEventListener(
+    "touchstart",
+    function(e){
+
+        breakBlock();
+
+        e.preventDefault();
+
+    },
+    {passive:false}
+);
+
+
+/* =================================================
+   PLACE BLOCK
+================================================= */
+
+let selected="grass";
+
+
+function placeBlock(){
+
+    const hit=
+    getTarget();
+
+    if(!hit)
+        return;
+
+    const normal=
+    hit.face.normal.clone();
+
+    const p=
+    hit.object.position.clone()
+    .add(normal);
+
+    const x=
+    Math.round(p.x);
+
+    const y=
+    Math.round(p.y);
+
+    const z=
+    Math.round(p.z);
+
+
+    if(
+        blockMap.has(
+            blockKey(x,y,z)
+        )
+    )
+        return;
+
+
+    /*
+       プレイヤーの中には
+       ブロックを置けない
+    */
+
+    const oldX=
+    player.x;
+
+    const oldY=
+    player.y;
+
+    const oldZ=
+    player.z;
+
+
+    addBlock(
+        x,y,z,
+        selected
+    );
+
+
+    if(
+        collision()
+    ){
+
+        const b=
+        getBlock(x,y,z);
+
+        if(b)
+            removeBlock(b);
+    }
+
+
+    player.x=oldX;
+    player.y=oldY;
+    player.z=oldZ;
+}
+
+
+document
+.getElementById("place")
+.addEventListener(
+    "touchstart",
+    function(e){
+
+        placeBlock();
+
+        e.preventDefault();
+
+    },
+    {passive:false}
+);
+
+
+/* =================================================
+   HOTBAR
+================================================= */
+
+const items=[
+    "grass",
+    "dirt",
+    "stone",
+    "wood",
+    "glass"
+];
+
+const hotbar=
+document.getElementById(
+    "hotbar"
+);
+
+
+function makeHotbar(){
+
+    hotbar.innerHTML="";
+
+    items.forEach(
+        function(type,index){
+
+            const slot=
+            document.createElement(
+                "div"
+            );
+
+            slot.className="slot";
+
+            if(
+                type===selected
+            ){
+
+                slot.classList.add(
+                    "selected"
+                );
+            }
+
+
+            const icon=
+            document.createElement(
+                "div"
+            );
+
+            icon.className="icon";
+
+            icon.style.background=
+            colors[type];
+
+
+            const label=
+            document.createElement(
+                "div"
+            );
+
+            label.textContent=
+            (index+1)+
+            " "+names[type];
+
+
+            slot.appendChild(icon);
+
+            slot.appendChild(label);
+
+
+            slot.addEventListener(
+                "touchstart",
+                function(e){
+
+                    selected=type;
+
+                    makeHotbar();
+
+                    document
+                    .getElementById(
+                        "selectedName"
+                    )
+                    .textContent=
+                    names[type];
+
+                    e.preventDefault();
+
+                },
+                {passive:false}
+            );
+
+
+            hotbar.appendChild(slot);
+        }
+    );
+}
+
+makeHotbar();
+
+
+/* =================================================
+   PLAYER UPDATE
+================================================= */
+
+function updatePlayer(){
+
+    const speed=
+    sprint ?
+    player.sprint :
+    player.speed;
+
+
+    /*
+       前方向
+    */
+
+    const fx=
+    -Math.sin(yaw);
+
+    const fz=
+    -Math.cos(yaw);
+
+
+    /*
+       右方向
+    */
+
+    const rx=
+    Math.cos(yaw);
+
+    const rz=
+    -Math.sin(yaw);
+
+
+    let dx=
+    fx*(-joyY)+
+    rx*joyX;
+
+    let dz=
+    fz*(-joyY)+
+    rz*joyX;
+
+
+    /*
+       斜め移動が
+       速くなりすぎないようにする
+    */
+
+    const len=
+    Math.sqrt(
+        dx*dx+dz*dz
+    );
+
+    if(len>1){
+
+        dx/=len;
+        dz/=len;
+    }
+
+
+    dx*=speed;
+
+    dz*=speed;
+
+
+    /*
+       ★小さく分割
+
+       高速移動でも
+       ブロックを飛び越えにくい
+    */
+
+    const steps=
+    Math.max(
+        1,
+        Math.ceil(
+            Math.max(
+                Math.abs(dx),
+                Math.abs(dz)
+            )/.08
+        )
+    );
+
+
+    for(
+        let i=0;
+        i<steps;
+        i++
+    ){
+
+        moveX(
+            dx/steps
+        );
+
+        moveZ(
+            dz/steps
+        );
+    }
+
+
+    /*
+       重力
+    */
+
+    player.vy-=.012;
+
+
+    if(
+        player.vy<-.5
+    )
+        player.vy=-.5;
+
+
+    moveY(
+        player.vy
+    );
+
+
+    /*
+       落下したらリスポーン
+    */
+
+    if(
+        player.y<-15
+    ){
+
+        player.x=0;
+        player.y=8;
+        player.z=6;
+
+        player.vy=0;
+
+        showMessage(
+            "🔄 リスポーン！"
+        );
+    }
+
+
+    /*
+       カメラ
+    */
+
+    camera.position.set(
+        player.x,
+        player.y+1.62,
+        player.z
+    );
+
+    camera.rotation.order=
+    "YXZ";
+
+    camera.rotation.y=
+    yaw;
+
+    camera.rotation.x=
+    pitch;
+}
+
+
+/* =================================================
+   DAY NIGHT
+================================================= */
+
+let worldTime=
+0.5;
+
+
+function updateDayNight(){
+
+    worldTime+=.0007;
+
+
+    const angle=
+    worldTime*Math.PI*2;
+
+
+    const sx=
+    Math.cos(angle)*35;
+
+    const sy=
+    Math.sin(angle)*35+10;
+
+    const sz=
+    Math.sin(angle)*25;
+
+
+    sun.position.set(
+        sx,
+        sy,
+        sz
+    );
+
+
+    sunMesh.position.set(
+        sx,
+        sy,
+        sz
+    );
+
+
+    const mx=
+    -sx;
+
+    const my=
+    -sy+30;
+
+    const mz=
+    -sz;
+
+
+    moonMesh.position.set(
+        mx,
+        my,
+        mz
+    );
+
+
+    const daylight=
+    Math.max(
+        .08,
+        Math.sin(angle)*.8+.2
+    );
+
+
+    ambient.intensity=
+    daylight*1.5;
+
+
+    sun.intensity=
+    daylight*2;
+
+
+    /*
+       昼 → 明るい
+       夜 → 暗い
+    */
+
+    const sky=
+    new THREE.Color();
+
+    sky.setHSL(
+        .55,
+        .55,
+        .45*daylight+.04
+    );
+
+
+    scene.background=
+    sky;
+
+    scene.fog.color=
+    sky;
+
+
+    starMaterial.opacity=
+    Math.max(
+        0,
+        1-daylight*1.4
+    );
+}
+
+
+/* =================================================
+   HEALTH
+================================================= */
+
+function updateHealth(){
+
+    let text="";
+
+    for(
+        let i=0;
+        i<5;
+        i++
+    ){
+
+        text+=
+        i<player.health
+        ?"❤️"
+        :"🖤";
+    }
+
+    document
+    .getElementById(
+        "health"
+    )
+    .textContent=text;
+}
+
+
+/* =================================================
+   MESSAGE
+================================================= */
+
+let messageTimer=null;
+
+
+function showMessage(text){
+
+    const m=
+    document.getElementById(
+        "message"
+    );
+
+    m.textContent=text;
+
+    m.style.opacity="1";
+
+
+    clearTimeout(
+        messageTimer
+    );
+
+
+    messageTimer=
+    setTimeout(
+        function(){
+
+            m.style.opacity="0";
+
+        },
+        1200
+    );
+}
+
+
+/* =================================================
+   SAVE
+================================================= */
+
+document
+.getElementById("save")
+.addEventListener(
+    "click",
+    saveGame
+);
+
+
+function saveGame(){
+
+    const data={
+
+        player:{
+            x:player.x,
+            y:player.y,
+            z:player.z,
+
+            yaw:yaw,
+            pitch:pitch,
+
+            health:
+            player.health
+        },
+
+        selected:selected,
+
+        time:worldTime
+    };
+
+
+    /*
+       変更したブロックだけ保存
+    */
+
+    const changed=[];
+
+
+    for(
+        const b of blocks
+    ){
+
+        /*
+           基本地形以外を保存するため
+           現在のブロックを記録
+        */
+
+        changed.push({
+
+            x:b.position.x,
+            y:b.position.y,
+            z:b.position.z,
+
+            type:b.userData.type
+        });
+    }
+
+
+    data.blocks=changed;
+
+
+    try{
+
+        localStorage.setItem(
+            "BLOCK_WORLD_3D_SAVE",
+            JSON.stringify(data)
+        );
+
+        showMessage(
+            "💾 ワールドを保存しました！"
+        );
+
+    }catch(e){
+
+        showMessage(
+            "⚠️ 保存できませんでした"
+        );
+    }
+}
+
+
+/* =================================================
+   LOAD
+================================================= */
+
+function loadGame(){
+
+    try{
+
+        const raw=
+        localStorage.getItem(
+            "BLOCK_WORLD_3D_SAVE"
+        );
+
+        if(!raw)
+            return;
+
+        const data=
+        JSON.parse(raw);
+
+
+        if(data.player){
+
+            player.x=
+            data.player.x;
+
+            player.y=
+            data.player.y;
+
+            player.z=
+            data.player.z;
+
+            yaw=
+            data.player.yaw||0;
+
+            pitch=
+            data.player.pitch||0;
+
+            player.health=
+            data.player.health||5;
+        }
+
+
+        selected=
+        data.selected||
+        "grass";
+
+
+        worldTime=
+        data.time||
+        .5;
+
+
+        makeHotbar();
+
+
+        /*
+           保存されたワールドがある場合
+           一度現在のブロックを消す
+        */
+
+        if(
+            Array.isArray(
+                data.blocks
+            )
+        ){
+
+            for(
+                const b of
+                [...blocks]
+            ){
+
+                removeBlock(b);
+            }
+
+
+            for(
+                const b of
+                data.blocks
+            ){
+
+                addBlock(
+                    b.x,
+                    b.y,
+                    b.z,
+                    b.type
+                );
+            }
+        }
+
+    }catch(e){
+
+        console.log(
+            "セーブ読み込み失敗",
+            e
+        );
+    }
+}
+
+loadGame();
+
+
+/* =================================================
+   RESIZE
+================================================= */
+
+window.addEventListener(
+    "resize",
+    function(){
+
+        camera.aspect=
+        innerWidth/
+        innerHeight;
+
+        camera.updateProjectionMatrix();
+
+        renderer.setSize(
+            innerWidth,
+            innerHeight
+        );
+    }
+);
+
+
+/* =================================================
+   GAME LOOP
+================================================= */
+
+function animate(){
+
+    requestAnimationFrame(
+        animate
+    );
+
+
+    updatePlayer();
+
+    updateDayNight();
+
+    updateHealth();
+
+
+    renderer.render(
+        scene,
+        camera
+    );
+}
+
+
+animate();
+
+
+showMessage(
+    "🌍 BLOCK WORLDへようこそ！"
+);
+
+}
+
+</script>
+
+</body>
+</html>
