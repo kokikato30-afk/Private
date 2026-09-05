@@ -1,14 +1,19 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
+
 <meta charset="UTF-8">
+
 <meta name="viewport"
-      content="width=device-width,initial-scale=1.0,
-      maximum-scale=1.0,user-scalable=no">
+content="width=device-width,
+initial-scale=1.0,
+maximum-scale=1.0,
+user-scalable=no">
 
 <title>BLOCK WORLD 3D</title>
 
 <style>
+
 *{
     margin:0;
     padding:0;
@@ -40,6 +45,10 @@ canvas{
     pointer-events:none;
 }
 
+/* =========================
+   クロスヘア
+========================= */
+
 #crosshair{
     position:absolute;
     left:50%;
@@ -49,210 +58,306 @@ canvas{
     height:18px;
 }
 
-#crosshair::before,
-#crosshair::after{
+#crosshair:before,
+#crosshair:after{
     content:"";
     position:absolute;
     background:white;
-    box-shadow:0 0 3px black;
+    box-shadow:0 1px 3px black;
 }
 
-#crosshair::before{
+#crosshair:before{
     width:18px;
     height:2px;
     top:8px;
-    left:0;
 }
 
-#crosshair::after{
+#crosshair:after{
     width:2px;
     height:18px;
-    top:0;
     left:8px;
 }
 
-/* ジョイスティック */
-
-#joystick{
-    position:absolute;
-    left:25px;
-    bottom:30px;
-    width:140px;
-    height:140px;
-    border-radius:50%;
-    background:rgba(255,255,255,.18);
-    border:3px solid rgba(255,255,255,.45);
-    pointer-events:auto;
-    touch-action:none;
-}
-
-#stick{
-    position:absolute;
-    left:40px;
-    top:40px;
-    width:60px;
-    height:60px;
-    border-radius:50%;
-    background:rgba(255,255,255,.45);
-    border:2px solid white;
-}
-
-/* ボタン */
-
-.gameButton{
-    position:absolute;
-    border:none;
-    color:white;
-    font-size:17px;
-    font-weight:bold;
-    border-radius:15px;
-    background:rgba(0,0,0,.45);
-    border:2px solid rgba(255,255,255,.45);
-    pointer-events:auto;
-    touch-action:none;
-}
-
-#jump{
-    right:30px;
-    bottom:120px;
-    width:80px;
-    height:80px;
-}
-
-#sprint{
-    right:30px;
-    bottom:30px;
-    width:80px;
-    height:60px;
-}
-
-#breakBtn{
-    right:125px;
-    bottom:30px;
-    width:80px;
-    height:60px;
-}
-
-#placeBtn{
-    right:220px;
-    bottom:30px;
-    width:80px;
-    height:60px;
-}
-
-/* 上部UI */
+/* =========================
+   上部
+========================= */
 
 #top{
     position:absolute;
-    top:10px;
     left:10px;
+    top:10px;
     color:white;
     text-shadow:0 2px 4px black;
+    font-size:14px;
     font-weight:bold;
-    font-size:15px;
 }
 
 #info{
     position:absolute;
-    top:10px;
     right:10px;
+    top:10px;
     color:white;
     text-shadow:0 2px 4px black;
     text-align:right;
     font-size:14px;
 }
 
-#hotbar{
+/* =========================
+   ジョイスティック
+========================= */
+
+#joystick{
     position:absolute;
+    left:25px;
+    bottom:25px;
+
+    width:140px;
+    height:140px;
+
+    border-radius:50%;
+
+    background:rgba(255,255,255,.18);
+
+    border:3px solid rgba(255,255,255,.45);
+
+    pointer-events:auto;
+
+    touch-action:none;
+}
+
+#stick{
+    position:absolute;
+
+    width:60px;
+    height:60px;
+
+    left:37px;
+    top:37px;
+
+    border-radius:50%;
+
+    background:rgba(255,255,255,.45);
+
+    border:2px solid white;
+
+    transition:transform .03s;
+}
+
+/* =========================
+   ボタン
+========================= */
+
+.gameButton{
+
+    position:absolute;
+
+    border:none;
+
+    color:white;
+
+    font-weight:bold;
+
+    background:rgba(0,0,0,.45);
+
+    border:2px solid rgba(255,255,255,.45);
+
+    border-radius:15px;
+
+    pointer-events:auto;
+
+    touch-action:none;
+}
+
+#jump{
+
+    right:25px;
+    bottom:125px;
+
+    width:85px;
+    height:75px;
+
+    font-size:15px;
+}
+
+#sprint{
+
+    right:25px;
+    bottom:30px;
+
+    width:85px;
+    height:60px;
+}
+
+#breakBtn{
+
+    right:125px;
+    bottom:30px;
+
+    width:80px;
+    height:60px;
+}
+
+#placeBtn{
+
+    right:220px;
+    bottom:30px;
+
+    width:80px;
+    height:60px;
+}
+
+/* =========================
+   ホットバー
+========================= */
+
+#hotbar{
+
+    position:absolute;
+
     left:50%;
     bottom:105px;
+
     transform:translateX(-50%);
+
     display:flex;
     gap:5px;
+
     pointer-events:auto;
 }
 
 .slot{
-    width:50px;
-    height:50px;
-    border:3px solid white;
-    border-radius:8px;
+
+    width:48px;
+    height:48px;
+
     background:rgba(0,0,0,.45);
+
+    border:3px solid white;
+
+    border-radius:8px;
+
     display:flex;
+
     justify-content:center;
     align-items:center;
+
     color:white;
-    font-size:11px;
+
+    font-size:10px;
+
     text-align:center;
 }
 
 .slot.selected{
-    border:4px solid yellow;
+
+    border-color:yellow;
 }
 
-/* 開始画面 */
+/* =========================
+   スタート
+========================= */
 
 #startScreen{
+
     position:absolute;
+
     inset:0;
+
     display:flex;
+
     justify-content:center;
     align-items:center;
-    background:rgba(0,0,0,.55);
+
+    background:rgba(0,0,0,.58);
+
     pointer-events:auto;
 }
 
 #startBox{
-    width:min(90%,420px);
+
+    width:min(90%,430px);
+
     padding:30px;
-    background:rgba(20,30,40,.9);
-    border-radius:25px;
+
+    background:rgba(20,30,40,.93);
+
     color:white;
+
+    border-radius:25px;
+
     text-align:center;
-    box-shadow:0 10px 40px rgba(0,0,0,.5);
+
+    box-shadow:
+    0 10px 40px rgba(0,0,0,.5);
 }
 
 #startBox h1{
-    font-size:32px;
-    margin-bottom:10px;
+
+    font-size:30px;
+
+    margin-bottom:12px;
 }
 
 #startBox p{
-    margin-bottom:20px;
+
     line-height:1.7;
+
+    margin-bottom:20px;
 }
 
 .startBtn{
+
     width:100%;
+
     padding:15px;
+
     margin-top:10px;
+
     border:none;
+
     border-radius:12px;
+
     font-size:18px;
+
     font-weight:bold;
 }
 
-/* エラー */
+/* =========================
+   エラー
+========================= */
 
 #error{
+
     position:absolute;
+
     left:50%;
     top:50%;
+
     transform:translate(-50%,-50%);
+
     width:90%;
     max-width:500px;
+
     padding:25px;
+
     background:#222;
+
     color:white;
+
     border-radius:15px;
+
     display:none;
 }
+
 </style>
 </head>
 
+
 <body>
 
+
 <div id="game"></div>
+
 
 <div id="ui">
 
@@ -260,167 +365,304 @@ canvas{
 
     <div id="top">
         BLOCK WORLD 3D<br>
-        モード: <span id="modeText">探索</span>
+        モード: 探索
     </div>
 
     <div id="info">
-        時間: <span id="timeText">昼</span><br>
-        選択: <span id="blockText">草</span>
+
+        時間:
+        <span id="timeText">
+            昼
+        </span>
+
+        <br>
+
+        ブロック:
+        <span id="blockText">
+            草
+        </span>
+
     </div>
+
 
     <div id="joystick">
+
         <div id="stick"></div>
+
     </div>
 
-    <button class="gameButton" id="jump">ジャンプ</button>
-    <button class="gameButton" id="sprint">ダッシュ</button>
-    <button class="gameButton" id="breakBtn">壊す</button>
-    <button class="gameButton" id="placeBtn">置く</button>
+
+    <button
+    class="gameButton"
+    id="jump">
+
+        ジャンプ
+
+    </button>
+
+
+    <button
+    class="gameButton"
+    id="sprint">
+
+        ダッシュ
+
+    </button>
+
+
+    <button
+    class="gameButton"
+    id="breakBtn">
+
+        壊す
+
+    </button>
+
+
+    <button
+    class="gameButton"
+    id="placeBtn">
+
+        置く
+
+    </button>
+
 
     <div id="hotbar"></div>
 
 </div>
 
+
 <div id="startScreen">
 
     <div id="startBox">
 
-        <h1>🌎 BLOCK WORLD 3D</h1>
+        <h1>
+            🌎 BLOCK WORLD 3D
+        </h1>
 
         <p>
+
             広い世界を自由に探索しよう！<br>
+
             敵はいません。<br>
-            ブロックを壊したり置いたりできます。
+
+            ブロックを置いたり壊したりできます。<br>
+
+            🌋 溶岩湖もあります！
+
         </p>
 
-        <button class="startBtn" id="startBtn">
-            ▶ ゲーム開始
+
+        <button
+        class="startBtn"
+        id="startBtn">
+
+            ▶ 新しい世界
+
         </button>
 
-        <button class="startBtn" id="loadBtn">
+
+        <button
+        class="startBtn"
+        id="loadBtn">
+
             💾 セーブから開始
+
         </button>
 
     </div>
 
 </div>
 
+
 <div id="error">
-    <h2>⚠️ 読み込みエラー</h2>
+
+    <h2>
+        ⚠️ 読み込みエラー
+    </h2>
+
     <p>
-        3Dエンジンを読み込めませんでした。<br>
-        インターネット接続を確認して、ページを再読み込みしてください。
+        3Dエンジンを読み込めませんでした。
+        インターネット接続を確認して、
+        ページを再読み込みしてください。
     </p>
+
 </div>
 
+
 <script>
-/* =========================================
-   THREE.JS 読み込み
-========================================= */
+
+
+/* ==================================================
+   THREE.JS
+================================================== */
 
 function loadThree(){
 
-    const script=document.createElement("script");
+    const script =
+    document.createElement("script");
 
-    script.src=
+    script.src =
     "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js";
 
-    script.onload=init;
+    script.onload = init;
 
-    script.onerror=()=>{
+    script.onerror = () => {
 
-        const s=document.createElement("script");
+        const backup =
+        document.createElement("script");
 
-        s.src=
+        backup.src =
         "https://unpkg.com/three@0.160.0/build/three.min.js";
 
-        s.onload=init;
+        backup.onload = init;
 
-        s.onerror=()=>{
-            document.getElementById("error").style.display="block";
+        backup.onerror = () => {
+
+            document
+            .getElementById("error")
+            .style.display = "block";
+
         };
 
-        document.head.appendChild(s);
+        document.head
+        .appendChild(backup);
+
     };
 
-    document.head.appendChild(script);
+    document.head
+    .appendChild(script);
+
 }
 
 loadThree();
 
 
-/* =========================================
-   ゲーム本体
-========================================= */
+/* ==================================================
+   GAME
+================================================== */
 
 function init(){
 
 "use strict";
 
 
-/* =========================================
-   基本設定
-========================================= */
+/* ==================================================
+   WORLD SETTINGS
+================================================== */
 
-const WORLD_SIZE=100;
-const WORLD_HALF=WORLD_SIZE/2;
+const WORLD_SIZE = 100;
 
-const BLOCK_SIZE=1;
-
-const GRAVITY=18;
-const JUMP_POWER=7;
-
-const PLAYER_WIDTH=.58;
-const PLAYER_HEIGHT=1.8;
-const PLAYER_DEPTH=.58;
-
-const RENDER_DISTANCE=35;
+const HALF =
+WORLD_SIZE / 2;
 
 
-/* =========================================
+/*
+   チャンクサイズ
+
+   10×10ブロック
+*/
+
+const CHUNK_SIZE = 10;
+
+
+/*
+   最初から作る範囲
+
+   小さいほど軽い
+*/
+
+const LOAD_RADIUS = 2;
+
+
+/*
+   プレイヤーから
+   これ以上遠くなったら
+   チャンクを削除
+*/
+
+const UNLOAD_RADIUS = 4;
+
+
+/* ==================================================
+   PLAYER
+================================================== */
+
+const PLAYER_WIDTH = .58;
+
+const PLAYER_DEPTH = .58;
+
+const PLAYER_HEIGHT = 1.8;
+
+const GRAVITY = 18;
+
+const JUMP_POWER = 7;
+
+
+/* ==================================================
    THREE
-========================================= */
+================================================== */
 
-const scene=new THREE.Scene();
+const scene =
+new THREE.Scene();
 
-scene.fog=
-new THREE.Fog(0x87ceeb,30,RENDER_DISTANCE);
 
-const camera=
+scene.background =
+new THREE.Color(0x87ceeb);
+
+
+scene.fog =
+new THREE.Fog(
+    0x87ceeb,
+    25,
+    55
+);
+
+
+const camera =
 new THREE.PerspectiveCamera(
     70,
-    innerWidth/innerHeight,
+    innerWidth / innerHeight,
     .05,
     150
 );
 
-const renderer=
+
+const renderer =
 new THREE.WebGLRenderer({
     antialias:true
 });
 
+
 renderer.setPixelRatio(
-    Math.min(devicePixelRatio,1.5)
+    Math.min(
+        devicePixelRatio,
+        1.25
+    )
 );
+
 
 renderer.setSize(
     innerWidth,
     innerHeight
 );
 
-renderer.outputColorSpace=
+
+renderer.outputColorSpace =
 THREE.SRGBColorSpace;
+
 
 document
 .getElementById("game")
 .appendChild(renderer.domElement);
 
 
-/* =========================================
-   光
-========================================= */
+/* ==================================================
+   LIGHT
+================================================== */
 
-const ambient=
+const ambient =
 new THREE.HemisphereLight(
     0xbfe8ff,
     0x555555,
@@ -429,22 +671,27 @@ new THREE.HemisphereLight(
 
 scene.add(ambient);
 
-const sun=
+
+const sun =
 new THREE.DirectionalLight(
     0xffffff,
     1.5
 );
 
-sun.position.set(30,60,20);
+sun.position.set(
+    30,
+    60,
+    20
+);
 
 scene.add(sun);
 
 
-/* =========================================
-   ブロック
-========================================= */
+/* ==================================================
+   BLOCK TYPES
+================================================== */
 
-const BLOCKS={
+const BLOCKS = {
 
     grass:{
         color:0x55aa45,
@@ -471,7 +718,7 @@ const BLOCKS={
     },
 
     leaves:{
-        color:0x228833,
+        color:0x238a38,
         solid:true,
         name:"葉"
     },
@@ -503,243 +750,226 @@ const BLOCKS={
         emissive:true,
         name:"溶岩"
     }
+
 };
 
 
-/* =========================================
-   ワールドデータ
-========================================= */
+/* ==================================================
+   WORLD DATA
+================================================== */
 
-const blocks=new Map();
 
-const meshes=new Map();
+/*
+   blocks
 
+   全ワールドのブロック情報
+
+   Meshは近くにあるものだけ
+   作ります。
+*/
+
+const blocks =
+new Map();
+
+
+/*
+   generatedChunks
+
+   現在Mesh化されているチャンク
+*/
+
+const generatedChunks =
+new Map();
+
+
+/*
+   blockMeshes
+
+   ブロック → Mesh
+*/
+
+const blockMeshes =
+new Map();
+
+
+/* ==================================================
+   KEY
+================================================== */
 
 function key(x,y,z){
 
-    return `${x},${y},${z}`;
-
-}
-
-
-/* =========================================
-   ブロック生成
-========================================= */
-
-function createBlock(x,y,z,type){
-
-    const data=BLOCKS[type];
-
-    if(!data)return;
-
-    const geo=
-    new THREE.BoxGeometry(
-        BLOCK_SIZE,
-        BLOCK_SIZE,
-        BLOCK_SIZE
+    return (
+        x + "," +
+        y + "," +
+        z
     );
 
-    const mat=
-    new THREE.MeshStandardMaterial({
-
-        color:data.color,
-
-        transparent:!!data.transparent,
-
-        opacity:
-        data.transparent
-        ? .55
-        : 1,
-
-        roughness:.8,
-
-        emissive:
-        data.emissive
-        ? 0xff2200
-        : 0x000000,
-
-        emissiveIntensity:
-        data.emissive
-        ? .35
-        : 0
-    });
-
-    const mesh=
-    new THREE.Mesh(geo,mat);
-
-    mesh.position.set(
-        x+.5,
-        y+.5,
-        z+.5
-    );
-
-    mesh.userData={
-        x:x,
-        y:y,
-        z:z,
-        type:type
-    };
-
-    scene.add(mesh);
-
-    meshes.set(key(x,y,z),mesh);
-
 }
 
 
-/* =========================================
-   ブロック追加
-========================================= */
-
-function addBlock(x,y,z,type){
-
-    const k=key(x,y,z);
-
-    if(blocks.has(k))return;
-
-    blocks.set(k,type);
-
-    createBlock(x,y,z,type);
-
-}
-
-
-/* =========================================
-   ブロック削除
-========================================= */
-
-function removeBlock(x,y,z){
-
-    const k=key(x,y,z);
-
-    if(!blocks.has(k))return;
-
-    blocks.delete(k);
-
-    const mesh=meshes.get(k);
-
-    if(mesh){
-
-        scene.remove(mesh);
-
-        mesh.geometry.dispose();
-
-        mesh.material.dispose();
-
-        meshes.delete(k);
-    }
-
-}
-
-
-/* =========================================
-   当たり判定
-========================================= */
-
-function isSolid(x,y,z){
-
-    const type=blocks.get(key(x,y,z));
-
-    if(!type)return false;
-
-    return BLOCKS[type].solid;
-
-}
-
-
-/* =========================================
-   高さ生成
-========================================= */
+/* ==================================================
+   HEIGHT
+================================================== */
 
 function heightAt(x,z){
 
-    const n=
-    Math.sin(x*.16)*2.5+
-    Math.cos(z*.13)*2+
-    Math.sin((x+z)*.08)*2;
+    return Math.floor(
 
-    return Math.floor(5+n);
+        5
 
-}
+        +
 
+        Math.sin(x*.14)*2.5
 
-/* =========================================
-   木
-========================================= */
+        +
 
-function makeTree(x,y,z){
+        Math.cos(z*.12)*2
 
-    for(let i=0;i<4;i++){
+        +
 
-        addBlock(
-            x,
-            y+i,
-            z,
-            "wood"
-        );
+        Math.sin(
+            (x+z)*.07
+        )*2
 
-    }
-
-    for(let dx=-2;dx<=2;dx++){
-
-        for(let dz=-2;dz<=2;dz++){
-
-            for(let dy=2;dy<=4;dy++){
-
-                if(
-                    Math.abs(dx)+
-                    Math.abs(dz)<4
-                ){
-
-                    addBlock(
-                        x+dx,
-                        y+dy,
-                        z+dz,
-                        "leaves"
-                    );
-
-                }
-
-            }
-
-        }
-
-    }
+    );
 
 }
 
 
-/* =========================================
-   ワールド生成
-========================================= */
+/* ==================================================
+   CHUNK KEY
+================================================== */
 
-function generateWorld(){
+function chunkKey(cx,cz){
+
+    return cx + "," + cz;
+
+}
+
+
+function getChunkX(x){
+
+    return Math.floor(
+        (x + HALF) /
+        CHUNK_SIZE
+    );
+
+}
+
+
+function getChunkZ(z){
+
+    return Math.floor(
+        (z + HALF) /
+        CHUNK_SIZE
+    );
+
+}
+
+
+/* ==================================================
+   ADD WORLD BLOCK
+================================================== */
+
+function addWorldBlock(
+    x,y,z,type
+){
+
+    if(
+        x < -HALF ||
+        x >= HALF ||
+        z < -HALF ||
+        z >= HALF
+    ){
+
+        return;
+
+    }
+
+    const k =
+    key(x,y,z);
+
+    if(blocks.has(k))
+        return;
+
+    blocks.set(
+        k,
+        type
+    );
+
+}
+
+
+/* ==================================================
+   REMOVE WORLD BLOCK
+================================================== */
+
+function removeWorldBlock(
+    x,y,z
+){
+
+    const k =
+    key(x,y,z);
+
+    blocks.delete(k);
+
+}
+
+
+/* ==================================================
+   GENERATE TERRAIN DATA
+================================================== */
+
+function generateTerrain(){
+
+    /*
+       地形
+    */
 
     for(
-        let x=-WORLD_HALF;
-        x<WORLD_HALF;
+        let x=-HALF;
+        x<HALF;
         x++
     ){
 
         for(
-            let z=-WORLD_HALF;
-            z<WORLD_HALF;
+            let z=-HALF;
+            z<HALF;
             z++
         ){
 
-            const h=heightAt(x,z);
+            const h =
+            heightAt(x,z);
 
-            for(let y=0;y<=h;y++){
 
-                let type="stone";
+            for(
+                let y=0;
+                y<=h;
+                y++
+            ){
 
-                if(y===h)
-                    type="grass";
+                let type =
+                "stone";
 
-                else if(y>=h-3)
+
+                if(y === h){
+
+                    if(h <= 3)
+                        type="sand";
+                    else
+                        type="grass";
+
+                }
+                else if(
+                    y >= h-3
+                ){
+
                     type="dirt";
 
-                addBlock(
+                }
+
+
+                addWorldBlock(
                     x,y,z,type
                 );
 
@@ -750,34 +980,90 @@ function generateWorld(){
     }
 
 
-    /* 砂浜 */
+    /*
+       木
+    */
 
     for(
-        let x=-WORLD_HALF;
-        x<WORLD_HALF;
-        x++
+        let i=0;
+        i<80;
+        i++
     ){
 
+        const x =
+        Math.floor(
+            Math.random()*80 - 40
+        );
+
+        const z =
+        Math.floor(
+            Math.random()*80 - 40
+        );
+
+        const h =
+        heightAt(x,z);
+
+
+        if(h < 6)
+            continue;
+
+
+        /*
+           幹
+        */
+
         for(
-            let z=-WORLD_HALF;
-            z<WORLD_HALF;
-            z++
+            let y=1;
+            y<=4;
+            y++
         ){
 
-            const h=heightAt(x,z);
+            addWorldBlock(
+                x,
+                h+y,
+                z,
+                "wood"
+            );
 
-            if(h<=4){
+        }
 
-                for(let y=0;y<=h;y++){
 
-                    removeBlock(x,y,z);
+        /*
+           葉
+        */
 
-                    addBlock(
-                        x,y,z,
-                        y===h
-                        ?"sand"
-                        :"dirt"
-                    );
+        for(
+            let dx=-2;
+            dx<=2;
+            dx++
+        ){
+
+            for(
+                let dz=-2;
+                dz<=2;
+                dz++
+            ){
+
+                for(
+                    let dy=3;
+                    dy<=5;
+                    dy++
+                ){
+
+                    if(
+                        Math.abs(dx)+
+                        Math.abs(dz)
+                        <=3
+                    ){
+
+                        addWorldBlock(
+                            x+dx,
+                            h+dy,
+                            z+dz,
+                            "leaves"
+                        );
+
+                    }
 
                 }
 
@@ -788,45 +1074,27 @@ function generateWorld(){
     }
 
 
-    /* 木 */
+    /*
+       水
+    */
 
-    for(let i=0;i<100;i++){
+    for(
+        let x=-45;
+        x<45;
+        x++
+    ){
 
-        const x=
-        Math.floor(
-            Math.random()*80-40
-        );
-
-        const z=
-        Math.floor(
-            Math.random()*80-40
-        );
-
-        const y=heightAt(x,z)+1;
-
-        if(
-            heightAt(x,z)>=6 &&
-            Math.random()<.65
+        for(
+            let z=-45;
+            z<45;
+            z++
         ){
 
-            makeTree(x,y,z);
-
-        }
-
-    }
-
-
-    /* 水 */
-
-    for(let x=-45;x<45;x++){
-
-        for(let z=-45;z<45;z++){
-
             if(
-                heightAt(x,z)<=3
+                heightAt(x,z) <= 3
             ){
 
-                addBlock(
+                addWorldBlock(
                     x,
                     4,
                     z,
@@ -840,26 +1108,32 @@ function generateWorld(){
     }
 
 
-    /* =====================================
+    /*
        🌋 溶岩湖
-    ===================================== */
+    */
 
-    for(let lake=0;lake<6;lake++){
+    for(
+        let lake=0;
+        lake<5;
+        lake++
+    ){
 
-        const cx=
+        const cx =
         Math.floor(
-            Math.random()*70-35
+            Math.random()*70 - 35
         );
 
-        const cz=
+        const cz =
         Math.floor(
-            Math.random()*70-35
+            Math.random()*70 - 35
         );
 
-        const radius=
+        const radius =
+        3 +
         Math.floor(
-            Math.random()*3+3
+            Math.random()*3
         );
+
 
         for(
             let x=cx-radius;
@@ -873,35 +1147,36 @@ function generateWorld(){
                 z++
             ){
 
-                const dist=
+                const distance =
                 Math.sqrt(
-                    (x-cx)*(x-cx)+
+                    (x-cx)*(x-cx)
+                    +
                     (z-cz)*(z-cz)
                 );
 
-                if(dist<=radius){
 
-                    const ground=
-                    heightAt(x,z);
+                if(
+                    distance <= radius
+                    &&
+                    heightAt(x,z)>=5
+                    &&
+                    heightAt(x,z)<=8
+                ){
+
+                    const y =
+                    heightAt(x,z)+1;
+
 
                     /*
-                       地面の上を
-                       溶岩にする
+                       小さな溶岩湖
                     */
 
-                    if(
-                        ground>=5 &&
-                        ground<=8
-                    ){
-
-                        addBlock(
-                            x,
-                            ground+1,
-                            z,
-                            "lava"
-                        );
-
-                    }
+                    addWorldBlock(
+                        x,
+                        y,
+                        z,
+                        "lava"
+                    );
 
                 }
 
@@ -914,22 +1189,373 @@ function generateWorld(){
 }
 
 
-/* =========================================
-   プレイヤー
-========================================= */
+/* ==================================================
+   BLOCK MESH
+================================================== */
+
+const geometry =
+new THREE.BoxGeometry(
+    1,1,1
+);
+
+
+/*
+   マテリアルを使い回す
+
+   毎回newしないので軽量
+*/
+
+const materials={};
+
+
+for(
+    const type in BLOCKS
+){
+
+    const data =
+    BLOCKS[type];
+
+
+    materials[type] =
+    new THREE.MeshStandardMaterial({
+
+        color:data.color,
+
+        transparent:
+        !!data.transparent,
+
+        opacity:
+        data.transparent
+        ? .55
+        : 1,
+
+        roughness:.85,
+
+        emissive:
+        data.emissive
+        ? 0xff2200
+        : 0x000000,
+
+        emissiveIntensity:
+        data.emissive
+        ? .35
+        : 0
+
+    });
+
+}
+
+
+/* ==================================================
+   CREATE MESH
+================================================== */
+
+function createMesh(
+    x,y,z,type
+){
+
+    const mesh =
+    new THREE.Mesh(
+        geometry,
+        materials[type]
+    );
+
+
+    mesh.position.set(
+        x+.5,
+        y+.5,
+        z+.5
+    );
+
+
+    mesh.userData = {
+
+        x:x,
+        y:y,
+        z:z,
+        type:type
+
+    };
+
+
+    scene.add(mesh);
+
+
+    blockMeshes.set(
+        key(x,y,z),
+        mesh
+    );
+
+
+    return mesh;
+
+}
+
+
+/* ==================================================
+   LOAD CHUNK
+================================================== */
+
+function loadChunk(cx,cz){
+
+    const ck =
+    chunkKey(cx,cz);
+
+
+    if(
+        generatedChunks.has(ck)
+    ){
+
+        return;
+
+    }
+
+
+    const meshes=[];
+
+
+    const startX =
+    -HALF +
+    cx*CHUNK_SIZE;
+
+
+    const startZ =
+    -HALF +
+    cz*CHUNK_SIZE;
+
+
+    for(
+        let x=startX;
+        x<startX+CHUNK_SIZE;
+        x++
+    ){
+
+        for(
+            let z=startZ;
+            z<startZ+CHUNK_SIZE;
+            z++
+        ){
+
+            for(
+                let y=0;
+                y<20;
+                y++
+            ){
+
+                const type =
+                blocks.get(
+                    key(x,y,z)
+                );
+
+
+                if(type){
+
+                    /*
+                       水と溶岩は
+                       地下ブロックを隠すので
+                       上にあるものだけ表示
+                    */
+
+                    const mesh =
+                    createMesh(
+                        x,y,z,type
+                    );
+
+
+                    meshes.push(mesh);
+
+                }
+
+            }
+
+        }
+
+    }
+
+
+    generatedChunks.set(
+        ck,
+        meshes
+    );
+
+}
+
+
+/* ==================================================
+   UNLOAD CHUNK
+================================================== */
+
+function unloadChunk(cx,cz){
+
+    const ck =
+    chunkKey(cx,cz);
+
+
+    const list =
+    generatedChunks.get(ck);
+
+
+    if(!list)
+        return;
+
+
+    for(
+        const mesh of list
+    ){
+
+        scene.remove(mesh);
+
+        blockMeshes.delete(
+            key(
+                mesh.userData.x,
+                mesh.userData.y,
+                mesh.userData.z
+            )
+        );
+
+    }
+
+
+    generatedChunks.delete(ck);
+
+}
+
+
+/* ==================================================
+   UPDATE CHUNKS
+================================================== */
+
+let lastChunkX=null;
+let lastChunkZ=null;
+
+
+function updateChunks(){
+
+    const cx =
+    getChunkX(player.x);
+
+    const cz =
+    getChunkZ(player.z);
+
+
+    if(
+        cx === lastChunkX &&
+        cz === lastChunkZ
+    ){
+
+        return;
+
+    }
+
+
+    lastChunkX=cx;
+    lastChunkZ=cz;
+
+
+    /*
+       近いチャンクをロード
+    */
+
+    for(
+        let dx=-LOAD_RADIUS;
+        dx<=LOAD_RADIUS;
+        dx++
+    ){
+
+        for(
+            let dz=-LOAD_RADIUS;
+            dz<=LOAD_RADIUS;
+            dz++
+        ){
+
+            const nx=cx+dx;
+            const nz=cz+dz;
+
+
+            if(
+                nx < 0 ||
+                nz < 0 ||
+                nx >= WORLD_SIZE/CHUNK_SIZE ||
+                nz >= WORLD_SIZE/CHUNK_SIZE
+            ){
+
+                continue;
+
+            }
+
+
+            loadChunk(
+                nx,nz
+            );
+
+        }
+
+    }
+
+
+    /*
+       遠いチャンクを削除
+    */
+
+    for(
+        const ck of
+        generatedChunks.keys()
+    ){
+
+        const parts =
+        ck.split(",")
+        .map(Number);
+
+
+        const dx =
+        Math.abs(
+            parts[0]-cx
+        );
+
+        const dz =
+        Math.abs(
+            parts[1]-cz
+        );
+
+
+        if(
+            dx > UNLOAD_RADIUS ||
+            dz > UNLOAD_RADIUS
+        ){
+
+            unloadChunk(
+                parts[0],
+                parts[1]
+            );
+
+        }
+
+    }
+
+}
+
+
+/* ==================================================
+   PLAYER
+================================================== */
 
 const player={
 
     x:0,
+
     y:10,
+
     z:0,
 
     vx:0,
+
     vy:0,
+
     vz:0,
 
     yaw:0,
-    pitch:-0.25,
+
+    pitch:-.2,
 
     grounded:false,
 
@@ -938,85 +1564,132 @@ const player={
 };
 
 
-/* =========================================
-   プレイヤー位置
-========================================= */
+/* ==================================================
+   RESPAWN
+================================================== */
 
 function respawn(){
 
     player.x=0;
+
     player.z=0;
 
-    player.y=
+    player.y =
     heightAt(0,0)+2;
 
     player.vx=0;
+
     player.vy=0;
+
     player.vz=0;
 
 }
 
 
-/* =========================================
-   AABB衝突
-========================================= */
+/* ==================================================
+   COLLISION
+================================================== */
 
-function collides(px,py,pz){
+function collides(
+    px,py,pz
+){
 
-    const minX=
+    const minX =
     Math.floor(
         px-PLAYER_WIDTH/2
     );
 
-    const maxX=
+    const maxX =
     Math.floor(
         px+PLAYER_WIDTH/2
     );
 
-    const minY=
+
+    const minY =
     Math.floor(py);
 
-    const maxY=
+
+    const maxY =
     Math.floor(
         py+PLAYER_HEIGHT
     );
 
-    const minZ=
+
+    const minZ =
     Math.floor(
         pz-PLAYER_DEPTH/2
     );
 
-    const maxZ=
+    const maxZ =
     Math.floor(
         pz+PLAYER_DEPTH/2
     );
 
-    for(let x=minX;x<=maxX;x++){
 
-        for(let y=minY;y<=maxY;y++){
+    for(
+        let x=minX;
+        x<=maxX;
+        x++
+    ){
 
-            for(let z=minZ;z<=maxZ;z++){
+        for(
+            let y=minY;
+            y<=maxY;
+            y++
+        ){
+
+            for(
+                let z=minZ;
+                z<=maxZ;
+                z++
+            ){
+
+                const type =
+                blocks.get(
+                    key(x,y,z)
+                );
+
 
                 if(
-                    isSolid(x,y,z)
+                    type &&
+                    BLOCKS[type].solid
                 ){
 
-                    const bx=x+.5;
-                    const by=y+.5;
-                    const bz=z+.5;
-
                     if(
-                        Math.abs(px-bx)
-                        <
-                        PLAYER_WIDTH/2+.5
+
+                        px+
+                        PLAYER_WIDTH/2
+                        > x
+
                         &&
-                        py+PLAYER_HEIGHT>y
+
+                        px-
+                        PLAYER_WIDTH/2
+                        < x+1
+
                         &&
-                        py<y+1
+
+                        py+
+                        PLAYER_HEIGHT
+                        > y
+
                         &&
-                        Math.abs(pz-bz)
-                        <
-                        PLAYER_DEPTH/2+.5
+
+                        py
+                        < y+1
+
+                        &&
+
+                        pz+
+                        PLAYER_DEPTH/2
+                        > z
+
+                        &&
+
+                        pz-
+                        PLAYER_DEPTH/2
+                        < z+1
+
                     ){
 
                         return true;
@@ -1031,18 +1704,20 @@ function collides(px,py,pz){
 
     }
 
+
     return false;
 
 }
 
 
-/* =========================================
-   X移動
-========================================= */
+/* ==================================================
+   MOVE X
+================================================== */
 
 function moveX(amount){
 
-    player.x+=amount;
+    player.x += amount;
+
 
     if(
         collides(
@@ -1052,7 +1727,8 @@ function moveX(amount){
         )
     ){
 
-        player.x-=amount;
+        player.x -= amount;
+
         player.vx=0;
 
     }
@@ -1060,13 +1736,14 @@ function moveX(amount){
 }
 
 
-/* =========================================
-   Z移動
-========================================= */
+/* ==================================================
+   MOVE Z
+================================================== */
 
 function moveZ(amount){
 
-    player.z+=amount;
+    player.z += amount;
+
 
     if(
         collides(
@@ -1076,7 +1753,8 @@ function moveZ(amount){
         )
     ){
 
-        player.z-=amount;
+        player.z -= amount;
+
         player.vz=0;
 
     }
@@ -1084,13 +1762,14 @@ function moveZ(amount){
 }
 
 
-/* =========================================
-   Y移動
-========================================= */
+/* ==================================================
+   MOVE Y
+================================================== */
 
 function moveY(amount){
 
-    player.y+=amount;
+    player.y += amount;
+
 
     if(
         collides(
@@ -1106,11 +1785,13 @@ function moveY(amount){
 
         }
 
-        player.y-=amount;
+
+        player.y -= amount;
 
         player.vy=0;
 
-    }else{
+    }
+    else{
 
         player.grounded=false;
 
@@ -1119,15 +1800,18 @@ function moveY(amount){
 }
 
 
-/* =========================================
-   ジャンプ
-========================================= */
+/* ==================================================
+   JUMP
+================================================== */
 
 function jump(){
 
-    if(player.grounded){
+    if(
+        player.grounded
+    ){
 
-        player.vy=JUMP_POWER;
+        player.vy =
+        JUMP_POWER;
 
         player.grounded=false;
 
@@ -1136,422 +1820,293 @@ function jump(){
 }
 
 
-/* =========================================
-   ジョイスティック
-========================================= */
+/* ==================================================
+   JOYSTICK
+================================================== */
 
-const joystick=
-document.getElementById("joystick");
+const joystick =
+document.getElementById(
+    "joystick"
+);
 
-const stick=
-document.getElementById("stick");
+
+const stick =
+document.getElementById(
+    "stick"
+);
+
 
 let joyX=0;
+
 let joyY=0;
 
-let joyTouch=null;
+let joyId=null;
 
 
-function updateJoystick(touch){
+function updateJoystick(t){
 
-    const rect=
+    const rect =
     joystick.getBoundingClientRect();
 
-    const cx=
-    rect.left+rect.width/2;
 
-    const cy=
-    rect.top+rect.height/2;
+    const cx =
+    rect.left+
+    rect.width/2;
 
-    let dx=touch.clientX-cx;
-    let dy=touch.clientY-cy;
+
+    const cy =
+    rect.top+
+    rect.height/2;
+
+
+    let dx =
+    t.clientX-cx;
+
+
+    let dy =
+    t.clientY-cy;
+
 
     const max=40;
 
-    const len=
-    Math.sqrt(dx*dx+dy*dy);
 
-    if(len>max){
+    const length =
+    Math.sqrt(
+        dx*dx+
+        dy*dy
+    );
 
-        dx=
-        dx/len*max;
 
-        dy=
-        dy/len*max;
+    if(
+        length>max
+    ){
+
+        dx =
+        dx/length*max;
+
+        dy =
+        dy/length*max;
 
     }
 
-    joyX=dx/max;
-    joyY=dy/max;
 
-    stick.style.transform=
+    joyX =
+    dx/max;
+
+
+    joyY =
+    dy/max;
+
+
+    stick.style.transform =
     `translate(${dx}px,${dy}px)`;
 
 }
 
 
+/*
+   上 = 前
+
+   下 = 後ろ
+
+   ここが今回の修正版
+*/
+
 joystick.addEventListener(
-"touchstart",
-e=>{
+    "touchstart",
+    e=>{
 
-    joyTouch=
-    e.changedTouches[0].identifier;
+        e.preventDefault();
 
-    updateJoystick(
-        e.changedTouches[0]
-    );
+        const t =
+        e.changedTouches[0];
 
-},
-{passive:false}
+        joyId=t.identifier;
+
+        updateJoystick(t);
+
+    },
+    {passive:false}
 );
 
 
 joystick.addEventListener(
-"touchmove",
-e=>{
+    "touchmove",
+    e=>{
 
-    for(const t of e.changedTouches){
+        e.preventDefault();
 
-        if(t.identifier===joyTouch){
+        for(
+            const t of e.changedTouches
+        ){
 
-            updateJoystick(t);
+            if(
+                t.identifier===joyId
+            ){
+
+                updateJoystick(t);
+
+            }
 
         }
 
-    }
-
-},
-{passive:false}
+    },
+    {passive:false}
 );
 
 
-function resetJoy(){
+function resetJoystick(){
 
     joyX=0;
+
     joyY=0;
 
-    joyTouch=null;
+    joyId=null;
 
-    stick.style.transform=
+    stick.style.transform =
     "translate(0,0)";
 
 }
 
 
 joystick.addEventListener(
-"touchend",
-resetJoy
+    "touchend",
+    resetJoystick
 );
 
 joystick.addEventListener(
-"touchcancel",
-resetJoy
+    "touchcancel",
+    resetJoystick
 );
 
 
-/* =========================================
-   ダッシュ
-========================================= */
-
-const sprintBtn=
-document.getElementById("sprint");
-
-sprintBtn.addEventListener(
-"touchstart",
-()=>{
-    player.sprint=true;
-},
-{passive:true}
-);
-
-sprintBtn.addEventListener(
-"touchend",
-()=>{
-    player.sprint=false;
-},
-{passive:true}
-);
-
-
-/* =========================================
-   ジャンプ
-========================================= */
+/* ==================================================
+   BUTTONS
+================================================== */
 
 document
 .getElementById("jump")
 .addEventListener(
-"touchstart",
-e=>{
-    e.preventDefault();
-    jump();
-},
-{passive:false}
+    "touchstart",
+    e=>{
+
+        e.preventDefault();
+
+        jump();
+
+    },
+    {passive:false}
 );
 
 
-/* =========================================
-   ブロック選択
-========================================= */
+const sprintButton =
+document.getElementById(
+    "sprint"
+);
 
-const inventory=[
-    "grass",
-    "dirt",
-    "stone",
-    "wood",
-    "leaves",
-    "sand",
-    "glass"
-];
 
-let selected=0;
+sprintButton.addEventListener(
+    "touchstart",
+    ()=>{
 
-const hotbar=
-document.getElementById("hotbar");
+        player.sprint=true;
 
-function makeHotbar(){
+    }
+);
 
-    hotbar.innerHTML="";
 
-    inventory.forEach(
-        (type,i)=>{
+sprintButton.addEventListener(
+    "touchend",
+    ()=>{
 
-            const div=
-            document.createElement("div");
+        player.sprint=false;
 
-            div.className="slot";
+    }
+);
 
-            div.textContent=
-            BLOCKS[type].name;
 
-            if(i===selected)
-                div.classList.add(
-                    "selected"
-                );
+/* ==================================================
+   CAMERA LOOK
+================================================== */
 
-            div.addEventListener(
-            "touchstart",
-            e=>{
+let lookId=null;
 
-                e.preventDefault();
+let lastLookX=0;
 
-                selected=i;
+let lastLookY=0;
 
-                makeHotbar();
 
-                updateInfo();
+renderer.domElement.addEventListener(
+    "touchstart",
+    e=>{
 
-            },
-            {passive:false}
-            );
+        /*
+           1本指だけ
+        */
 
-            hotbar.appendChild(div);
+        if(
+            e.touches.length!==1
+        ){
+
+            return;
 
         }
-    );
-
-}
-
-makeHotbar();
 
 
-/* =========================================
-   ブロック選択用レイキャスト
-========================================= */
-
-const raycaster=
-new THREE.Raycaster();
+        const t =
+        e.touches[0];
 
 
-function getTargetBlock(){
-
-    raycaster.setFromCamera(
-        new THREE.Vector2(0,0),
-        camera
-    );
-
-    const objects=
-    Array.from(
-        meshes.values()
-    );
-
-    const hits=
-    raycaster.intersectObjects(
-        objects,
-        false
-    );
-
-    if(hits.length===0)
-        return null;
-
-    if(hits[0].distance>6)
-        return null;
-
-    return hits[0];
-
-}
+        lookId =
+        t.identifier;
 
 
-/* =========================================
-   ブロックを壊す
-========================================= */
-
-function breakBlock(){
-
-    const hit=
-    getTargetBlock();
-
-    if(!hit)return;
-
-    const d=
-    hit.object.userData;
-
-    /*
-       足元のブロックを
-       壊して落ちないようにする
-    */
-
-    if(
-        d.y<=0
-    )return;
-
-    removeBlock(
-        d.x,
-        d.y,
-        d.z
-    );
-
-}
+        lastLookX =
+        t.clientX;
 
 
-/* =========================================
-   ブロックを置く
-========================================= */
+        lastLookY =
+        t.clientY;
 
-function placeBlock(){
-
-    const hit=
-    getTargetBlock();
-
-    if(!hit)return;
-
-    const d=
-    hit.object.userData;
-
-    const normal=
-    hit.face.normal;
-
-    const x=
-    d.x+Math.round(normal.x);
-
-    const y=
-    d.y+Math.round(normal.y);
-
-    const z=
-    d.z+Math.round(normal.z);
-
-    /*
-       プレイヤーの中には
-       ブロックを置かない
-    */
-
-    if(
-        x+1>player.x-PLAYER_WIDTH/2 &&
-        x<player.x+PLAYER_WIDTH/2 &&
-        y+1>player.y &&
-        y<player.y+PLAYER_HEIGHT &&
-        z+1>player.z-PLAYER_DEPTH/2 &&
-        z<player.z+PLAYER_DEPTH/2
-    ){
-
-        return;
-
-    }
-
-    addBlock(
-        x,
-        y,
-        z,
-        inventory[selected]
-    );
-
-}
-
-
-/* =========================================
-   ボタン
-========================================= */
-
-document
-.getElementById("breakBtn")
-.addEventListener(
-"touchstart",
-e=>{
-    e.preventDefault();
-    breakBlock();
-},
-{passive:false}
-);
-
-
-document
-.getElementById("placeBtn")
-.addEventListener(
-"touchstart",
-e=>{
-    e.preventDefault();
-    placeBlock();
-},
-{passive:false}
-);
-
-
-/* =========================================
-   カメラ操作
-========================================= */
-
-let lookTouch=null;
-
-let lastX=0;
-let lastY=0;
-
-renderer.domElement.addEventListener(
-"touchstart",
-e=>{
-
-    if(e.touches.length===1){
-
-        lookTouch=
-        e.touches[0].identifier;
-
-        lastX=e.touches[0].clientX;
-        lastY=e.touches[0].clientY;
-
-    }
-
-},
-{passive:false}
+    },
+    {passive:false}
 );
 
 
 renderer.domElement.addEventListener(
-"touchmove",
-e=>{
+    "touchmove",
+    e=>{
 
-    for(const t of e.changedTouches){
+        for(
+            const t of e.changedTouches
+        ){
 
-        if(t.identifier===lookTouch){
+            if(
+                t.identifier !== lookId
+            ){
 
-            const dx=
-            t.clientX-lastX;
+                continue;
 
-            const dy=
-            t.clientY-lastY;
+            }
 
-            player.yaw-=dx*.006;
 
-            player.pitch-=dy*.004;
+            const dx =
+            t.clientX-lastLookX;
 
-            player.pitch=
+
+            const dy =
+            t.clientY-lastLookY;
+
+
+            player.yaw -=
+            dx*.006;
+
+
+            player.pitch -=
+            dy*.004;
+
+
+            player.pitch =
             Math.max(
                 -1.45,
                 Math.min(
@@ -1560,122 +2115,526 @@ e=>{
                 )
             );
 
-            lastX=t.clientX;
-            lastY=t.clientY;
+
+            lastLookX =
+            t.clientX;
+
+
+            lastLookY =
+            t.clientY;
 
         }
 
+    },
+    {passive:false}
+);
+
+
+/* ==================================================
+   RAYCAST
+================================================== */
+
+const raycaster =
+new THREE.Raycaster();
+
+
+function getTarget(){
+
+    raycaster.setFromCamera(
+        new THREE.Vector2(0,0),
+        camera
+    );
+
+
+    const visibleMeshes =
+    Array.from(
+        blockMeshes.values()
+    );
+
+
+    const hits =
+    raycaster.intersectObjects(
+        visibleMeshes,
+        false
+    );
+
+
+    if(
+        hits.length===0
+    ){
+
+        return null;
+
     }
 
-},
-{passive:false}
-);
+
+    if(
+        hits[0].distance>6
+    ){
+
+        return null;
+
+    }
 
 
-/* =========================================
-   キーボード
-========================================= */
-
-const keys={};
-
-addEventListener(
-"keydown",
-e=>{
-
-    keys[e.key.toLowerCase()]=true;
-
-    if(e.key===" ")
-        jump();
+    return hits[0];
 
 }
-);
 
-addEventListener(
-"keyup",
-e=>{
 
-    keys[e.key.toLowerCase()]=false;
+/* ==================================================
+   BREAK BLOCK
+================================================== */
+
+function breakBlock(){
+
+    const hit =
+    getTarget();
+
+
+    if(!hit)
+        return;
+
+
+    const d =
+    hit.object.userData;
+
+
+    if(
+        d.y<=0
+    )
+        return;
+
+
+    removeWorldBlock(
+        d.x,
+        d.y,
+        d.z
+    );
+
+
+    /*
+       現在表示されている
+       Meshを削除
+    */
+
+    const mesh =
+    blockMeshes.get(
+        key(
+            d.x,
+            d.y,
+            d.z
+        )
+    );
+
+
+    if(mesh){
+
+        scene.remove(mesh);
+
+        blockMeshes.delete(
+            key(
+                d.x,
+                d.y,
+                d.z
+            )
+        );
+
+    }
 
 }
+
+
+/* ==================================================
+   PLACE BLOCK
+================================================== */
+
+function placeBlock(){
+
+    const hit =
+    getTarget();
+
+
+    if(!hit)
+        return;
+
+
+    const d =
+    hit.object.userData;
+
+
+    const normal =
+    hit.face.normal;
+
+
+    const x =
+    d.x+
+    Math.round(normal.x);
+
+
+    const y =
+    d.y+
+    Math.round(normal.y);
+
+
+    const z =
+    d.z+
+    Math.round(normal.z);
+
+
+    /*
+       プレイヤーの中に
+       ブロックを置かない
+    */
+
+    if(
+
+        x+1 >
+        player.x-
+        PLAYER_WIDTH/2
+
+        &&
+
+        x <
+        player.x+
+        PLAYER_WIDTH/2
+
+        &&
+
+        y+1 >
+        player.y
+
+        &&
+
+        y <
+        player.y+
+        PLAYER_HEIGHT
+
+        &&
+
+        z+1 >
+        player.z-
+        PLAYER_DEPTH/2
+
+        &&
+
+        z <
+        player.z+
+        PLAYER_DEPTH/2
+
+    ){
+
+        return;
+
+    }
+
+
+    const type =
+    inventory[selected];
+
+
+    addWorldBlock(
+        x,y,z,type
+    );
+
+
+    /*
+       チャンクが
+       現在ロード済みなら
+       即座に表示
+    */
+
+    const cx =
+    getChunkX(x);
+
+    const cz =
+    getChunkZ(z);
+
+
+    const ck =
+    chunkKey(cx,cz);
+
+
+    if(
+        generatedChunks.has(ck)
+    ){
+
+        const mesh =
+        createMesh(
+            x,y,z,type
+        );
+
+
+        generatedChunks
+        .get(ck)
+        .push(mesh);
+
+    }
+
+}
+
+
+/* ==================================================
+   BREAK / PLACE BUTTON
+================================================== */
+
+document
+.getElementById("breakBtn")
+.addEventListener(
+    "touchstart",
+    e=>{
+
+        e.preventDefault();
+
+        breakBlock();
+
+    },
+    {passive:false}
 );
 
 
-/* =========================================
-   プレイヤー更新
-========================================= */
+document
+.getElementById("placeBtn")
+.addEventListener(
+    "touchstart",
+    e=>{
+
+        e.preventDefault();
+
+        placeBlock();
+
+    },
+    {passive:false}
+);
+
+
+/* ==================================================
+   INVENTORY
+================================================== */
+
+const inventory = [
+
+    "grass",
+    "dirt",
+    "stone",
+    "wood",
+    "leaves",
+    "sand",
+    "glass"
+
+];
+
+
+let selected=0;
+
+
+const hotbar =
+document.getElementById(
+    "hotbar"
+);
+
+
+function updateHotbar(){
+
+    hotbar.innerHTML="";
+
+
+    inventory.forEach(
+        (type,index)=>{
+
+            const slot =
+            document.createElement(
+                "div"
+            );
+
+
+            slot.className =
+            "slot";
+
+
+            slot.textContent =
+            BLOCKS[type].name;
+
+
+            if(
+                index===selected
+            ){
+
+                slot.classList.add(
+                    "selected"
+                );
+
+            }
+
+
+            slot.addEventListener(
+                "touchstart",
+                e=>{
+
+                    e.preventDefault();
+
+                    selected=index;
+
+                    updateHotbar();
+
+                    updateInfo();
+
+                },
+                {passive:false}
+            );
+
+
+            hotbar.appendChild(slot);
+
+        }
+    );
+
+}
+
+
+updateHotbar();
+
+
+function updateInfo(){
+
+    document
+    .getElementById("blockText")
+    .textContent =
+    BLOCKS[
+        inventory[selected]
+    ].name;
+
+}
+
+
+updateInfo();
+
+
+/* ==================================================
+   PLAYER UPDATE
+================================================== */
 
 function updatePlayer(dt){
 
-    let forward=-joyY;
-    let side=joyX;
+    /*
+       ジョイスティック
+       上 = 前
+       下 = 後ろ
+    */
 
-    if(keys["w"])forward=1;
-    if(keys["s"])forward=-1;
-    if(keys["a"])side=-1;
-    if(keys["d"])side=1;
+    let forward =
+    -joyY;
 
-    const speed=
+
+    /*
+       カメラの向きに対して
+       前進方向を計算
+    */
+
+    let side =
+    joyX;
+
+
+    const speed =
     player.sprint
     ? 6
     : 3.5;
 
-    let mx=
-    Math.sin(player.yaw)*forward+
-    Math.cos(player.yaw)*side;
 
-    let mz=
-    Math.cos(player.yaw)*forward-
-    Math.sin(player.yaw)*side;
+    let mx =
+    Math.sin(
+        player.yaw
+    ) * forward
+    +
+    Math.cos(
+        player.yaw
+    ) * side;
 
-    const len=
-    Math.sqrt(mx*mx+mz*mz);
 
-    if(len>0){
+    let mz =
+    Math.cos(
+        player.yaw
+    ) * forward
+    -
+    Math.sin(
+        player.yaw
+    ) * side;
 
-        mx/=len;
-        mz/=len;
 
-    }
-
-    const amount=
-    speed*dt;
-
-    /*
-       小さく分割して移動することで
-       ブロックをすり抜けにくくする
-    */
-
-    const steps=
-    Math.max(
-        1,
-        Math.ceil(amount/.05)
+    const length =
+    Math.sqrt(
+        mx*mx+
+        mz*mz
     );
 
-    const sx=
-    mx*amount/steps;
 
-    const sz=
-    mz*amount/steps;
+    if(length>0){
 
-    for(let i=0;i<steps;i++){
+        mx/=length;
 
-        moveX(sx);
-        moveZ(sz);
+        mz/=length;
 
     }
 
-    player.vy-=GRAVITY*dt;
 
-    const vy=
-    player.vy*dt;
+    const amount =
+    speed*dt;
 
-    const ySteps=
+
+    /*
+       移動を細かく分割
+
+       ブロックすり抜け防止
+    */
+
+    const steps =
     Math.max(
         1,
         Math.ceil(
-            Math.abs(vy)/.05
+            amount/.05
         )
     );
+
+
+    for(
+        let i=0;
+        i<steps;
+        i++
+    ){
+
+        moveX(
+            mx*amount/steps
+        );
+
+        moveZ(
+            mz*amount/steps
+        );
+
+    }
+
+
+    /*
+       重力
+    */
+
+    player.vy -=
+    GRAVITY*dt;
+
+
+    const vertical =
+    player.vy*dt;
+
+
+    const ySteps =
+    Math.max(
+        1,
+        Math.ceil(
+            Math.abs(
+                vertical
+            )/.05
+        )
+    );
+
 
     for(
         let i=0;
@@ -1683,141 +2642,154 @@ function updatePlayer(dt){
         i++
     ){
 
-        moveY(vy/ySteps);
+        moveY(
+            vertical/ySteps
+        );
 
     }
 
 
     /*
-       落下したら復活
+       落下
     */
 
-    if(player.y<-20){
+    if(
+        player.y < -20
+    ){
 
         respawn();
 
     }
 
+
+    /*
+       チャンク更新
+    */
+
+    updateChunks();
+
 }
 
 
-/* =========================================
-   カメラ更新
-========================================= */
+/* ==================================================
+   CAMERA
+================================================== */
 
 function updateCamera(){
 
     camera.position.set(
+
         player.x,
+
         player.y+1.55,
+
         player.z
+
     );
 
-    camera.rotation.order=
+
+    camera.rotation.order =
     "YXZ";
 
-    camera.rotation.y=
+
+    camera.rotation.y =
     player.yaw;
 
-    camera.rotation.x=
+
+    camera.rotation.x =
     player.pitch;
 
 }
 
 
-/* =========================================
-   遠距離ブロック表示
-========================================= */
+/* ==================================================
+   DAY NIGHT
+================================================== */
 
-function updateRenderDistance(){
+let timeOfDay=0;
 
-    for(const mesh of meshes.values()){
-
-        const dx=
-        mesh.position.x-player.x;
-
-        const dz=
-        mesh.position.z-player.z;
-
-        const distance=
-        Math.sqrt(
-            dx*dx+dz*dz
-        );
-
-        mesh.visible=
-        distance<
-        RENDER_DISTANCE;
-
-    }
-
-}
-
-
-/* =========================================
-   昼夜
-========================================= */
-
-let worldTime=0;
 
 function updateDayNight(dt){
 
-    worldTime+=dt*.02;
+    timeOfDay +=
+    dt*.025;
 
-    const angle=
-    worldTime%(Math.PI*2);
 
-    const sunY=
+    const angle =
+    timeOfDay %
+    (Math.PI*2);
+
+
+    const sy =
     Math.sin(angle);
 
+
     sun.position.set(
+
         Math.cos(angle)*60,
-        sunY*60,
+
+        sy*60,
+
         Math.sin(angle)*60
+
     );
 
-    const daylight=
+
+    const daylight =
     Math.max(
         .15,
-        sunY*.5+.5
+        sy*.5+.5
     );
 
-    ambient.intensity=
+
+    ambient.intensity =
     .25+
     daylight*.9;
 
-    sun.intensity=
+
+    sun.intensity =
     daylight*1.8;
 
-    if(sunY>0){
 
-        scene.background=
+    if(sy>0){
+
+        scene.background =
         new THREE.Color(
             0x87ceeb
         );
 
-        scene.fog.color=
+
+        scene.fog.color =
         new THREE.Color(
             0x87ceeb
         );
+
 
         document
-        .getElementById("timeText")
+        .getElementById(
+            "timeText"
+        )
         .textContent="昼";
 
-    }else{
+    }
+    else{
 
-        scene.background=
+        scene.background =
         new THREE.Color(
             0x10152e
         );
 
-        scene.fog.color=
+
+        scene.fog.color =
         new THREE.Color(
             0x10152e
         );
+
 
         document
-        .getElementById("timeText")
+        .getElementById(
+            "timeText"
+        )
         .textContent="夜";
 
     }
@@ -1825,27 +2797,41 @@ function updateDayNight(dt){
 }
 
 
-/* =========================================
-   溶岩アニメーション
-========================================= */
+/* ==================================================
+   LAVA ANIMATION
+================================================== */
 
 function animateLava(time){
 
-    for(const mesh of meshes.values()){
+    for(
+        const mesh of
+        blockMeshes.values()
+    ){
 
         if(
-            mesh.userData.type==="lava"
+            mesh.userData.type ===
+            "lava"
         ){
 
-            const baseY=
+            const base =
             mesh.userData.y+.5;
 
-            mesh.position.y=
-            baseY+
+
+            mesh.position.y =
+            base+
+
             Math.sin(
-                time*.003+
-                mesh.userData.x+
+
+                time*.002
+
+                +
+
+                mesh.userData.x
+
+                +
+
                 mesh.userData.z
+
             )*.025;
 
         }
@@ -1855,133 +2841,122 @@ function animateLava(time){
 }
 
 
-/* =========================================
-   UI
-========================================= */
-
-function updateInfo(){
-
-    document
-    .getElementById("blockText")
-    .textContent=
-    BLOCKS[
-        inventory[selected]
-    ].name;
-
-}
-
-updateInfo();
-
-
-/* =========================================
-   セーブ
-========================================= */
+/* ==================================================
+   SAVE
+================================================== */
 
 function saveGame(){
 
     const data={
+
         blocks:
         Array.from(
             blocks.entries()
         ),
 
         player:{
+
             x:player.x,
+
             y:player.y,
+
             z:player.z,
+
             yaw:player.yaw,
+
             pitch:player.pitch
+
         }
+
     };
 
+
     localStorage.setItem(
+
         "BLOCK_WORLD_SAVE",
+
         JSON.stringify(data)
+
     );
 
 }
 
 
-/* =========================================
-   ロード
-========================================= */
+/* ==================================================
+   LOAD
+================================================== */
 
 function loadGame(){
 
-    const raw=
+    const raw =
     localStorage.getItem(
         "BLOCK_WORLD_SAVE"
     );
 
+
     if(!raw){
 
-        generateWorld();
+        generateTerrain();
+
         respawn();
+
         return;
 
     }
 
+
     try{
 
-        const data=
+        const data =
         JSON.parse(raw);
 
-        /*
-           現在のワールドを消す
-        */
-
-        for(
-            const mesh of meshes.values()
-        ){
-
-            scene.remove(mesh);
-
-            mesh.geometry.dispose();
-
-            mesh.material.dispose();
-
-        }
 
         blocks.clear();
-        meshes.clear();
 
 
         /*
-           保存データから復元
+           保存データ復元
         */
 
         for(
-            const item of data.blocks
+            const item of
+            data.blocks
         ){
 
-            const parts=
-            item[0]
-            .split(",")
-            .map(Number);
-
-            addBlock(
-                parts[0],
-                parts[1],
-                parts[2],
+            blocks.set(
+                item[0],
                 item[1]
             );
 
         }
 
 
-        player.x=data.player.x;
-        player.y=data.player.y;
-        player.z=data.player.z;
+        player.x =
+        data.player.x;
 
-        player.yaw=data.player.yaw;
-        player.pitch=data.player.pitch;
+
+        player.y =
+        data.player.y;
+
+
+        player.z =
+        data.player.z;
+
+
+        player.yaw =
+        data.player.yaw;
+
+
+        player.pitch =
+        data.player.pitch;
 
     }
     catch(e){
 
         console.log(e);
 
-        generateWorld();
+        generateTerrain();
+
         respawn();
 
     }
@@ -1989,83 +2964,105 @@ function loadGame(){
 }
 
 
-/* =========================================
-   ゲーム開始
-========================================= */
+/* ==================================================
+   START
+================================================== */
 
 let started=false;
+
 
 function startGame(load){
 
     document
-    .getElementById("startScreen")
+    .getElementById(
+        "startScreen"
+    )
     .style.display="none";
 
+
     started=true;
+
 
     if(load){
 
         loadGame();
 
-    }else{
+    }
+    else{
 
-        generateWorld();
+        generateTerrain();
+
         respawn();
 
     }
 
+
+    /*
+       最初のチャンクを
+       プレイヤー周辺だけロード
+    */
+
+    updateChunks();
+
 }
 
+
+/* ==================================================
+   START BUTTONS
+================================================== */
 
 document
 .getElementById("startBtn")
 .addEventListener(
-"click",
-()=>{
-    startGame(false);
-}
+    "click",
+    ()=>{
+        startGame(false);
+    }
 );
 
 
 document
 .getElementById("loadBtn")
 .addEventListener(
-"click",
-()=>{
-    startGame(true);
-}
+    "click",
+    ()=>{
+        startGame(true);
+    }
 );
 
 
-/* =========================================
-   自動セーブ
-========================================= */
+/* ==================================================
+   AUTO SAVE
+================================================== */
 
 setInterval(
-()=>{
+    ()=>{
 
-    if(started){
+        if(started){
 
-        saveGame();
+            saveGame();
 
-    }
+        }
 
-},
-10000
+    },
+    10000
 );
 
 
-/* =========================================
-   メインループ
-========================================= */
+/* ==================================================
+   MAIN LOOP
+================================================== */
 
-let lastTime=
+let lastTime =
 performance.now();
 
 
 function loop(time){
 
-    requestAnimationFrame(loop);
+    requestAnimationFrame(
+        loop
+    );
+
 
     if(!started){
 
@@ -2078,23 +3075,29 @@ function loop(time){
 
     }
 
-    let dt=
+
+    let dt =
     (time-lastTime)/1000;
+
 
     lastTime=time;
 
-    dt=
-    Math.min(dt,.05);
+
+    dt =
+    Math.min(
+        dt,
+        .05
+    );
+
 
     updatePlayer(dt);
 
     updateCamera();
 
-    updateRenderDistance();
-
     updateDayNight(dt);
 
     animateLava(time);
+
 
     renderer.render(
         scene,
@@ -2104,31 +3107,37 @@ function loop(time){
 }
 
 
-requestAnimationFrame(loop);
+requestAnimationFrame(
+    loop
+);
 
 
-/* =========================================
-   リサイズ
-========================================= */
+/* ==================================================
+   RESIZE
+================================================== */
 
 addEventListener(
-"resize",
-()=>{
+    "resize",
+    ()=>{
 
-    camera.aspect=
-    innerWidth/innerHeight;
+        camera.aspect =
+        innerWidth/
+        innerHeight;
 
-    camera.updateProjectionMatrix();
 
-    renderer.setSize(
-        innerWidth,
-        innerHeight
-    );
+        camera.updateProjectionMatrix();
 
-}
+
+        renderer.setSize(
+            innerWidth,
+            innerHeight
+        );
+
+    }
 );
 
 }
+
 </script>
 
 </body>
