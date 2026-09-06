@@ -2,449 +2,1122 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
+
 <meta name="viewport"
-      content="width=device-width,initial-scale=1.0,user-scalable=no">
+      content="width=device-width,
+               initial-scale=1.0,
+               maximum-scale=1.0,
+               user-scalable=no">
 
 <title>DINO RUN</title>
 
 <style>
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    -webkit-tap-highlight-color:transparent;
+
+/* ==================================================
+   基本
+================================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
 }
 
-html,body{
-    width:100%;
-    height:100%;
-    overflow:hidden;
-    background:#fff;
-    font-family:monospace;
+html,
+body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+
+    background: #fff;
+
+    font-family:
+        "Courier New",
+        monospace;
 }
 
-#game{
-    position:relative;
-    width:100%;
-    height:100%;
-    overflow:hidden;
-    background:#fff;
-    color:#222;
+body {
+    touch-action: manipulation;
 }
 
-/* =========================
+
+/* ==================================================
+   ゲーム画面
+================================================== */
+
+#game {
+
+    position: relative;
+
+    width: 100%;
+    height: 100%;
+
+    overflow: hidden;
+
+    background: #fff;
+
+    color: #222;
+}
+
+
+/* ==================================================
    スコア
-========================= */
+================================================== */
 
-#score{
-    position:absolute;
-    top:15px;
-    right:20px;
-    font-size:22px;
-    font-weight:bold;
-    letter-spacing:2px;
-    z-index:30;
+#score {
+
+    position: absolute;
+
+    top: 15px;
+    right: 20px;
+
+    font-size: 22px;
+
+    font-weight: bold;
+
+    letter-spacing: 2px;
+
+    z-index: 100;
 }
 
-#hi{
-    position:absolute;
-    top:43px;
-    right:20px;
-    font-size:14px;
-    letter-spacing:1px;
-    z-index:30;
+
+#hi {
+
+    position: absolute;
+
+    top: 43px;
+    right: 20px;
+
+    font-size: 13px;
+
+    letter-spacing: 1px;
+
+    z-index: 100;
 }
 
-/* =========================
+
+/* ==================================================
    雲
-========================= */
+================================================== */
 
-.cloud{
-    position:absolute;
-    width:65px;
-    height:4px;
-    background:#777;
-    opacity:.35;
+.cloud {
+
+    position: absolute;
+
+    width: 70px;
+    height: 4px;
+
+    background: #777;
+
+    opacity: .28;
 }
 
 .cloud::before,
-.cloud::after{
-    content:"";
-    position:absolute;
-    background:#777;
-    border-radius:50%;
+.cloud::after {
+
+    content: "";
+
+    position: absolute;
+
+    background: #777;
+
+    border-radius: 50%;
 }
 
-.cloud::before{
-    width:25px;
-    height:12px;
-    left:8px;
-    top:-8px;
+.cloud::before {
+
+    width: 25px;
+    height: 13px;
+
+    left: 8px;
+    top: -9px;
 }
 
-.cloud::after{
-    width:35px;
-    height:15px;
-    right:5px;
-    top:-11px;
+.cloud::after {
+
+    width: 34px;
+    height: 16px;
+
+    right: 4px;
+    top: -12px;
 }
 
-/* =========================
+
+/* ==================================================
    プレイヤー
-========================= */
+================================================== */
 
-#player{
-    position:absolute;
-    width:55px;
-    height:60px;
-    left:80px;
-    bottom:75px;
-    z-index:15;
+#player {
+
+    position: absolute;
+
+    width: 80px;
+    height: 72px;
+
+    left: 75px;
+
+    bottom: 75px;
+
+    z-index: 20;
+
+    transform-origin: bottom center;
 }
 
-/* 頭 */
 
-.dino-head{
-    position:absolute;
-    width:39px;
-    height:31px;
-    right:0;
-    top:2px;
-    background:#222;
+/* ==================================================
+   恐竜・胴体
+================================================== */
+
+.dino-body {
+
+    position: absolute;
+
+    width: 45px;
+    height: 35px;
+
+    left: 25px;
+    top: 27px;
+
+    background: #222;
+
+    border-radius:
+        7px
+        10px
+        5px
+        8px;
 }
 
-.dino-head::after{
-    content:"";
-    position:absolute;
-    width:12px;
-    height:5px;
-    background:#fff;
-    right:0;
-    bottom:3px;
+
+/* ==================================================
+   首
+================================================== */
+
+.dino-neck {
+
+    position: absolute;
+
+    width: 19px;
+    height: 31px;
+
+    left: 49px;
+    top: 14px;
+
+    background: #222;
+
+    transform:
+        rotate(-12deg);
 }
 
-/* 目 */
 
-.dino-eye{
-    position:absolute;
-    width:5px;
-    height:5px;
-    background:#fff;
-    right:8px;
-    top:7px;
+/* ==================================================
+   頭
+================================================== */
+
+.dino-head {
+
+    position: absolute;
+
+    width: 39px;
+    height: 30px;
+
+    left: 42px;
+    top: 3px;
+
+    background: #222;
+
+    border-radius:
+        9px
+        8px
+        3px
+        5px;
 }
 
-/* 胴体 */
 
-.dino-body{
-    position:absolute;
-    width:36px;
-    height:35px;
-    right:4px;
-    top:27px;
-    background:#222;
+/* 鼻 */
+
+.dino-head::before {
+
+    content: "";
+
+    position: absolute;
+
+    width: 13px;
+    height: 11px;
+
+    right: -7px;
+    bottom: 2px;
+
+    background: #222;
 }
 
-/* しっぽ */
 
-.dino-tail{
-    position:absolute;
-    width:25px;
-    height:9px;
-    left:1px;
-    top:39px;
-    background:#222;
-    transform:rotate(-20deg);
+/* ==================================================
+   目
+================================================== */
+
+.dino-eye {
+
+    position: absolute;
+
+    width: 6px;
+    height: 6px;
+
+    right: 8px;
+    top: 6px;
+
+    background: #fff;
 }
+
+
+/* ==================================================
+   口
+================================================== */
+
+.dino-mouth {
+
+    position: absolute;
+
+    width: 27px;
+    height: 3px;
+
+    right: -3px;
+    bottom: 3px;
+
+    background: #fff;
+}
+
+
+/* ==================================================
+   歯
+================================================== */
+
+.tooth {
+
+    position: absolute;
+
+    width: 4px;
+    height: 6px;
+
+    background: #fff;
+
+    top: 1px;
+}
+
+.tooth1 {
+    left: 4px;
+}
+
+.tooth2 {
+    left: 11px;
+}
+
+.tooth3 {
+    left: 18px;
+}
+
+
+/* ==================================================
+   しっぽ
+================================================== */
+
+.dino-tail {
+
+    position: absolute;
+
+    width: 45px;
+    height: 25px;
+
+    left: -8px;
+    top: 34px;
+}
+
+
+.tail1 {
+
+    position: absolute;
+
+    width: 30px;
+    height: 13px;
+
+    left: 3px;
+    top: 2px;
+
+    background: #222;
+
+    transform:
+        rotate(15deg);
+}
+
+
+.tail2 {
+
+    position: absolute;
+
+    width: 26px;
+    height: 10px;
+
+    left: -9px;
+    top: 9px;
+
+    background: #222;
+
+    transform:
+        rotate(25deg);
+}
+
+
+.tail3 {
+
+    position: absolute;
+
+    width: 19px;
+    height: 7px;
+
+    left: -20px;
+    top: 15px;
+
+    background: #222;
+
+    transform:
+        rotate(35deg);
+}
+
+
+/* ==================================================
+   背中の突起
+================================================== */
+
+.spike {
+
+    position: absolute;
+
+    width: 7px;
+    height: 9px;
+
+    top: -7px;
+
+    background: #222;
+
+    transform:
+        skewX(-20deg);
+}
+
+.spike1 {
+    left: 7px;
+}
+
+.spike2 {
+    left: 17px;
+}
+
+.spike3 {
+    left: 27px;
+}
+
+
+/* ==================================================
+   恐竜の足
+================================================== */
+
+.dino-leg {
+
+    position: absolute;
+
+    width: 12px;
+    height: 26px;
+
+    top: 51px;
+
+    background: #222;
+
+    transform-origin: top center;
+}
+
+
+/* 後ろ足 */
+
+.dino-leg.back {
+    left: 32px;
+}
+
+
+/* 前足 */
+
+.dino-leg.front {
+    left: 53px;
+}
+
 
 /* 足 */
 
-.leg{
-    position:absolute;
-    width:9px;
-    height:20px;
-    background:#222;
-    bottom:0;
+.foot {
+
+    position: absolute;
+
+    width: 18px;
+    height: 7px;
+
+    left: -4px;
+    bottom: -3px;
+
+    background: #222;
 }
 
-.leg1{
-    left:29px;
-}
 
-.leg2{
-    left:43px;
-}
+/* ==================================================
+   走行アニメーション
+================================================== */
 
-/* =========================
-   地面
-========================= */
+@keyframes runBack {
 
-#ground{
-    position:absolute;
-    left:0;
-    bottom:0;
-    width:100%;
-    height:75px;
-    border-top:3px solid #222;
-    background:#fff;
-    z-index:10;
-}
+    0% {
+        transform: rotate(25deg);
+    }
 
-#groundPattern{
-    position:absolute;
-    top:13px;
-    width:100%;
-    height:4px;
+    50% {
+        transform: rotate(-25deg);
+    }
 
-    background:repeating-linear-gradient(
-        90deg,
-        #222 0px,
-        #222 35px,
-        transparent 35px,
-        transparent 65px
-    );
-}
-
-/* =========================
-   障害物
-========================= */
-
-.cactus{
-    position:absolute;
-    bottom:75px;
-    width:20px;
-    height:48px;
-    background:#222;
-    z-index:12;
-}
-
-/* 腕 */
-
-.cactus::before,
-.cactus::after{
-    content:"";
-    position:absolute;
-    background:#222;
-}
-
-.cactus::before{
-    width:13px;
-    height:25px;
-    left:-10px;
-    top:16px;
-}
-
-.cactus::after{
-    width:13px;
-    height:20px;
-    right:-9px;
-    top:6px;
-}
-
-/* =========================
-   鳥
-========================= */
-
-.bird{
-    position:absolute;
-    width:45px;
-    height:25px;
-    z-index:12;
-}
-
-.bird-body{
-    position:absolute;
-    width:28px;
-    height:14px;
-    left:9px;
-    top:6px;
-    background:#222;
-}
-
-.bird-wing{
-    position:absolute;
-    width:18px;
-    height:7px;
-    background:#222;
-    left:0;
-    top:0;
-    transform:rotate(-25deg);
-}
-
-.bird-wing2{
-    position:absolute;
-    width:18px;
-    height:7px;
-    background:#222;
-    right:0;
-    top:3px;
-    transform:rotate(25deg);
-}
-
-.bird-eye{
-    position:absolute;
-    width:4px;
-    height:4px;
-    background:#fff;
-    right:4px;
-    top:3px;
-}
-
-/* =========================
-   スタート
-========================= */
-
-#start{
-    position:absolute;
-    top:38%;
-    width:100%;
-    text-align:center;
-    font-size:20px;
-    letter-spacing:1px;
-    z-index:40;
-    animation:blink 1.2s infinite;
-}
-
-@keyframes blink{
-    50%{
-        opacity:.35;
+    100% {
+        transform: rotate(25deg);
     }
 }
 
-/* =========================
-   ゲームオーバー
-========================= */
 
-#gameOver{
-    display:none;
-    position:absolute;
-    inset:0;
-    background:rgba(255,255,255,.88);
-    z-index:100;
+@keyframes runFront {
 
-    align-items:center;
-    justify-content:center;
-    flex-direction:column;
+    0% {
+        transform: rotate(-25deg);
+    }
+
+    50% {
+        transform: rotate(25deg);
+    }
+
+    100% {
+        transform: rotate(-25deg);
+    }
 }
 
-#gameOver.show{
-    display:flex;
+
+.dino-leg.back {
+
+    animation:
+        runBack
+        .18s
+        infinite
+        linear;
 }
 
-#gameOver h1{
-    font-size:42px;
-    margin-bottom:10px;
+
+.dino-leg.front {
+
+    animation:
+        runFront
+        .18s
+        infinite
+        linear;
 }
 
-#gameOver p{
-    font-size:20px;
-    margin-bottom:25px;
+
+/* ==================================================
+   ジャンプ中
+================================================== */
+
+#player.jumping .dino-leg {
+
+    animation: none;
+
+    transform:
+        rotate(12deg);
 }
 
-#restart{
-    background:#222;
-    color:#fff;
-    border:0;
-    padding:13px 28px;
-    font-family:monospace;
-    font-size:17px;
+
+/* ==================================================
+   地面
+================================================== */
+
+#ground {
+
+    position: absolute;
+
+    left: 0;
+    bottom: 0;
+
+    width: 100%;
+    height: 75px;
+
+    background: #fff;
+
+    border-top: 3px solid #222;
+
+    z-index: 10;
 }
 
-/* =========================
-   JUMP
-========================= */
 
-#jump{
-    position:absolute;
-    right:20px;
-    bottom:95px;
+#groundPattern {
 
-    width:82px;
-    height:82px;
+    position: absolute;
 
-    border:3px solid #222;
-    border-radius:50%;
+    top: 14px;
 
-    background:#fff;
+    width: 100%;
+    height: 4px;
 
-    font-family:monospace;
-    font-weight:bold;
+    background:
 
-    z-index:50;
+        repeating-linear-gradient(
+            90deg,
+            #222 0px,
+            #222 35px,
+            transparent 35px,
+            transparent 65px
+        );
 }
 
-#jump:active{
-    background:#ddd;
-    transform:scale(.92);
+
+/* ==================================================
+   サボテン
+================================================== */
+
+.cactus {
+
+    position: absolute;
+
+    bottom: 75px;
+
+    width: 20px;
+    height: 48px;
+
+    background: #222;
+
+    border-radius:
+        5px
+        5px
+        2px
+        2px;
+
+    z-index: 15;
 }
 
-/* スマホでは少し小さく */
+
+/* 左腕 */
+
+.cactus::before {
+
+    content: "";
+
+    position: absolute;
+
+    width: 13px;
+    height: 25px;
+
+    left: -10px;
+    top: 16px;
+
+    background: #222;
+
+    border-radius: 5px;
+}
+
+
+/* 右腕 */
+
+.cactus::after {
+
+    content: "";
+
+    position: absolute;
+
+    width: 13px;
+    height: 21px;
+
+    right: -9px;
+    top: 6px;
+
+    background: #222;
+
+    border-radius: 5px;
+}
+
+
+/* ==================================================
+   小さいサボテン
+================================================== */
+
+.cactus.small {
+
+    width: 14px;
+    height: 34px;
+}
+
+
+/* ==================================================
+   鳥
+================================================== */
+
+.bird {
+
+    position: absolute;
+
+    width: 48px;
+    height: 27px;
+
+    z-index: 15;
+}
+
+
+.bird-body {
+
+    position: absolute;
+
+    width: 30px;
+    height: 14px;
+
+    left: 9px;
+    top: 7px;
+
+    background: #222;
+}
+
+
+.bird-head {
+
+    position: absolute;
+
+    width: 14px;
+    height: 14px;
+
+    right: 0;
+    top: 5px;
+
+    background: #222;
+}
+
+
+.bird-eye {
+
+    position: absolute;
+
+    width: 3px;
+    height: 3px;
+
+    right: 3px;
+    top: 3px;
+
+    background: #fff;
+}
+
+
+.bird-wing {
+
+    position: absolute;
+
+    width: 20px;
+    height: 7px;
+
+    left: 1px;
+    top: 1px;
+
+    background: #222;
+
+    transform:
+        rotate(-25deg);
+}
+
+
+.bird-wing2 {
+
+    position: absolute;
+
+    width: 20px;
+    height: 7px;
+
+    left: 5px;
+    top: 16px;
+
+    background: #222;
+
+    transform:
+        rotate(25deg);
+}
+
+
+/* 鳥の羽ばたき */
+
+@keyframes flap {
+
+    0% {
+        transform:
+            rotate(-25deg);
+    }
+
+    50% {
+        transform:
+            rotate(25deg);
+    }
+
+    100% {
+        transform:
+            rotate(-25deg);
+    }
+}
+
+
+.bird-wing {
+
+    animation:
+        flap
+        .25s
+        infinite
+        ease-in-out;
+}
+
+
+.bird-wing2 {
+
+    animation:
+        flap
+        .25s
+        infinite
+        ease-in-out
+        reverse;
+}
+
+
+/* ==================================================
+   スタート表示
+================================================== */
+
+#start {
+
+    position: absolute;
+
+    top: 38%;
+
+    width: 100%;
+
+    text-align: center;
+
+    font-size: 20px;
+
+    letter-spacing: 1px;
+
+    z-index: 50;
+
+    animation:
+        blink
+        1.2s
+        infinite;
+}
+
+
+@keyframes blink {
+
+    50% {
+        opacity: .3;
+    }
+}
+
+
+/* ==================================================
+   GAME OVER
+================================================== */
+
+#gameOver {
+
+    display: none;
+
+    position: absolute;
+
+    inset: 0;
+
+    background:
+        rgba(255,255,255,.9);
+
+    z-index: 200;
+
+    align-items: center;
+
+    justify-content: center;
+
+    flex-direction: column;
+}
+
+
+#gameOver.show {
+
+    display: flex;
+}
+
+
+#gameOver h1 {
+
+    font-size: 42px;
+
+    margin-bottom: 10px;
+}
+
+
+#gameOver p {
+
+    font-size: 20px;
+
+    margin-bottom: 25px;
+}
+
+
+#restart {
+
+    border: 0;
+
+    background: #222;
+
+    color: #fff;
+
+    padding:
+        13px
+        28px;
+
+    font-family: monospace;
+
+    font-size: 17px;
+
+    border-radius: 3px;
+}
+
+
+/* ==================================================
+   JUMPボタン
+================================================== */
+
+#jump {
+
+    position: absolute;
+
+    right: 20px;
+    bottom: 95px;
+
+    width: 82px;
+    height: 82px;
+
+    border-radius: 50%;
+
+    border: 3px solid #222;
+
+    background: #fff;
+
+    color: #222;
+
+    font-family: monospace;
+
+    font-weight: bold;
+
+    z-index: 100;
+}
+
+
+#jump:active {
+
+    background: #ddd;
+
+    transform:
+        scale(.92);
+}
+
+
+/* ==================================================
+   スマホ
+================================================== */
 
 @media(max-width:500px){
 
-    #player{
-        left:55px;
+    #player {
+
+        left: 55px;
+
+        transform:
+            scale(.9);
     }
 
-    #jump{
-        width:75px;
-        height:75px;
+    #jump {
+
+        width: 75px;
+        height: 75px;
     }
 }
+
 </style>
 </head>
+
 
 <body>
 
 <div id="game">
 
-    <!-- 雲 -->
-    <div class="cloud"
-         style="left:15%;top:18%;"></div>
 
-    <div class="cloud"
-         style="left:55%;top:28%;transform:scale(.8);"></div>
+    <!-- =========================================
+         空
+    ========================================== -->
 
-    <div class="cloud"
-         style="left:85%;top:13%;transform:scale(.6);"></div>
+    <div
+        class="cloud"
+        style="left:15%;top:17%;">
+    </div>
 
-    <!-- スコア -->
-    <div id="score">00000</div>
-    <div id="hi">HI 00000</div>
+    <div
+        class="cloud"
+        style="left:55%;top:28%;transform:scale(.8);">
+    </div>
 
-    <!-- スタート -->
+    <div
+        class="cloud"
+        style="left:85%;top:13%;transform:scale(.6);">
+    </div>
+
+
+    <!-- =========================================
+         スコア
+    ========================================== -->
+
+    <div id="score">
+        00000
+    </div>
+
+    <div id="hi">
+        HI 00000
+    </div>
+
+
+    <!-- =========================================
+         スタート
+    ========================================== -->
+
     <div id="start">
         TAP / SPACE / ↑
     </div>
 
-    <!-- プレイヤー -->
+
+    <!-- =========================================
+         恐竜
+    ========================================== -->
+
     <div id="player">
 
-        <div class="dino-tail"></div>
 
-        <div class="dino-head">
-            <div class="dino-eye"></div>
+        <!-- しっぽ -->
+
+        <div class="dino-tail">
+
+            <div class="tail1"></div>
+
+            <div class="tail2"></div>
+
+            <div class="tail3"></div>
+
         </div>
 
-        <div class="dino-body"></div>
 
-        <div class="leg leg1"></div>
-        <div class="leg leg2"></div>
+        <!-- 胴体 -->
+
+        <div class="dino-body">
+
+            <div
+                class="spike spike1">
+            </div>
+
+            <div
+                class="spike spike2">
+            </div>
+
+            <div
+                class="spike spike3">
+            </div>
+
+        </div>
+
+
+        <!-- 首 -->
+
+        <div class="dino-neck"></div>
+
+
+        <!-- 頭 -->
+
+        <div class="dino-head">
+
+            <div class="dino-eye"></div>
+
+            <div class="dino-mouth">
+
+                <div
+                    class="tooth tooth1">
+                </div>
+
+                <div
+                    class="tooth tooth2">
+                </div>
+
+                <div
+                    class="tooth tooth3">
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- 足 -->
+
+        <div
+            class="dino-leg back">
+
+            <div class="foot"></div>
+
+        </div>
+
+
+        <div
+            class="dino-leg front">
+
+            <div class="foot"></div>
+
+        </div>
+
 
     </div>
 
-    <!-- 地面 -->
+
+    <!-- =========================================
+         地面
+    ========================================== -->
+
     <div id="ground">
+
         <div id="groundPattern"></div>
+
     </div>
 
-    <!-- ジャンプ -->
-    <button id="jump">JUMP</button>
 
-    <!-- GAME OVER -->
+    <!-- =========================================
+         ジャンプ
+    ========================================== -->
+
+    <button id="jump">
+        JUMP
+    </button>
+
+
+    <!-- =========================================
+         GAME OVER
+    ========================================== -->
+
     <div id="gameOver">
 
-        <h1>GAME OVER</h1>
+        <h1>
+            GAME OVER
+        </h1>
 
         <p id="finalScore">
             SCORE 00000
@@ -456,13 +1129,15 @@ html,body{
 
     </div>
 
+
 </div>
+
 
 <script>
 
-/* =====================================================
-   DINO RUN
-===================================================== */
+/* ==================================================
+   DOM
+================================================== */
 
 const game =
     document.getElementById("game");
@@ -492,56 +1167,102 @@ const jumpButton =
     document.getElementById("jump");
 
 
-/* =====================================================
-   状態
-===================================================== */
+/* ==================================================
+   ゲーム状態
+================================================== */
 
 let started = false;
+
 let running = false;
 
+
+/* ==================================================
+   プレイヤー物理
+================================================== */
+
 let playerY = 0;
+
 let velocityY = 0;
 
+
+/* 重力 */
+
 const gravity = 0.78;
+
+
+/* ジャンプ力 */
+
 const jumpPower = 14;
+
+
+/* ==================================================
+   ゲーム速度
+================================================== */
 
 let speed = 6;
 
+
+/* ==================================================
+   スコア
+================================================== */
+
 let score = 0;
 
-let obstacles = [];
 
-let spawnTimer = 0;
-
-let lastTime = 0;
-
-
-/* =====================================================
+/* ==================================================
    難易度
-===================================================== */
+================================================== */
 
 let level = 1;
 
 
-/* =====================================================
+/* ==================================================
+   障害物
+================================================== */
+
+let obstacles = [];
+
+
+/* 次の障害物まで */
+
+let spawnTimer = 0;
+
+
+/* ==================================================
+   時間
+================================================== */
+
+let lastTime = 0;
+
+
+/* ==================================================
    ハイスコア
-===================================================== */
+================================================== */
 
 let highScore =
     Number(
-        localStorage.getItem("dinoHighScore")
+        localStorage.getItem(
+            "dinoHighScore"
+        )
     ) || 0;
+
 
 hiText.textContent =
     "HI " +
-    String(highScore).padStart(5,"0");
+    String(highScore)
+        .padStart(5,"0");
 
 
-/* =====================================================
+/* ==================================================
    ジャンプ
-===================================================== */
+================================================== */
 
 function jump(){
+
+    /*
+       まだ始まっていなければ
+       ゲーム開始
+    */
 
     if(!started){
 
@@ -550,98 +1271,180 @@ function jump(){
         return;
     }
 
+
     if(!running) return;
 
+
     /*
-       地面にいるときだけジャンプ
+       地面にいるときだけ
     */
 
     if(playerY <= 1){
 
-        velocityY = jumpPower;
+        velocityY =
+            jumpPower;
 
+        player.classList.add(
+            "jumping"
+        );
     }
 }
 
 
-/* =====================================================
+/* ==================================================
    ゲーム開始
-===================================================== */
+================================================== */
 
 function startGame(){
 
     if(started) return;
 
+
     started = true;
+
     running = true;
 
-    startText.style.display = "none";
 
-    lastTime = performance.now();
+    startText.style.display =
+        "none";
+
+
+    lastTime =
+        performance.now();
+
 
     requestAnimationFrame(loop);
 }
 
 
-/* =====================================================
-   サボテン生成
-===================================================== */
+/* ==================================================
+   サボテン作成
+================================================== */
 
-function createCactus(count = 1){
+function createCactus(){
 
-    const group = [];
+    const cactus =
+        document.createElement(
+            "div"
+        );
 
-    for(let i = 0; i < count; i++){
+
+    cactus.className =
+        "cactus";
+
+
+    const x =
+        game.clientWidth + 30;
+
+
+    cactus.style.left =
+        x + "px";
+
+
+    game.appendChild(cactus);
+
+
+    obstacles.push({
+
+        element: cactus,
+
+        x: x,
+
+        type: "cactus"
+
+    });
+}
+
+
+/* ==================================================
+   複数サボテン
+================================================== */
+
+function createCactusGroup(count){
+
+    for(let i=0;i<count;i++){
 
         const cactus =
-            document.createElement("div");
+            document.createElement(
+                "div"
+            );
 
-        cactus.className = "cactus";
+
+        cactus.className =
+            "cactus";
+
+
+        /*
+           たまに小さいものも混ぜる
+        */
+
+        if(
+            count >= 3 &&
+            i === 1
+        ){
+
+            cactus.classList.add(
+                "small"
+            );
+        }
+
 
         const x =
             game.clientWidth +
             30 +
-            i * 28;
+            i * 27;
+
 
         cactus.style.left =
             x + "px";
 
+
         game.appendChild(cactus);
 
-        group.push({
-            element:cactus,
-            x:x
-        });
 
         obstacles.push({
+
             element:cactus,
+
             x:x,
+
             type:"cactus"
+
         });
     }
 }
 
 
-/* =====================================================
-   鳥生成
-===================================================== */
+/* ==================================================
+   鳥作成
+================================================== */
 
 function createBird(){
 
     const bird =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
-    bird.className = "bird";
+
+    bird.className =
+        "bird";
+
 
     /*
-       低・中・高の3種類
+       低・中・高
     */
 
     const heights = [
+
         125,
+
         165,
+
         205
+
     ];
+
 
     const height =
         heights[
@@ -651,27 +1454,48 @@ function createBird(){
             )
         ];
 
+
+    const x =
+        game.clientWidth + 50;
+
+
     bird.style.left =
-        (game.clientWidth + 50) + "px";
+        x + "px";
+
 
     bird.style.bottom =
         height + "px";
 
+
     bird.innerHTML = `
+
         <div class="bird-body">
-            <div class="bird-eye"></div>
+
+            <div class="bird-head">
+
+                <div
+                    class="bird-eye">
+                </div>
+
+            </div>
+
         </div>
+
         <div class="bird-wing"></div>
+
         <div class="bird-wing2"></div>
+
     `;
 
+
     game.appendChild(bird);
+
 
     obstacles.push({
 
         element:bird,
 
-        x:game.clientWidth + 50,
+        x:x,
 
         type:"bird"
 
@@ -679,22 +1503,24 @@ function createBird(){
 }
 
 
-/* =====================================================
-   障害物生成
-===================================================== */
+/* ==================================================
+   障害物をランダム生成
+================================================== */
 
 function spawnObstacle(){
 
+    const r =
+        Math.random();
+
+
     /*
-       レベルによって種類を変える
+       レベル4から鳥
     */
 
-    const r = Math.random();
-
-
-    /* レベル4以降 → 鳥 */
-
-    if(level >= 4 && r < 0.28){
+    if(
+        level >= 4 &&
+        r < 0.28
+    ){
 
         createBird();
 
@@ -703,38 +1529,46 @@ function spawnObstacle(){
 
 
     /*
-       3連サボテン
+       レベル3から3連
     */
 
-    if(level >= 3 && r < 0.35){
+    if(
+        level >= 3 &&
+        r < 0.38
+    ){
 
-        createCactus(3);
+        createCactusGroup(3);
 
         return;
     }
 
 
     /*
-       2連サボテン
+       レベル2から2連
     */
 
-    if(level >= 2 && r < 0.5){
+    if(
+        level >= 2 &&
+        r < 0.55
+    ){
 
-        createCactus(2);
+        createCactusGroup(2);
 
         return;
     }
 
 
-    /* 通常 */
+    /*
+       通常
+    */
 
-    createCactus(1);
+    createCactus();
 }
 
 
-/* =====================================================
+/* ==================================================
    当たり判定
-===================================================== */
+================================================== */
 
 function collision(a,b){
 
@@ -744,65 +1578,96 @@ function collision(a,b){
     const br =
         b.getBoundingClientRect();
 
+
     /*
-       少し余白を作って、
-       見た目より厳しすぎない判定
+       少しだけ判定を甘くする
     */
 
     return !(
-        ar.right - 8 < br.left + 5 ||
-        ar.left + 8 > br.right - 5 ||
-        ar.bottom - 6 < br.top + 5 ||
-        ar.top + 6 > br.bottom - 5
+        ar.right - 10 < br.left + 5 ||
+
+        ar.left + 10 > br.right - 5 ||
+
+        ar.bottom - 7 < br.top + 5 ||
+
+        ar.top + 7 > br.bottom - 5
     );
 }
 
 
-/* =====================================================
+/* ==================================================
    ゲームオーバー
-===================================================== */
+================================================== */
 
 function endGame(){
 
     running = false;
 
+
+    player.classList.remove(
+        "jumping"
+    );
+
+
     const final =
         Math.floor(score);
 
+
     finalScore.textContent =
         "SCORE " +
-        String(final).padStart(5,"0");
+        String(final)
+            .padStart(5,"0");
 
+
+    /*
+       ハイスコア
+    */
 
     if(final > highScore){
 
         highScore = final;
+
 
         localStorage.setItem(
             "dinoHighScore",
             highScore
         );
 
+
         hiText.textContent =
             "HI " +
-            String(highScore).padStart(5,"0");
+            String(highScore)
+                .padStart(5,"0");
     }
 
-    gameOver.classList.add("show");
+
+    gameOver.classList.add(
+        "show"
+    );
 }
 
 
-/* =====================================================
+/* ==================================================
    リセット
-===================================================== */
+================================================== */
 
 function resetGame(){
+
+    /*
+       障害物削除
+    */
 
     obstacles.forEach(
         o => o.element.remove()
     );
 
+
     obstacles = [];
+
+
+    /*
+       初期化
+    */
 
     playerY = 0;
 
@@ -820,66 +1685,104 @@ function resetGame(){
 
     running = false;
 
+
+    player.classList.remove(
+        "jumping"
+    );
+
+
     player.style.transform =
         "translateY(0px)";
+
 
     scoreText.textContent =
         "00000";
 
-    gameOver.classList.remove("show");
+
+    gameOver.classList.remove(
+        "show"
+    );
+
 
     startText.style.display =
         "block";
 }
 
 
-/* =====================================================
+/* ==================================================
    メインループ
-===================================================== */
+================================================== */
 
 function loop(time){
 
     if(!running) return;
 
 
+    /*
+       フレーム時間
+    */
+
     let delta =
-        (time - lastTime) / 16.67;
+        (time - lastTime) /
+        16.67;
+
+
+    /*
+       タブ切り替えなどで
+       一気に進まないようにする
+    */
 
     delta =
         Math.min(delta,2);
 
+
     lastTime = time;
 
 
-    /* ==========================================
+    /* ==============================================
        ジャンプ物理
-    ========================================== */
+    ============================================== */
 
     velocityY -=
         gravity * delta;
 
+
     playerY +=
         velocityY * delta;
 
+
+    /*
+       地面
+    */
 
     if(playerY < 0){
 
         playerY = 0;
 
         velocityY = 0;
+
+
+        player.classList.remove(
+            "jumping"
+        );
     }
 
+
+    /*
+       恐竜を動かす
+    */
 
     player.style.transform =
         `translateY(${-playerY}px)`;
 
 
-    /* ==========================================
+    /* ==============================================
        スコア
-    ========================================== */
+    ============================================== */
 
     score +=
         0.13 * delta;
+
 
     scoreText.textContent =
         String(
@@ -887,37 +1790,39 @@ function loop(time){
         ).padStart(5,"0");
 
 
-    /* ==========================================
-       レベルアップ
-    ========================================== */
-
-    /*
-       100点ごとに難しくする
-    */
+    /* ==============================================
+       難易度
+    ============================================== */
 
     const newLevel =
-        Math.floor(score / 100) + 1;
+        Math.floor(
+            score / 100
+        ) + 1;
 
 
     if(newLevel !== level){
 
         level = newLevel;
 
+
         /*
-           速度アップ
+           レベルごとに速度アップ
         */
 
         speed =
             Math.min(
-                6 + (level - 1) * 0.8,
+                6 +
+                (level - 1) *
+                0.8,
+
                 14
             );
     }
 
 
-    /* ==========================================
-       障害物生成間隔
-    ========================================== */
+    /* ==============================================
+       障害物生成タイマー
+    ============================================== */
 
     spawnTimer -= delta;
 
@@ -929,34 +1834,44 @@ function loop(time){
 
         /*
            レベルが上がるほど
-           次の障害物まで短くする
+           出現間隔を短くする
         */
 
         const base =
-            100 - level * 4;
+            105 -
+            level * 4;
+
 
         spawnTimer =
             Math.max(
-                52,
+                50,
+
                 base +
-                Math.random() * 45
+                Math.random() * 50
             );
     }
 
 
-    /* ==========================================
+    /* ==============================================
        障害物移動
-    ========================================== */
+    ============================================== */
 
     for(
-        let i = obstacles.length - 1;
+        let i =
+            obstacles.length - 1;
+
         i >= 0;
+
         i--
     ){
 
         const obstacle =
             obstacles[i];
 
+
+        /*
+           左へ移動
+        */
 
         obstacle.x -=
             speed * delta;
@@ -966,7 +1881,9 @@ function loop(time){
             obstacle.x + "px";
 
 
-        /* 当たり判定 */
+        /*
+           当たり判定
+        */
 
         if(
             collision(
@@ -981,10 +1898,12 @@ function loop(time){
         }
 
 
-        /* 画面外 */
+        /*
+           画面外
+        */
 
         if(
-            obstacle.x < -100
+            obstacle.x < -120
         ){
 
             obstacle.element.remove();
@@ -998,9 +1917,9 @@ function loop(time){
 }
 
 
-/* =====================================================
+/* ==================================================
    キーボード
-===================================================== */
+================================================== */
 
 document.addEventListener(
     "keydown",
@@ -1019,17 +1938,16 @@ document.addEventListener(
 );
 
 
-/* =====================================================
-   タップ
-===================================================== */
+/* ==================================================
+   画面タップ
+================================================== */
 
 game.addEventListener(
     "pointerdown",
     function(e){
 
         /*
-           ボタンを押した場合は
-           ここでは処理しない
+           ボタンを除外
         */
 
         if(
@@ -1040,14 +1958,15 @@ game.addEventListener(
             return;
         }
 
+
         jump();
     }
 );
 
 
-/* =====================================================
+/* ==================================================
    JUMPボタン
-===================================================== */
+================================================== */
 
 jumpButton.addEventListener(
     "pointerdown",
@@ -1060,9 +1979,9 @@ jumpButton.addEventListener(
 );
 
 
-/* =====================================================
+/* ==================================================
    RESTART
-===================================================== */
+================================================== */
 
 restart.addEventListener(
     "click",
