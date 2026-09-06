@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width,initial-scale=1.0,user-scalable=no">
+
+<title>NEON SURVIVOR</title>
+
+<style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+html,body{
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    background:#050511;
+    font-family:Arial,sans-serif;
+    touch-action:none;
+}
+
+#game{
+    position:relative;
+    width:100vw;
+    height:100vh;
+    overflow:hidden;
+    background:
+        radial-gradient(circle at 50% 40%,#17174a 0%,#08081b 45%,#020207 100%);
+}
+
+/* 星 */
+.star{
+    position:absolute;
+    width:2px;
+    height:2px;
+    background:white;
+    border-radius:50%;
+    opacity:.7;
+}
+
+/* HUD */
+#hud{
+    position:absolute;
+    top:12px;
+    left:12px;
+    right:12px;
+    z-index:100;
+    display:flex;
+    justify-content:space-between;
+    color:white;
+    font-weight:bold;
+    font-size:17px;
+    text-shadow:0 0 8px #00ffff;
+    pointer-events:none;
+}
+
+#leftHud,
+#rightHud{
+    display:flex;
+    flex-direction:column;
+    gap:5px;
+}
+
+/* プレイヤー */
+#player{
+    position:absolute;
+    width:42px;
+    height:42px;
+    border-radius:50%;
+    background:
+        radial-gradient(circle at 35% 30%,white 0 8%,#55ffff 15%,#008cff 55%,#004cff 100%);
+    box-shadow:
+        0 0 10px #00ffff,
+        0 0 25px #008cff,
+        0 0 45px #0055ff;
+    z-index:20;
+}
+
+#player::after{
+    content:"";
+    position:absolute;
+    inset:8px;
+    border-radius:50%;
+    border:2px solid rgba(255,255,255,.7);
+}
+
+/* 敵 */
+.enemy{
+    position:absolute;
+    width:34px;
+    height:34px;
+    background:
+        linear-gradient(45deg,#ff006a,#ff2b00);
+    transform:rotate(45deg);
+    box-shadow:
+        0 0 10px #ff0055,
+        0 0 25px #ff0033;
+    z-index:10;
+}
+
+.enemy::before,
+.enemy::after{
+    content:"";
+    position:absolute;
+    background:#fff;
+    width:7px;
+    height:7px;
+    border-radius:50%;
+    top:7px;
+}
+
+.enemy::before{
+    left:6px;
+}
+
+.enemy::after{
+    right:6px;
+}
+
+/* コイン */
+.coin{
+    position:absolute;
+    width:25px;
+    height:25px;
+    border-radius:50%;
+    background:#ffe600;
+    border:3px solid #fff58a;
+    box-shadow:
+        0 0 10px #ffe600,
+        0 0 25px #ff9900;
+    z-index:12;
+}
+
+/* パワーアップ */
+.power{
+    position:absolute;
+    width:30px;
+    height:30px;
+    border-radius:8px;
+    background:#b900ff;
+    border:3px solid #ff8cff;
+    box-shadow:
+        0 0 12px #ff00ff,
+        0 0 30px #9d00ff;
+    transform:rotate(45deg);
+    z-index:12;
+}
+
+/* 弾 */
+.bullet{
+    position:absolute;
+    width:7px;
+    height:18px;
+    border-radius:5px;
+    background:#ffffff;
+    box-shadow:
+        0 0 8px #00ffff,
+        0 0 18px #00ffff;
+    z-index:15;
+}
+
+/* 爆発 */
+.explosion{
+    position:absolute;
+    width:20px;
+    height:20px;
+    border-radius:50%;
+    border:4px solid white;
+    box-shadow:
+        0 0 15px #ff00ff,
+        0 0 35px #00ffff;
+    animation:boom .35s forwards;
+    pointer-events:none;
+}
+
+@keyframes boom{
+    to{
+        transform:scale(4);
+        opacity:0;
+    }
+}
+
+/* ボタン */
+#controls{
+    position:absolute;
+    bottom:25px;
+    left:0;
+    right:0;
+    display:flex;
+    justify-content:center;
+    gap:18px;
+    z-index:200;
+}
+
+.control{
+    width:75px;
+    height:65px;
+    border-radius:20px;
+    border:2px solid #00ffff;
+    background:rgba(0,255,255,.12);
+    color:white;
+    font-size:28px;
+    box-shadow:0 0 15px rgba(0,255,255,.5);
+    user-select:none;
+    -webkit-user-select:none;
+}
+
+.control:active{
+    background:rgba(0,255,255,.35);
+    transform:scale(.94);
+}
+
+/* スタート・ゲームオーバー */
+.screen{
+    position:absolute;
+    inset:0;
+    z-index:500;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    background:rgba(2,2,12,.88);
+    color:white;
+    text-align:center;
+}
+
+.screen h1{
+    font-size:42px;
+    letter-spacing:4px;
+    color:#00ffff;
+    text-shadow:
+        0 0 10px #00ffff,
+        0 0 30px #0066ff;
+    margin-bottom:15px;
+}
+
+.screen p{
+    margin:6px;
+    opacity:.85;
+}
+
+.mainButton{
+    margin-top:25px;
+    padding:15px 35px;
+    border:2px solid #00ffff;
+    border-radius:15px;
+    background:#061d32;
+    color:white;
+    font-size:20px;
+    box-shadow:0 0 20px #00ffff;
+}
+
+.mainButton:active{
+    transform:scale(.95);
+}
+
+.hidden{
+    display:none;
+}
+
+/* コンボ */
+#combo{
+    position:absolute;
+    top:90px;
+    left:50%;
+    transform:translateX(-50%);
+    color:#ffff00;
+    font-size:28px;
+    font-weight:bold;
+    text-shadow:0 0 15px #ff9900;
+    z-index:300;
+    pointer-events:none;
+}
+
+/* ミッション */
+#mission{
+    position:absolute;
+    top:55px;
+    left:50%;
+    transform:translateX(-50%);
+    color:white;
+    font-size:13px;
+    opacity:.8;
+    z-index:100;
+}
+</style>
+</head>
+
+<body>
+
+<div id="game">
+
+    <div id="hud">
+        <div id="leftHud">
+            <div>⭐ SCORE: <span id="score">0</span></div>
+            <div>🪙 COIN: <span id="coins">0</span></div>
+        </div>
+
+        <div id="rightHud">
+            <div>❤️ <span id="hp">3</span></div>
+            <div>⏱️ <span id="time">0</span>s</div>
+        </div>
+    </div>
+
+    <div id="mission">
+        MISSION: <span id="missionText">30秒生き残れ！</span>
+    </div>
+
+    <div id="combo"></div>
+
+    <div id="player"></div>
+
+    <div id="controls">
+        <button class="control" id="left">◀</button>
+        <button class="control" id="shoot">🔥</button>
+        <button class="control" id="right">▶</button>
+    </div>
+
+    <!-- スタート -->
+    <div class="screen" id="startScreen">
+        <h1>NEON<br>SURVIVOR</h1>
+
+        <p>敵を倒して生き残れ！</p>
+        <p>🪙 コインを集めよう</p>
+        <p>⚡ パワーアップも登場！</p>
+
+        <button class="mainButton" id="startButton">
+            START GAME
+        </button>
+    </div>
+
+    <!-- GAME OVER -->
+    <div class="screen hidden" id="gameOver">
+        <h1>GAME OVER</h1>
+
+        <p>FINAL SCORE</p>
+        <p style="font-size:35px">
+            <span id="finalScore">0</span>
+        </p>
+
+        <p>
+            BEST:
+            <span id="bestScore">0</span>
+        </p>
+
+        <button class="mainButton" id="retryButton">
+            RETRY
+        </button>
+    </div>
+
+</div>
+
+<script>
+
+/* =========================
+   基本設定
+========================= */
+
+const game = document.getElementById("game");
+const player = document.getElementById("player");
+
+const scoreText = document.getElementById("score");
+const coinText = document.getElementById("coins");
+const hpText = document.getElementById("hp");
+const timeText = document.getElementById("time");
+
+const comboText = document.getElementById("combo");
+
+const startScreen = document.getElementById("startScreen");
+const gameOverScreen = document.getElementById("gameOver");
+
+const finalScore = document.getElementById("finalScore");
+const bestScore = document.getElementById("bestScore");
+
+let W = innerWidth;
+let H = innerHeight;
+
+window.addEventListener("resize",()=>{
+    W = innerWidth;
+    H = innerHeight;
+});
+
+/* =========================
+   ゲーム変数
+========================= */
+
+let running = false;
+
+let score = 0;
+let coins = 0;
+let hp = 3;
+
+let gameTime = 0;
+
+let playerX = W/2;
+let playerY = H-150;
+
+let enemies = [];
+let bullets = [];
+let coinObjects = [];
+let powers = [];
+
+let keys = {};
+
+let lastTime = 0;
+
+let enemyTimer = 0;
+let coinTimer = 0;
+let powerTimer = 0;
+
+let shootCooldown = 0;
+
+let combo = 0;
+let comboTimer = 0;
+
+let invincible = 0;
+
+let powerMode = 0;
+
+/* =========================
+   ハイスコア
+========================= */
+
+let best = Number(localStorage.getItem("neonBest") || 0);
+
+bestScore.textContent = best;
+
+/* =========================
+   星を作る
+========================= */
+
+for(let i=0;i<90;i++){
+
+    const star = document.createElement("div");
+
+    star.className="star";
+
+    star.style.left=Math.random()*100+"%";
+    star.style.top=Math.random()*100+"%";
+
+    const size=Math.random()*3+1;
+
+    star.style.width=size+"px";
+    star.style.height=size+"px";
+
+    game.appendChild(star);
+}
+
+/* =========================
+   プレイヤー表示
+========================= */
+
+function updatePlayer(){
+
+    player.style.left=(playerX-21)+"px";
+    player.style.top=(playerY-21)+"px";
+
+}
+
+/* =========================
+   敵生成
+========================= */
+
+function spawnEnemy(){
+
+    const e=document.createElement("div");
+
+    e.className="enemy";
+
+    const x=Math.random()*(W-50)+25;
+
+    e.style.left=x+"px";
+    e.style.top="-50px";
+
+    game.appendChild(e);
+
+    enemies.push({
+        el:e,
+        x:x,
+        y:-50,
+        speed:120+Math.random()*100+gameTime*3,
+        hp:1
+    });
+}
+
+/* =========================
+   コイン生成
+========================= */
+
+function spawnCoin(){
+
+    const c=document.createElement("div");
+
+    c.className="coin";
+
+    const x=Math.random()*(W-40)+20;
+    const y=Math.random()*(H-250)+100;
+
+    c.style.left=x+"px";
+    c.style.top=y+"px";
+
+    game.appendChild(c);
+
+    coinObjects.push({
+        el:c,
+        x:x,
+        y:y
+    });
+}
+
+/* =========================
+   パワー生成
+========================= */
+
+function spawnPower(){
+
+    const p=document.createElement("div");
+
+    p.className="power";
+
+    const x=Math.random()*(W-50)+25;
+
+    p.style.left=x+"px";
+    p.style.top="-40px";
+
+    game.appendChild(p);
+
+    powers.push({
+        el:p,
+        x:x,
+        y:-40,
+        speed:110
+    });
+}
+
+/* =========================
+   弾発射
+========================= */
+
+function shoot(){
+
+    if(!running)return;
+
+    if(shootCooldown>0)return;
+
+    shootCooldown=powerMode>0?0.12:0.22;
+
+    const b=document.createElement("div");
+
+    b.className="bullet";
+
+    const bx=playerX-3;
+    const by=playerY-40;
+
+    b.style.left=bx+"px";
+    b.style.top=by+"px";
+
+    game.appendChild(b);
+
+    bullets.push({
+        el:b,
+        x:bx,
+        y:by,
+        speed:650
+    });
+}
+
+/* =========================
+   爆発
+========================= */
+
+function explosion(x,y){
+
+    const ex=document.createElement("div");
+
+    ex.className="explosion";
+
+    ex.style.left=(x-10)+"px";
+    ex.style.top=(y-10)+"px";
+
+    game.appendChild(ex);
+
+    setTimeout(()=>{
+        ex.remove();
+    },350);
+}
+
+/* =========================
+   当たり判定
+========================= */
+
+function distance(a,b){
+
+    return Math.hypot(
+        a.x-b.x,
+        a.y-b.y
+    );
+}
+
+/* =========================
+   敵を倒す
+========================= */
+
+function destroyEnemy(index){
+
+    const e=enemies[index];
+
+    explosion(e.x,e.y);
+
+    e.el.remove();
+
+    enemies.splice(index,1);
+
+    combo++;
+
+    comboTimer=2;
+
+    score += 100 * Math.min(combo,10);
+
+    comboText.textContent =
+        combo>1 ? combo+" COMBO!" : "";
+
+}
+
+/* =========================
+   ダメージ
+========================= */
+
+function damage(){
+
+    if(invincible>0)return;
+
+    hp--;
+
+    hpText.textContent=hp;
+
+    invincible=1.5;
+
+    player.style.opacity=.4;
+
+    setTimeout(()=>{
+        player.style.opacity=1;
+    },150);
+
+    if(hp<=0){
+
+        endGame();
+
+    }
+}
+
+/* =========================
+   ゲーム終了
+========================= */
+
+function endGame(){
+
+    running=false;
+
+    finalScore.textContent=score;
+
+    if(score>best){
+
+        best=score;
+
+        localStorage.setItem(
+            "neonBest",
+            best
+        );
+    }
+
+    bestScore.textContent=best;
+
+    gameOverScreen.classList.remove("hidden");
+}
+
+/* =========================
+   ゲーム初期化
+========================= */
+
+function resetGame(){
+
+    enemies.forEach(e=>e.el.remove());
+    bullets.forEach(b=>b.el.remove());
+    coinObjects.forEach(c=>c.el.remove());
+    powers.forEach(p=>p.el.remove());
+
+    enemies=[];
+    bullets=[];
+    coinObjects=[];
+    powers=[];
+
+    score=0;
+    coins=0;
+    hp=3;
+
+    gameTime=0;
+
+    combo=0;
+    comboTimer=0;
+
+    powerMode=0;
+
+    playerX=W/2;
+    playerY=H-150;
+
+    scoreText.textContent=0;
+    coinText.textContent=0;
+    hpText.textContent=3;
+    timeText.textContent=0;
+
+    comboText.textContent="";
+
+    updatePlayer();
+}
+
+/* =========================
+   ゲーム開始
+========================= */
+
+function startGame(){
+
+    resetGame();
+
+    startScreen.classList.add("hidden");
+    gameOverScreen.classList.add("hidden");
+
+    running=true;
+
+    lastTime=performance.now();
+
+    requestAnimationFrame(loop);
+}
+
+/* =========================
+   キーボード
+========================= */
+
+window.addEventListener("keydown",e=>{
+
+    keys[e.key.toLowerCase()]=true;
+
+    if(e.key==="ArrowLeft"){
+        keys.left=true;
+    }
+
+    if(e.key==="ArrowRight"){
+        keys.right=true;
+    }
+
+    if(e.code==="Space"){
+        shoot();
+    }
+
+});
+
+window.addEventListener("keyup",e=>{
+
+    keys[e.key.toLowerCase()]=false;
+
+    if(e.key==="ArrowLeft"){
+        keys.left=false;
+    }
+
+    if(e.key==="ArrowRight"){
+        keys.right=false;
+    }
+
+});
+
+/* =========================
+   タッチ操作
+========================= */
+
+function holdButton(button,action){
+
+    const start=()=>{
+        keys[action]=true;
+    };
+
+    const end=()=>{
+        keys[action]=false;
+    };
+
+    button.addEventListener("pointerdown",start);
+    button.addEventListener("pointerup",end);
+    button.addEventListener("pointercancel",end);
+    button.addEventListener("pointerleave",end);
+}
+
+holdButton(
+    document.getElementById("left"),
+    "left"
+);
+
+holdButton(
+    document.getElementById("right"),
+    "right"
+);
+
+document.getElementById("shoot")
+.addEventListener("pointerdown",()=>{
+    shoot();
+});
+
+/* =========================
+   メインループ
+========================= */
+
+function loop(now){
+
+    if(!running)return;
+
+    const dt=Math.min(
+        (now-lastTime)/1000,
+        .033
+    );
+
+    lastTime=now;
+
+    gameTime+=dt;
+
+    shootCooldown=Math.max(
+        0,
+        shootCooldown-dt
+    );
+
+    invincible=Math.max(
+        0,
+        invincible-dt
+    );
+
+    powerMode=Math.max(
+        0,
+        powerMode-dt
+    );
+
+    comboTimer-=dt;
+
+    if(comboTimer<=0){
+
+        combo=0;
+        comboText.textContent="";
+    }
+
+    /* プレイヤー移動 */
+
+    const speed=320;
+
+    if(keys.left){
+        playerX-=speed*dt;
+    }
+
+    if(keys.right){
+        playerX+=speed*dt;
+    }
+
+    playerX=Math.max(
+        25,
+        Math.min(W-25,playerX)
+    );
+
+    updatePlayer();
+
+    /* 敵生成 */
+
+    enemyTimer-=dt;
+
+    const enemyInterval=
+        Math.max(.22,.85-gameTime*.012);
+
+    if(enemyTimer<=0){
+
+        spawnEnemy();
+
+        enemyTimer=enemyInterval;
+    }
+
+    /* コイン */
+
+    coinTimer-=dt;
+
+    if(coinTimer<=0){
+
+        spawnCoin();
+
+        coinTimer=2.2;
+    }
+
+    /* パワー */
+
+    powerTimer-=dt;
+
+    if(powerTimer<=0){
+
+        if(Math.random()<.35){
+            spawnPower();
+        }
+
+        powerTimer=8;
+    }
+
+    /* 弾 */
+
+    bullets.forEach((b,i)=>{
+
+        b.y-=b.speed*dt;
+
+        b.el.style.top=b.y+"px";
+
+        if(b.y<-30){
+
+            b.el.remove();
+            bullets.splice(i,1);
+        }
+    });
+
+    /* 敵 */
+
+    enemies.forEach((e,i)=>{
+
+        e.y+=e.speed*dt;
+
+        e.el.style.top=e.y+"px";
+
+        if(distance(
+            {x:playerX,y:playerY},
+            {x:e.x,y:e.y}
+        )<32){
+
+            damage();
+
+            e.el.remove();
+            enemies.splice(i,1);
+
+            return;
+        }
+
+        if(e.y>H+50){
+
+            e.el.remove();
+            enemies.splice(i,1);
+        }
+    });
+
+    /* 弾 vs 敵 */
+
+    for(let i=bullets.length-1;i>=0;i--){
+
+        const b=bullets[i];
+
+        for(let j=enemies.length-1;j>=0;j--){
+
+            const e=enemies[j];
+
+            if(distance(
+                {x:b.x,y:b.y},
+                {x:e.x,y:e.y}
+            )<25){
+
+                b.el.remove();
+                bullets.splice(i,1);
+
+                destroyEnemy(j);
+
+                break;
+            }
+        }
+    }
+
+    /* コイン */
+
+    for(let i=coinObjects.length-1;i>=0;i--){
+
+        const c=coinObjects[i];
+
+        if(distance(
+            {x:playerX,y:playerY},
+            {x:c.x,y:c.y}
+        )<32){
+
+            coins++;
+
+            score+=50;
+
+            coinText.textContent=coins;
+            scoreText.textContent=score;
+
+            c.el.remove();
+
+            coinObjects.splice(i,1);
+        }
+    }
+
+    /* パワー */
+
+    for(let i=powers.length-1;i>=0;i--){
+
+        const p=powers[i];
+
+        p.y+=p.speed*dt;
+
+        p.el.style.top=p.y+"px";
+
+        if(distance(
+            {x:playerX,y:playerY},
+            {x:p.x,y:p.y}
+        )<35){
+
+            powerMode=8;
+
+            score+=300;
+
+            p.el.remove();
+
+            powers.splice(i,1);
+
+            continue;
+        }
+
+        if(p.y>H+50){
+
+            p.el.remove();
+
+            powers.splice(i,1);
+        }
+    }
+
+    /* 時間 */
+
+    timeText.textContent=
+        Math.floor(gameTime);
+
+    scoreText.textContent=score;
+
+    requestAnimationFrame(loop);
+}
+
+/* =========================
+   ボタン
+========================= */
+
+document.getElementById("startButton")
+.addEventListener("click",startGame);
+
+document.getElementById("retryButton")
+.addEventListener("click",startGame);
+
+updatePlayer();
+
+</script>
+
+</body>
+</html>
