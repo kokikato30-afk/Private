@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+<title>DINO RUN</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: Arial, sans-serif;
+    background: #e8f7ff;
+}
+
+#game {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: linear-gradient(#bcecff, #f7fdff);
+}
+
+/* 空 */
+
+.cloud {
+    position: absolute;
+    width: 90px;
+    height: 30px;
+    background: white;
+    border-radius: 30px;
+    opacity: 0.8;
+}
+
+.cloud::before,
+.cloud::after {
+    content: "";
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+}
+
+.cloud::before {
+    width: 40px;
+    height: 40px;
+    left: 15px;
+    top: -20px;
+}
+
+.cloud::after {
+    width: 50px;
+    height: 50px;
+    right: 10px;
+    top: -25px;
+}
+
+/* スコア */
+
+#score {
+    position: absolute;
+    right: 20px;
+    top: 15px;
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    z-index: 20;
+}
+
+#highScore {
+    position: absolute;
+    right: 20px;
+    top: 45px;
+    font-size: 14px;
+    color: #555;
+    z-index: 20;
+}
+
+/* 恐竜 */
+
+#player {
+    position: absolute;
+    width: 54px;
+    height: 58px;
+    left: 80px;
+    bottom: 80px;
+    z-index: 10;
+}
+
+/* 恐竜の体 */
+
+.dino-body {
+    position: absolute;
+    width: 38px;
+    height: 38px;
+    right: 4px;
+    top: 15px;
+    background: #405a3b;
+    border-radius: 8px 12px 5px 5px;
+}
+
+.dino-head {
+    position: absolute;
+    width: 38px;
+    height: 32px;
+    right: 0;
+    top: 0;
+    background: #405a3b;
+    border-radius: 10px 12px 4px 5px;
+}
+
+.dino-eye {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background: white;
+    right: 8px;
+    top: 8px;
+    border-radius: 50%;
+}
+
+.dino-eye::after {
+    content: "";
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    background: #111;
+    right: 0;
+    top: 2px;
+}
+
+.dino-tail {
+    position: absolute;
+    width: 25px;
+    height: 12px;
+    left: 0;
+    top: 30px;
+    background: #405a3b;
+    transform: rotate(-25deg);
+    border-radius: 10px;
+}
+
+.leg {
+    position: absolute;
+    width: 10px;
+    height: 22px;
+    background: #405a3b;
+    bottom: 0;
+    border-radius: 0 0 5px 5px;
+}
+
+.leg1 {
+    left: 25px;
+}
+
+.leg2 {
+    left: 39px;
+}
+
+/* 地面 */
+
+#ground {
+    position: absolute;
+    width: 100%;
+    height: 80px;
+    bottom: 0;
+    background: #d4a86b;
+    border-top: 5px solid #75532f;
+}
+
+.ground-line {
+    position: absolute;
+    width: 100%;
+    height: 8px;
+    top: 12px;
+    background: repeating-linear-gradient(
+        90deg,
+        #8b663c 0px,
+        #8b663c 30px,
+        transparent 30px,
+        transparent 60px
+    );
+}
+
+/* 障害物 */
+
+.obstacle {
+    position: absolute;
+    bottom: 80px;
+    width: 28px;
+    height: 48px;
+    background: #2e6b3b;
+    border-radius: 7px 7px 2px 2px;
+    z-index: 8;
+}
+
+.obstacle::before,
+.obstacle::after {
+    content: "";
+    position: absolute;
+    background: #2e6b3b;
+    border-radius: 6px;
+}
+
+.obstacle::before {
+    width: 14px;
+    height: 28px;
+    left: -9px;
+    top: 16px;
+}
+
+.obstacle::after {
+    width: 14px;
+    height: 25px;
+    right: -8px;
+    top: 5px;
+}
+
+/* ゲームオーバー */
+
+#gameOver {
+    display: none;
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+#gameOver.show {
+    display: flex;
+}
+
+#gameOver h1 {
+    font-size: 42px;
+    color: white;
+    margin-bottom: 10px;
+}
+
+#gameOver p {
+    color: white;
+    font-size: 20px;
+    margin-bottom: 25px;
+}
+
+#restart {
+    border: none;
+    background: white;
+    color: #333;
+    padding: 14px 30px;
+    font-size: 18px;
+    border-radius: 10px;
+    font-weight: bold;
+}
+
+/* スタート表示 */
+
+#startMessage {
+    position: absolute;
+    top: 35%;
+    width: 100%;
+    text-align: center;
+    font-size: 22px;
+    color: #333;
+    z-index: 50;
+    animation: blink 1.2s infinite;
+}
+
+@keyframes blink {
+    50% {
+        opacity: 0.4;
+    }
+}
+
+/* スマホ用 */
+
+#jumpButton {
+    position: absolute;
+    right: 20px;
+    bottom: 100px;
+    width: 85px;
+    height: 85px;
+    border-radius: 50%;
+    border: 4px solid rgba(0,0,0,0.2);
+    background: rgba(255,255,255,0.75);
+    font-size: 18px;
+    font-weight: bold;
+    z-index: 60;
+}
+
+#jumpButton:active {
+    transform: scale(0.9);
+}
+</style>
+</head>
+
+<body>
+
+<div id="game">
+
+    <div class="cloud" style="left:20%;top:15%;"></div>
+    <div class="cloud" style="left:65%;top:25%;transform:scale(.7);"></div>
+    <div class="cloud" style="left:85%;top:10%;transform:scale(.5);"></div>
+
+    <div id="score">00000</div>
+    <div id="highScore">HI 00000</div>
+
+    <div id="startMessage">
+        タップ / SPACE / ↑ でスタート！
+    </div>
+
+    <div id="player">
+        <div class="dino-tail"></div>
+        <div class="dino-body"></div>
+        <div class="dino-head">
+            <div class="dino-eye"></div>
+        </div>
+        <div class="leg leg1"></div>
+        <div class="leg leg2"></div>
+    </div>
+
+    <div id="ground">
+        <div class="ground-line"></div>
+    </div>
+
+    <button id="jumpButton">JUMP</button>
+
+    <div id="gameOver">
+        <h1>GAME OVER</h1>
+        <p id="finalScore">SCORE 00000</p>
+        <button id="restart">もう一度遊ぶ</button>
+    </div>
+
+</div>
+
+<script>
+
+/* =========================
+   基本設定
+========================= */
+
+const game = document.getElementById("game");
+const player = document.getElementById("player");
+const scoreText = document.getElementById("score");
+const highScoreText = document.getElementById("highScore");
+const startMessage = document.getElementById("startMessage");
+const gameOver = document.getElementById("gameOver");
+const finalScore = document.getElementById("finalScore");
+const restart = document.getElementById("restart");
+const jumpButton = document.getElementById("jumpButton");
+
+let running = false;
+let gameStarted = false;
+
+let playerY = 0;
+let velocityY = 0;
+
+const gravity = 0.75;
+const jumpPower = 14;
+
+let speed = 7;
+let score = 0;
+
+let obstacles = [];
+let obstacleTimer = 0;
+
+let lastTime = 0;
+
+/* ハイスコア */
+
+let highScore =
+    Number(localStorage.getItem("dinoHighScore")) || 0;
+
+highScoreText.textContent =
+    "HI " + String(highScore).padStart(5, "0");
+
+
+/* =========================
+   ジャンプ
+========================= */
+
+function jump() {
+
+    if (!running) {
+        startGame();
+        return;
+    }
+
+    if (playerY <= 1) {
+        velocityY = jumpPower;
+    }
+}
+
+
+/* =========================
+   ゲーム開始
+========================= */
+
+function startGame() {
+
+    if (gameStarted) return;
+
+    gameStarted = true;
+    running = true;
+
+    startMessage.style.display = "none";
+
+    requestAnimationFrame(gameLoop);
+}
+
+
+/* =========================
+   障害物作成
+========================= */
+
+function createObstacle() {
+
+    const obstacle = document.createElement("div");
+
+    obstacle.className = "obstacle";
+
+    let x = game.clientWidth + 30;
+
+    obstacle.style.left = x + "px";
+
+    game.appendChild(obstacle);
+
+    obstacles.push({
+        element: obstacle,
+        x: x
+    });
+}
+
+
+/* =========================
+   当たり判定
+========================= */
+
+function collision(a, b) {
+
+    const ar = a.getBoundingClientRect();
+    const br = b.getBoundingClientRect();
+
+    return !(
+        ar.right < br.left + 5 ||
+        ar.left > br.right - 5 ||
+        ar.bottom < br.top + 5 ||
+        ar.top > br.bottom - 5
+    );
+}
+
+
+/* =========================
+   ゲームオーバー
+========================= */
+
+function endGame() {
+
+    running = false;
+
+    finalScore.textContent =
+        "SCORE " + String(Math.floor(score)).padStart(5, "0");
+
+    if (score > highScore) {
+
+        highScore = Math.floor(score);
+
+        localStorage.setItem(
+            "dinoHighScore",
+            highScore
+        );
+
+        highScoreText.textContent =
+            "HI " + String(highScore).padStart(5, "0");
+    }
+
+    gameOver.classList.add("show");
+}
+
+
+/* =========================
+   リスタート
+========================= */
+
+function resetGame() {
+
+    obstacles.forEach(o => o.element.remove());
+
+    obstacles = [];
+
+    playerY = 0;
+    velocityY = 0;
+
+    score = 0;
+
+    speed = 7;
+
+    obstacleTimer = 0;
+
+    gameOver.classList.remove("show");
+
+    gameStarted = false;
+
+    startMessage.style.display = "block";
+
+    player.style.bottom = "80px";
+
+    scoreText.textContent = "00000";
+}
+
+
+/* =========================
+   メインループ
+========================= */
+
+function gameLoop(time) {
+
+    if (!running) return;
+
+    const delta = Math.min(
+        (time - lastTime) / 16.67 || 1,
+        2
+    );
+
+    lastTime = time;
+
+    /* ジャンプ */
+
+    velocityY -= gravity * delta;
+
+    playerY += velocityY * delta;
+
+    if (playerY < 0) {
+
+        playerY = 0;
+        velocityY = 0;
+    }
+
+    player.style.transform =
+        `translateY(${-playerY}px)`;
+
+
+    /* スコア */
+
+    score += 0.12 * delta;
+
+    scoreText.textContent =
+        String(Math.floor(score)).padStart(5, "0");
+
+
+    /* 徐々にスピードアップ */
+
+    speed += 0.0015 * delta;
+
+    if (speed > 15) {
+        speed = 15;
+    }
+
+
+    /* 障害物生成 */
+
+    obstacleTimer -= delta;
+
+    if (obstacleTimer <= 0) {
+
+        createObstacle();
+
+        const min = 75;
+        const max = 130;
+
+        obstacleTimer =
+            min + Math.random() * (max - min);
+
+        obstacleTimer *= 7 / speed;
+    }
+
+
+    /* 障害物移動 */
+
+    for (let i = obstacles.length - 1; i >= 0; i--) {
+
+        const obstacle = obstacles[i];
+
+        obstacle.x -= speed * delta;
+
+        obstacle.element.style.left =
+            obstacle.x + "px";
+
+
+        /* 当たり判定 */
+
+        if (collision(player, obstacle.element)) {
+
+            endGame();
+            return;
+        }
+
+
+        /* 画面外 */
+
+        if (obstacle.x < -100) {
+
+            obstacle.element.remove();
+
+            obstacles.splice(i, 1);
+        }
+    }
+
+
+    requestAnimationFrame(gameLoop);
+}
+
+
+/* =========================
+   キーボード
+========================= */
+
+document.addEventListener("keydown", function(e) {
+
+    if (
+        e.code === "Space" ||
+        e.code === "ArrowUp"
+    ) {
+
+        e.preventDefault();
+
+        jump();
+    }
+});
+
+
+/* =========================
+   タッチ
+========================= */
+
+game.addEventListener("pointerdown", function(e) {
+
+    if (
+        e.target === restart ||
+        e.target === jumpButton
+    ) {
+        return;
+    }
+
+    jump();
+});
+
+
+jumpButton.addEventListener("pointerdown", function(e) {
+
+    e.preventDefault();
+
+    jump();
+});
+
+
+restart.addEventListener("click", function(e) {
+
+    e.stopPropagation();
+
+    resetGame();
+});
+
+
+/* =========================
+   初期化
+========================= */
+
+player.style.bottom = "80px";
+
+</script>
+
+</body>
+</html>
