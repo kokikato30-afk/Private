@@ -1,1 +1,2442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+	content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Voxel Frontier</title>
 
+<style>
+*{
+	box-sizing:border-box;
+	-webkit-tap-highlight-color:transparent;
+}
+
+html,body{
+	margin:0;
+	width:100%;
+	height:100%;
+	overflow:hidden;
+	background:#000;
+	font-family:Arial,Helvetica,sans-serif;
+	touch-action:none;
+	user-select:none;
+}
+
+body{
+	position:fixed;
+	inset:0;
+}
+
+canvas{
+	display:block;
+	width:100%;
+	height:100%;
+	touch-action:none;
+}
+
+#game{
+	position:fixed;
+	inset:0;
+	overflow:hidden;
+}
+
+.hidden{
+	display:none!important;
+}
+
+/* Main menu */
+
+#menu{
+	position:absolute;
+	inset:0;
+	z-index:50;
+	display:flex;
+	align-items:center;
+	justify-content:center;
+	background:
+	linear-gradient(rgba(5,12,20,.28),rgba(5,12,20,.72)),
+	linear-gradient(135deg,#152b3c,#294a5c 48%,#111d29);
+	color:white;
+}
+
+.menu-panel{
+	width:min(440px,90vw);
+	padding:32px;
+	border:1px solid rgba(255,255,255,.18);
+	border-radius:18px;
+	background:rgba(10,18,27,.82);
+	backdrop-filter:blur(14px);
+	box-shadow:0 20px 70px rgba(0,0,0,.5);
+}
+
+.logo{
+	font-size:42px;
+	font-weight:800;
+	letter-spacing:3px;
+	text-align:center;
+	margin-bottom:6px;
+}
+
+.subtitle{
+	text-align:center;
+	color:#a9bbc8;
+	font-size:14px;
+	margin-bottom:28px;
+}
+
+.field-label{
+	display:block;
+	font-size:13px;
+	color:#b9c8d3;
+	margin:12px 0 6px;
+}
+
+input{
+	width:100%;
+	height:44px;
+	border:1px solid #405363;
+	border-radius:9px;
+	background:#111c26;
+	color:#fff;
+	padding:0 12px;
+	font-size:16px;
+	outline:none;
+}
+
+.menu-button{
+	width:100%;
+	height:48px;
+	border:0;
+	border-radius:10px;
+	margin-top:10px;
+	background:#3f82c6;
+	color:#fff;
+	font-size:16px;
+	font-weight:700;
+	cursor:pointer;
+}
+
+.menu-button:active{
+	transform:scale(.985);
+}
+
+.menu-button.secondary{
+	background:#273744;
+}
+
+.help{
+	margin-top:20px;
+	padding-top:16px;
+	border-top:1px solid rgba(255,255,255,.1);
+	color:#9baeba;
+	font-size:12px;
+	line-height:1.7;
+}
+
+/* HUD */
+
+#hud{
+	position:absolute;
+	inset:0;
+	z-index:10;
+	pointer-events:none;
+}
+
+#crosshair{
+	position:absolute;
+	left:50%;
+	top:50%;
+	width:20px;
+	height:20px;
+	transform:translate(-50%,-50%);
+}
+
+#crosshair::before,
+#crosshair::after{
+	content:"";
+	position:absolute;
+	background:rgba(255,255,255,.9);
+	box-shadow:0 0 3px #000;
+}
+
+#crosshair::before{
+	width:2px;
+	height:20px;
+	left:9px;
+	top:0;
+}
+
+#crosshair::after{
+	width:20px;
+	height:2px;
+	left:0;
+	top:9px;
+}
+
+#top-info{
+	position:absolute;
+	left:14px;
+	top:12px;
+	padding:7px 10px;
+	border-radius:8px;
+	background:rgba(0,0,0,.35);
+	color:#fff;
+	font-size:12px;
+	backdrop-filter:blur(4px);
+}
+
+#health{
+	position:absolute;
+	left:16px;
+	bottom:102px;
+	color:white;
+	font-size:13px;
+	text-shadow:0 2px 3px #000;
+}
+
+#hotbar{
+	position:absolute;
+	left:50%;
+	bottom:18px;
+	transform:translateX(-50%);
+	display:flex;
+	gap:4px;
+	padding:5px;
+	border-radius:10px;
+	background:rgba(15,20,25,.72);
+	backdrop-filter:blur(5px);
+	pointer-events:auto;
+}
+
+.slot{
+	position:relative;
+	width:52px;
+	height:52px;
+	border:2px solid rgba(255,255,255,.22);
+	border-radius:7px;
+	background:#1c252c;
+	display:flex;
+	align-items:center;
+	justify-content:center;
+	cursor:pointer;
+}
+
+.slot.selected{
+	border-color:#fff;
+	box-shadow:0 0 0 2px rgba(255,255,255,.2);
+}
+
+.slot-number{
+	position:absolute;
+	left:4px;
+	top:2px;
+	font-size:9px;
+	color:#ddd;
+}
+
+.slot-count{
+	position:absolute;
+	right:4px;
+	bottom:2px;
+	font-size:11px;
+	color:#fff;
+	text-shadow:0 1px 2px #000;
+}
+
+.block-icon{
+	width:29px;
+	height:29px;
+	border-radius:3px;
+	box-shadow:
+		inset 3px 3px 0 rgba(255,255,255,.12),
+		inset -3px -3px 0 rgba(0,0,0,.18);
+}
+
+/* Touch controls */
+
+#touch-ui{
+	position:absolute;
+	inset:0;
+	z-index:20;
+	pointer-events:none;
+}
+
+#joystick-area{
+	position:absolute;
+	left:18px;
+	bottom:25px;
+	width:150px;
+	height:150px;
+	pointer-events:auto;
+}
+
+#joystick-base{
+	position:absolute;
+	left:25px;
+	top:25px;
+	width:100px;
+	height:100px;
+	border-radius:50%;
+	border:2px solid rgba(255,255,255,.22);
+	background:rgba(20,30,40,.28);
+}
+
+#joystick-knob{
+	position:absolute;
+	left:50px;
+	top:50px;
+	width:50px;
+	height:50px;
+	margin:-25px;
+	border-radius:50%;
+	background:rgba(255,255,255,.32);
+	border:2px solid rgba(255,255,255,.4);
+}
+
+#look-area{
+	position:absolute;
+	right:0;
+	top:0;
+	width:62%;
+	height:72%;
+	pointer-events:auto;
+}
+
+.action{
+	position:absolute;
+	width:66px;
+	height:66px;
+	border-radius:50%;
+	border:1px solid rgba(255,255,255,.3);
+	background:rgba(20,30,40,.45);
+	color:#fff;
+	font-weight:700;
+	font-size:11px;
+	pointer-events:auto;
+	backdrop-filter:blur(5px);
+}
+
+.action:active{
+	background:rgba(100,150,190,.6);
+}
+
+#jump-btn{
+	right:24px;
+	bottom:160px;
+}
+
+#break-btn{
+	right:104px;
+	bottom:90px;
+}
+
+#place-btn{
+	right:24px;
+	bottom:82px;
+}
+
+#sprint-btn{
+	left:175px;
+	bottom:42px;
+	width:58px;
+	height:58px;
+	font-size:10px;
+}
+
+#inventory-btn{
+	right:24px;
+	top:20px;
+	width:58px;
+	height:42px;
+	border-radius:9px;
+}
+
+#pause-btn{
+	right:90px;
+	top:20px;
+	width:58px;
+	height:42px;
+	border-radius:9px;
+}
+
+/* Inventory */
+
+#inventory{
+	position:absolute;
+	inset:0;
+	z-index:40;
+	display:flex;
+	align-items:center;
+	justify-content:center;
+	background:rgba(0,0,0,.55);
+	backdrop-filter:blur(5px);
+}
+
+.inventory-panel{
+	width:min(470px,90vw);
+	padding:20px;
+	border-radius:14px;
+	background:#17212a;
+	border:1px solid #435361;
+	box-shadow:0 20px 60px rgba(0,0,0,.55);
+	color:#fff;
+}
+
+.inventory-title{
+	font-size:20px;
+	font-weight:700;
+	margin-bottom:15px;
+}
+
+.inventory-grid{
+	display:grid;
+	grid-template-columns:repeat(5,1fr);
+	gap:7px;
+}
+
+.inventory-slot{
+	aspect-ratio:1;
+	border-radius:7px;
+	background:#222e37;
+	border:1px solid #42515d;
+	display:flex;
+	align-items:center;
+	justify-content:center;
+	cursor:pointer;
+}
+
+.inventory-close{
+	margin-top:16px;
+	width:100%;
+	height:42px;
+	border:0;
+	border-radius:8px;
+	background:#344754;
+	color:#fff;
+	font-weight:700;
+}
+
+/* Pause */
+
+#pause{
+	position:absolute;
+	inset:0;
+	z-index:45;
+	display:flex;
+	align-items:center;
+	justify-content:center;
+	background:rgba(0,0,0,.62);
+}
+
+.pause-panel{
+	width:min(380px,88vw);
+	padding:25px;
+	background:#17212a;
+	border:1px solid #435361;
+	border-radius:14px;
+	color:white;
+}
+
+.pause-panel h2{
+	margin-top:0;
+}
+
+/* desktop */
+
+@media (pointer:fine){
+	#touch-ui{
+		display:none;
+	}
+}
+
+@media (max-width:700px){
+	.logo{
+		font-size:31px;
+	}
+
+	.menu-panel{
+		padding:24px;
+	}
+
+	#hotbar{
+		bottom:10px;
+	}
+
+	.slot{
+		width:43px;
+		height:43px;
+	}
+
+	.block-icon{
+		width:24px;
+		height:24px;
+	}
+}
+</style>
+</head>
+
+<body>
+<div id="game">
+
+	<canvas id="gameCanvas"></canvas>
+
+	<div id="menu">
+		<div class="menu-panel">
+			<div class="logo">VOXEL FRONTIER</div>
+			<div class="subtitle">A procedural voxel sandbox</div>
+
+			<label class="field-label" for="seedInput">World Seed</label>
+			<input id="seedInput" value="frontier-001" maxlength="32">
+
+			<button class="menu-button" id="createWorld">
+				Create World
+			</button>
+
+			<button class="menu-button secondary" id="menuHelp">
+				Controls
+			</button>
+
+			<div class="help hidden" id="menuHelpText">
+				<strong>Tablet</strong><br>
+				Left joystick: movement<br>
+				Drag the right side: camera<br>
+				Jump: jump<br>
+				Break: break targeted block<br>
+				Place: place selected block<br>
+				Sprint: run<br><br>
+
+				<strong>Desktop</strong><br>
+				WASD: move<br>
+				Mouse: camera<br>
+				Space: jump<br>
+				Left click: break<br>
+				Right click: place<br>
+				Shift: sprint<br>
+				1-9: select block<br>
+				E / I: inventory<br>
+				Esc: pause
+			</div>
+		</div>
+	</div>
+
+	<div id="hud" class="hidden">
+		<div id="top-info">Voxel Frontier</div>
+		<div id="crosshair"></div>
+		<div id="health">Health: 100</div>
+		<div id="hotbar"></div>
+	</div>
+
+	<div id="touch-ui" class="hidden">
+
+		<div id="look-area"></div>
+
+		<div id="joystick-area">
+			<div id="joystick-base"></div>
+			<div id="joystick-knob"></div>
+		</div>
+
+		<button class="action" id="jump-btn">JUMP</button>
+		<button class="action" id="break-btn">BREAK</button>
+		<button class="action" id="place-btn">PLACE</button>
+		<button class="action" id="sprint-btn">SPRINT</button>
+
+		<button class="action" id="inventory-btn">ITEMS</button>
+		<button class="action" id="pause-btn">PAUSE</button>
+	</div>
+
+	<div id="inventory" class="hidden">
+		<div class="inventory-panel">
+			<div class="inventory-title">Inventory</div>
+			<div class="inventory-grid" id="inventoryGrid"></div>
+			<button class="inventory-close" id="inventoryClose">Close</button>
+		</div>
+	</div>
+
+	<div id="pause" class="hidden">
+		<div class="pause-panel">
+			<h2>Paused</h2>
+			<button class="menu-button" id="resumeButton">Resume</button>
+			<button class="menu-button secondary" id="pauseTitleButton">Return to Title</button>
+		</div>
+	</div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+
+<script>
+"use strict";
+
+/* =========================================================
+   BASIC CONSTANTS
+========================================================= */
+
+const CHUNK_SIZE = 16;
+const WORLD_HEIGHT = 32;
+const RENDER_DISTANCE = 2;
+
+const PLAYER_HEIGHT = 1.8;
+const PLAYER_RADIUS = 0.32;
+const EYE_HEIGHT = 1.62;
+
+const GRAVITY = 25;
+const WALK_SPEED = 4.2;
+const SPRINT_SPEED = 7.0;
+const JUMP_SPEED = 8.8;
+
+const BLOCK = {
+	AIR: 0,
+	GRASS: 1,
+	DIRT: 2,
+	STONE: 3,
+	SAND: 4,
+	WOOD: 5,
+	LEAVES: 6,
+	WATER: 7
+};
+
+const BLOCK_NAMES = {
+	1:"Grass",
+	2:"Dirt",
+	3:"Stone",
+	4:"Sand",
+	5:"Wood",
+	6:"Leaves"
+};
+
+const HOTBAR = [
+	BLOCK.GRASS,
+	BLOCK.DIRT,
+	BLOCK.STONE,
+	BLOCK.SAND,
+	BLOCK.WOOD,
+	BLOCK.LEAVES
+];
+
+/* =========================================================
+   DOM
+========================================================= */
+
+const canvas = document.getElementById("gameCanvas");
+const menu = document.getElementById("menu");
+const hud = document.getElementById("hud");
+const touchUI = document.getElementById("touch-ui");
+const hotbar = document.getElementById("hotbar");
+const inventory = document.getElementById("inventory");
+const inventoryGrid = document.getElementById("inventoryGrid");
+const pause = document.getElementById("pause");
+const topInfo = document.getElementById("top-info");
+
+/* =========================================================
+   THREE.JS
+========================================================= */
+
+const renderer = new THREE.WebGLRenderer({
+	canvas,
+	antialias:false,
+	powerPreference:"high-performance"
+});
+
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+const scene = new THREE.Scene();
+
+scene.background = new THREE.Color(0x83b8df);
+scene.fog = new THREE.Fog(0x83b8df, 45, 110);
+
+const camera = new THREE.PerspectiveCamera(
+	72,
+	window.innerWidth / window.innerHeight,
+	0.05,
+	180
+);
+
+const ambient = new THREE.HemisphereLight(
+	0xcce8ff,
+	0x4d4537,
+	1.35
+);
+
+scene.add(ambient);
+
+const sun = new THREE.DirectionalLight(
+	0xfff1cf,
+	2.0
+);
+
+sun.position.set(35,55,20);
+sun.castShadow = true;
+sun.shadow.mapSize.set(1024,1024);
+
+sun.shadow.camera.left = -50;
+sun.shadow.camera.right = 50;
+sun.shadow.camera.top = 50;
+sun.shadow.camera.bottom = -50;
+sun.shadow.camera.near = 1;
+sun.shadow.camera.far = 150;
+
+scene.add(sun);
+
+/* =========================================================
+   TEXTURE GENERATION
+========================================================= */
+
+function makeTexture(base, accent, noiseAmount){
+	const size = 64;
+
+	const c = document.createElement("canvas");
+	c.width = size;
+	c.height = size;
+
+	const ctx = c.getContext("2d");
+
+	ctx.fillStyle = base;
+	ctx.fillRect(0,0,size,size);
+
+	for(let y=0;y<size;y+=2){
+		for(let x=0;x<size;x+=2){
+
+			const n = Math.random();
+
+			if(n < noiseAmount){
+				ctx.fillStyle = accent;
+				ctx.fillRect(x,y,2,2);
+			}
+		}
+	}
+
+	const texture = new THREE.CanvasTexture(c);
+	texture.colorSpace = THREE.SRGBColorSpace;
+	texture.magFilter = THREE.NearestFilter;
+	texture.minFilter = THREE.NearestFilter;
+
+	return texture;
+}
+
+const textures = {
+	grass:makeTexture("#5b9d43","#477c36",0.23),
+	dirt:makeTexture("#79512f","#634126",0.22),
+	stone:makeTexture("#777b7e","#5e6265",0.20),
+	sand:makeTexture("#d6bd79","#bca263",0.18),
+	wood:makeTexture("#80562f","#5f3b20",0.22),
+	leaves:makeTexture("#4e873d","#326a30",0.28),
+	water:makeTexture("#3d8db2","#32769a",0.10)
+};
+
+const materials = {
+	grass:new THREE.MeshLambertMaterial({map:textures.grass}),
+	dirt:new THREE.MeshLambertMaterial({map:textures.dirt}),
+	stone:new THREE.MeshLambertMaterial({map:textures.stone}),
+	sand:new THREE.MeshLambertMaterial({map:textures.sand}),
+	wood:new THREE.MeshLambertMaterial({map:textures.wood}),
+	leaves:new THREE.MeshLambertMaterial({
+		map:textures.leaves,
+		transparent:true,
+		opacity:.88
+	}),
+	water:new THREE.MeshLambertMaterial({
+		map:textures.water,
+		transparent:true,
+		opacity:.58,
+		depthWrite:false
+	})
+};
+
+function materialForBlock(type){
+	switch(type){
+		case BLOCK.GRASS:return materials.grass;
+		case BLOCK.DIRT:return materials.dirt;
+		case BLOCK.STONE:return materials.stone;
+		case BLOCK.SAND:return materials.sand;
+		case BLOCK.WOOD:return materials.wood;
+		case BLOCK.LEAVES:return materials.leaves;
+		case BLOCK.WATER:return materials.water;
+	}
+	return materials.stone;
+}
+
+/* =========================================================
+   DETERMINISTIC NOISE
+========================================================= */
+
+let worldSeed = 1;
+
+function hash2(x,z){
+	let h = Math.imul(x,374761393);
+	h = Math.imul(h ^ (h >>> 13),1274126177);
+	h ^= z + worldSeed * 374761;
+	h = Math.imul(h ^ (h >>> 16),2246822519);
+	h ^= h >>> 13;
+	return (h >>> 0) / 4294967295;
+}
+
+function smooth(t){
+	return t*t*(3-2*t);
+}
+
+function valueNoise(x,z,scale){
+
+	const fx = x / scale;
+	const fz = z / scale;
+
+	const x0 = Math.floor(fx);
+	const z0 = Math.floor(fz);
+
+	const tx = smooth(fx-x0);
+	const tz = smooth(fz-z0);
+
+	const a = hash2(x0,z0);
+	const b = hash2(x0+1,z0);
+	const c = hash2(x0,z0+1);
+	const d = hash2(x0+1,z0+1);
+
+	const ab = a + (b-a)*tx;
+	const cd = c + (d-c)*tx;
+
+	return ab + (cd-ab)*tz;
+}
+
+function terrainHeight(x,z){
+
+	const large = valueNoise(x,z,42);
+	const medium = valueNoise(x,z,18);
+	const small = valueNoise(x,z,7);
+
+	let h =
+		8 +
+		large * 11 +
+		medium * 5 +
+		small * 1.5;
+
+	/* valleys */
+
+	const valley = Math.abs(
+		valueNoise(x+500,z-700,55)-0.5
+	);
+
+	h -= valley * 5;
+
+	return Math.max(
+		3,
+		Math.min(
+			WORLD_HEIGHT-5,
+			Math.floor(h)
+		)
+	);
+}
+
+/* =========================================================
+   WORLD DATA
+========================================================= */
+
+const chunks = new Map();
+
+function chunkKey(cx,cz){
+	return cx + "," + cz;
+}
+
+function worldToChunk(v){
+	return Math.floor(v / CHUNK_SIZE);
+}
+
+function localCoord(v){
+	let r = v % CHUNK_SIZE;
+	if(r < 0) r += CHUNK_SIZE;
+	return r;
+}
+
+function getChunk(cx,cz){
+	return chunks.get(chunkKey(cx,cz));
+}
+
+function createChunkData(cx,cz){
+
+	const data = new Uint8Array(
+		CHUNK_SIZE * WORLD_HEIGHT * CHUNK_SIZE
+	);
+
+	function index(x,y,z){
+		return x + CHUNK_SIZE * (z + CHUNK_SIZE*y);
+	}
+
+	for(let x=0;x<CHUNK_SIZE;x++){
+		for(let z=0;z<CHUNK_SIZE;z++){
+
+			const wx = cx*CHUNK_SIZE+x;
+			const wz = cz*CHUNK_SIZE+z;
+
+			const h = terrainHeight(wx,wz);
+
+			for(let y=0;y<=h;y++){
+
+				let type;
+
+				if(y === h){
+					type = h <= 6 ? BLOCK.SAND : BLOCK.GRASS;
+				}
+				else if(y > h-3){
+					type = BLOCK.DIRT;
+				}
+				else{
+					type = BLOCK.STONE;
+				}
+
+				data[index(x,y,z)] = type;
+			}
+
+			/* water */
+
+			if(h < 6){
+				for(let y=h+1;y<=6;y++){
+					data[index(x,y,z)] = BLOCK.WATER;
+				}
+			}
+		}
+	}
+
+	/*
+		Tree generation is intentionally restricted to
+		a safe interior area so trees don't depend on
+		editing neighboring chunk data.
+	*/
+
+	for(let x=2;x<CHUNK_SIZE-2;x++){
+		for(let z=2;z<CHUNK_SIZE-2;z++){
+
+			const wx = cx*CHUNK_SIZE+x;
+			const wz = cz*CHUNK_SIZE+z;
+
+			const h = terrainHeight(wx,wz);
+
+			if(h <= 7) continue;
+
+			if(hash2(wx*3+91,wz*5-17) > .975){
+
+				const trunkHeight =
+					4 + Math.floor(hash2(wx+44,wz+81)*2);
+
+				for(let y=1;y<=trunkHeight;y++){
+					if(h+y < WORLD_HEIGHT){
+						data[index(x,h+y,z)] = BLOCK.WOOD;
+					}
+				}
+
+				const top = h+trunkHeight;
+
+				for(let dx=-2;dx<=2;dx++){
+					for(let dz=-2;dz<=2;dz++){
+						for(let dy=-1;dy<=1;dy++){
+
+							const dist =
+								Math.abs(dx)+
+								Math.abs(dz)+
+								Math.abs(dy);
+
+							if(dist <= 3){
+
+								const yy = top+dy;
+
+								if(
+									xxValid(x+dx) &&
+									xxValid(z+dz) &&
+									yy>=0 &&
+									yy<WORLD_HEIGHT
+								){
+									data[index(x+dx,yy,z+dz)] =
+										BLOCK.LEAVES;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return {
+		cx,
+		cz,
+		data,
+		mesh:null
+	};
+}
+
+function xxValid(v){
+	return v>=0 && v<CHUNK_SIZE;
+}
+
+function getBlock(wx,wy,wz){
+
+	if(wy < 0 || wy >= WORLD_HEIGHT){
+		return BLOCK.AIR;
+	}
+
+	const cx = worldToChunk(wx);
+	const cz = worldToChunk(wz);
+
+	const chunk = getChunk(cx,cz);
+
+	if(!chunk) return BLOCK.AIR;
+
+	const x = localCoord(wx);
+	const z = localCoord(wz);
+
+	return chunk.data[
+		x + CHUNK_SIZE*(z + CHUNK_SIZE*wy)
+	];
+}
+
+function setBlock(wx,wy,wz,type){
+
+	if(wy < 0 || wy >= WORLD_HEIGHT){
+		return;
+	}
+
+	const cx = worldToChunk(wx);
+	const cz = worldToChunk(wz);
+
+	let chunk = getChunk(cx,cz);
+
+	if(!chunk){
+		chunk = createChunkData(cx,cz);
+		chunks.set(chunkKey(cx,cz),chunk);
+	}
+
+	const x = localCoord(wx);
+	const z = localCoord(wz);
+
+	chunk.data[
+		x + CHUNK_SIZE*(z + CHUNK_SIZE*wy)
+	] = type;
+
+	rebuildChunk(chunk);
+
+	/* Rebuild neighbors if the changed block is on an edge. */
+
+	if(x===0) rebuildChunk(getChunk(cx-1,cz));
+	if(x===CHUNK_SIZE-1) rebuildChunk(getChunk(cx+1,cz));
+	if(z===0) rebuildChunk(getChunk(cx,cz-1));
+	if(z===CHUNK_SIZE-1) rebuildChunk(getChunk(cx,cz+1));
+}
+
+/* =========================================================
+   CHUNK MESHING
+========================================================= */
+
+const faceDirections = [
+	{dir:[1,0,0],corners:[[1,0,0],[1,1,0],[1,1,1],[1,0,1]]},
+	{dir:[-1,0,0],corners:[[0,0,1],[0,1,1],[0,1,0],[0,0,0]]},
+	{dir:[0,1,0],corners:[[0,1,1],[1,1,1],[1,1,0],[0,1,0]]},
+	{dir:[0,-1,0],corners:[[0,0,0],[1,0,0],[1,0,1],[0,0,1]]},
+	{dir:[0,0,1],corners:[[1,0,1],[1,1,1],[0,1,1],[0,0,1]]},
+	{dir:[0,0,-1],corners:[[0,0,0],[0,1,0],[1,1,0],[1,0,0]]}
+];
+
+const faceUV = [
+	[0,0],[1,0],[1,1],[0,1]
+];
+
+function isTransparent(type){
+	return type===BLOCK.AIR || type===BLOCK.WATER;
+}
+
+function shouldRenderFace(type,neighbor){
+
+	if(type===BLOCK.WATER){
+		return neighbor===BLOCK.AIR;
+	}
+
+	if(neighbor===BLOCK.AIR) return true;
+	if(neighbor===BLOCK.WATER) return true;
+	if(neighbor===BLOCK.LEAVES && type!==BLOCK.LEAVES) return true;
+	if(type===BLOCK.LEAVES && neighbor!==BLOCK.LEAVES) return true;
+
+	return false;
+}
+
+function rebuildChunk(chunk){
+
+	if(!chunk) return;
+
+	if(chunk.mesh){
+		scene.remove(chunk.mesh);
+
+		chunk.mesh.traverse(obj=>{
+			if(obj.geometry){
+				obj.geometry.dispose();
+			}
+		});
+
+		chunk.mesh = null;
+	}
+
+	const positions=[];
+	const normals=[];
+	const uvs=[];
+	const indices=[];
+	const groups=[];
+
+	let vertexCount=0;
+
+	function addFace(type,x,y,z,face){
+
+		const corners = face.corners;
+		const normal = face.dir;
+
+		const base = vertexCount;
+
+		for(let i=0;i<4;i++){
+
+			const c = corners[i];
+
+			positions.push(
+				x+c[0],
+				y+c[1],
+				z+c[2]
+			);
+
+			normals.push(
+				normal[0],
+				normal[1],
+				normal[2]
+			);
+
+			uvs.push(
+				faceUV[i][0],
+				faceUV[i][1]
+			);
+
+			vertexCount++;
+		}
+
+		indices.push(
+			base,
+			base+1,
+			base+2,
+			base,
+			base+2,
+			base+3
+		);
+	}
+
+	for(let x=0;x<CHUNK_SIZE;x++){
+		for(let y=0;y<WORLD_HEIGHT;y++){
+			for(let z=0;z<CHUNK_SIZE;z++){
+
+				const type = getBlock(
+					chunk.cx*CHUNK_SIZE+x,
+					y,
+					chunk.cz*CHUNK_SIZE+z
+				);
+
+				if(type===BLOCK.AIR) continue;
+
+				for(const face of faceDirections){
+
+					const nx =
+						chunk.cx*CHUNK_SIZE+x+face.dir[0];
+
+					const ny =
+						y+face.dir[1];
+
+					const nz =
+						chunk.cz*CHUNK_SIZE+z+face.dir[2];
+
+					const neighbor = getBlock(nx,ny,nz);
+
+					if(shouldRenderFace(type,neighbor)){
+						addFace(
+							type,
+							chunk.cx*CHUNK_SIZE+x,
+							y,
+							chunk.cz*CHUNK_SIZE+z,
+							face
+						);
+					}
+				}
+			}
+		}
+	}
+
+	if(vertexCount===0) return;
+
+	const geometry = new THREE.BufferGeometry();
+
+	geometry.setAttribute(
+		"position",
+		new THREE.Float32BufferAttribute(positions,3)
+	);
+
+	geometry.setAttribute(
+		"normal",
+		new THREE.Float32BufferAttribute(normals,3)
+	);
+
+	geometry.setAttribute(
+		"uv",
+		new THREE.Float32BufferAttribute(uvs,2)
+	);
+
+	geometry.setIndex(indices);
+	geometry.computeBoundingSphere();
+
+	/*
+		A single material cannot have different textures for
+		every block, so the chunk is split into block meshes.
+		For performance, build separate arrays by type.
+	*/
+
+	scene.remove(geometry);
+
+	/* Rebuild using grouped type geometry. */
+
+	const typed = {};
+
+	for(let i=0;i<CHUNK_SIZE;i++){
+		for(let y=0;y<WORLD_HEIGHT;y++){
+			for(let k=0;k<CHUNK_SIZE;k++){
+
+				const type=getBlock(
+					chunk.cx*CHUNK_SIZE+i,
+					y,
+					chunk.cz*CHUNK_SIZE+k
+				);
+
+				if(type===BLOCK.AIR) continue;
+
+				for(const face of faceDirections){
+
+					const nx=chunk.cx*CHUNK_SIZE+i+face.dir[0];
+					const ny=y+face.dir[1];
+					const nz=chunk.cz*CHUNK_SIZE+k+face.dir[2];
+
+					const neighbor=getBlock(nx,ny,nz);
+
+					if(!shouldRenderFace(type,neighbor)) continue;
+
+					if(!typed[type]){
+						typed[type]={
+							p:[],
+							n:[],
+							u:[],
+							idx:[],
+							count:0
+						};
+					}
+
+					const a=typed[type];
+
+					const base=a.count;
+
+					for(let q=0;q<4;q++){
+
+						const c=face.corners[q];
+
+						a.p.push(
+							chunk.cx*CHUNK_SIZE+i+c[0],
+							y+c[1],
+							chunk.cz*CHUNK_SIZE+k+c[2]
+						);
+
+						a.n.push(
+							face.dir[0],
+							face.dir[1],
+							face.dir[2]
+						);
+
+						a.u.push(
+							faceUV[q][0],
+							faceUV[q][1]
+						);
+
+						a.count++;
+					}
+
+					a.idx.push(
+						base,base+1,base+2,
+						base,base+2,base+3
+					);
+				}
+			}
+		}
+	}
+
+	const group = new THREE.Group();
+
+	for(const key of Object.keys(typed)){
+
+		const a=typed[key];
+
+		const geo=new THREE.BufferGeometry();
+
+		geo.setAttribute(
+			"position",
+			new THREE.Float32BufferAttribute(a.p,3)
+		);
+
+		geo.setAttribute(
+			"normal",
+			new THREE.Float32BufferAttribute(a.n,3)
+		);
+
+		geo.setAttribute(
+			"uv",
+			new THREE.Float32BufferAttribute(a.u,2)
+		);
+
+		geo.setIndex(a.idx);
+		geo.computeBoundingSphere();
+
+		const mesh=new THREE.Mesh(
+			geo,
+			materialForBlock(Number(key))
+		);
+
+		mesh.castShadow=true;
+		mesh.receiveShadow=true;
+
+		group.add(mesh);
+	}
+
+	chunk.mesh=group;
+	scene.add(group);
+}
+
+/* =========================================================
+   CHUNK STREAMING
+========================================================= */
+
+function loadChunk(cx,cz){
+
+	const key=chunkKey(cx,cz);
+
+	if(chunks.has(key)) return;
+
+	const chunk=createChunkData(cx,cz);
+
+	chunks.set(key,chunk);
+
+	rebuildChunk(chunk);
+}
+
+function unloadFarChunks(playerCX,playerCZ){
+
+	for(const [key,chunk] of chunks){
+
+		const dx=Math.abs(chunk.cx-playerCX);
+		const dz=Math.abs(chunk.cz-playerCZ);
+
+		if(dx>RENDER_DISTANCE || dz>RENDER_DISTANCE){
+
+			if(chunk.mesh){
+				scene.remove(chunk.mesh);
+
+				chunk.mesh.traverse(obj=>{
+					if(obj.geometry){
+						obj.geometry.dispose();
+					}
+				});
+			}
+
+			chunks.delete(key);
+		}
+	}
+}
+
+function updateChunks(){
+
+	const cx=worldToChunk(player.position.x);
+	const cz=worldToChunk(player.position.z);
+
+	for(let dx=-RENDER_DISTANCE;dx<=RENDER_DISTANCE;dx++){
+		for(let dz=-RENDER_DISTANCE;dz<=RENDER_DISTANCE;dz++){
+
+			if(
+				Math.abs(dx)+Math.abs(dz)
+				> RENDER_DISTANCE+1
+			) continue;
+
+			loadChunk(cx+dx,cz+dz);
+		}
+	}
+
+	unloadFarChunks(cx,cz);
+}
+
+/* =========================================================
+   PLAYER
+========================================================= */
+
+const player={
+	position:new THREE.Vector3(0,20,0),
+	velocity:new THREE.Vector3(),
+	yaw:0,
+	pitch:0,
+	onGround:false,
+	sprinting:false
+};
+
+function spawnPlayer(){
+
+	const x=0;
+	const z=0;
+
+	let y=terrainHeight(x,z)+2;
+
+	while(
+		getBlock(x,Math.floor(y),z)!==BLOCK.AIR &&
+		y<WORLD_HEIGHT-2
+	){
+		y++;
+	}
+
+	player.position.set(
+		x+0.5,
+		y,
+		z+0.5
+	);
+
+	player.velocity.set(0,0,0);
+	player.yaw=0;
+	player.pitch=0;
+}
+
+function playerBounds(){
+
+	return {
+		minX:player.position.x-PLAYER_RADIUS,
+		maxX:player.position.x+PLAYER_RADIUS,
+		minY:player.position.y,
+		maxY:player.position.y+PLAYER_HEIGHT,
+		minZ:player.position.z-PLAYER_RADIUS,
+		maxZ:player.position.z+PLAYER_RADIUS
+	};
+}
+
+function solidBlock(type){
+	return type!==BLOCK.AIR &&
+		   type!==BLOCK.WATER &&
+		   type!==BLOCK.LEAVES;
+}
+
+function collidesAt(x,y,z){
+
+	const minX=Math.floor(x-PLAYER_RADIUS);
+	const maxX=Math.floor(x+PLAYER_RADIUS);
+	const minY=Math.floor(y);
+	const maxY=Math.floor(y+PLAYER_HEIGHT);
+	const minZ=Math.floor(z-PLAYER_RADIUS);
+	const maxZ=Math.floor(z+PLAYER_RADIUS);
+
+	for(let bx=minX;bx<=maxX;bx++){
+		for(let by=minY;by<=maxY;by++){
+			for(let bz=minZ;bz<=maxZ;bz++){
+
+				if(solidBlock(getBlock(bx,by,bz))){
+					return true;
+				}
+			}
+		}
+	}
+
+	return false;
+}
+
+function movePlayer(dx,dy,dz){
+
+	const steps=6;
+
+	const sx=dx/steps;
+	const sy=dy/steps;
+	const sz=dz/steps;
+
+	for(let i=0;i<steps;i++){
+
+		if(!collidesAt(
+			player.position.x+sx,
+			player.position.y,
+			player.position.z
+		)){
+			player.position.x+=sx;
+		}
+		else{
+			player.velocity.x=0;
+		}
+
+		if(!collidesAt(
+			player.position.x,
+			player.position.y,
+			player.position.z+sz
+		)){
+			player.position.z+=sz;
+		}
+		else{
+			player.velocity.z=0;
+		}
+
+		if(!collidesAt(
+			player.position.x,
+			player.position.y+sy,
+			player.position.z
+		)){
+			player.position.y+=sy;
+			player.onGround=false;
+		}
+		else{
+
+			if(sy<0){
+				player.onGround=true;
+			}
+
+			player.velocity.y=0;
+		}
+	}
+}
+
+/* =========================================================
+   INPUT
+========================================================= */
+
+const keys={};
+
+window.addEventListener("keydown",e=>{
+
+	keys[e.code]=true;
+
+	if([
+		"Space",
+		"ArrowUp",
+		"ArrowDown",
+		"ArrowLeft",
+		"ArrowRight"
+	].includes(e.code)){
+		e.preventDefault();
+	}
+
+	if(gameRunning){
+
+		if(e.code==="Escape"){
+			togglePause();
+		}
+
+		if(e.code==="KeyE" || e.code==="KeyI"){
+			toggleInventory();
+		}
+
+		const n=parseInt(e.key);
+
+		if(n>=1 && n<=HOTBAR.length){
+			selectHotbar(n-1);
+		}
+	}
+});
+
+window.addEventListener("keyup",e=>{
+	keys[e.code]=false;
+});
+
+/* =========================================================
+   MOUSE LOOK
+========================================================= */
+
+let mouseLocked=false;
+
+canvas.addEventListener("click",()=>{
+
+	if(gameRunning &&
+		window.matchMedia("(pointer:fine)").matches &&
+		!pause.classList.contains("hidden")
+	){
+		return;
+	}
+
+	if(gameRunning &&
+		window.matchMedia("(pointer:fine)").matches
+	){
+		canvas.requestPointerLock?.();
+	}
+});
+
+document.addEventListener("pointerlockchange",()=>{
+	mouseLocked=document.pointerLockElement===canvas;
+});
+
+document.addEventListener("mousemove",e=>{
+
+	if(!gameRunning || !mouseLocked) return;
+
+	player.yaw-=e.movementX*.0025;
+	player.pitch-=e.movementY*.0025;
+
+	player.pitch=Math.max(
+		-1.48,
+		Math.min(1.48,player.pitch)
+	);
+});
+
+canvas.addEventListener("contextmenu",e=>e.preventDefault());
+
+canvas.addEventListener("mousedown",e=>{
+
+	if(!gameRunning || !mouseLocked) return;
+
+	if(e.button===0){
+		breakTarget();
+	}
+
+	if(e.button===2){
+		placeTarget();
+	}
+});
+
+/* =========================================================
+   TOUCH JOYSTICK
+========================================================= */
+
+const joystickArea=document.getElementById("joystick-area");
+const joystickKnob=document.getElementById("joystick-knob");
+
+const joystick={
+	active:false,
+	id:null,
+	x:0,
+	y:0
+};
+
+joystickArea.addEventListener("pointerdown",e=>{
+
+	joystick.active=true;
+	joystick.id=e.pointerId;
+
+	joystickArea.setPointerCapture(e.pointerId);
+
+	updateJoystick(e);
+});
+
+joystickArea.addEventListener("pointermove",e=>{
+
+	if(!joystick.active || e.pointerId!==joystick.id) return;
+
+	updateJoystick(e);
+});
+
+joystickArea.addEventListener("pointerup",endJoystick);
+joystickArea.addEventListener("pointercancel",endJoystick);
+
+function updateJoystick(e){
+
+	const rect=joystickArea.getBoundingClientRect();
+
+	const cx=rect.left+75;
+	const cy=rect.top+75;
+
+	let dx=e.clientX-cx;
+	let dy=e.clientY-cy;
+
+	const max=45;
+
+	const length=Math.hypot(dx,dy);
+
+	if(length>max){
+		dx=dx/length*max;
+		dy=dy/length*max;
+	}
+
+	joystick.x=dx/max;
+	joystick.y=dy/max;
+
+	joystickKnob.style.transform=
+		`translate(${dx}px,${dy}px)`;
+}
+
+function endJoystick(){
+
+	joystick.active=false;
+	joystick.id=null;
+	joystick.x=0;
+	joystick.y=0;
+
+	joystickKnob.style.transform="translate(0,0)";
+}
+
+/* =========================================================
+   TOUCH LOOK
+========================================================= */
+
+const lookArea=document.getElementById("look-area");
+
+let lookPointer=null;
+let lastLookX=0;
+let lastLookY=0;
+
+lookArea.addEventListener("pointerdown",e=>{
+
+	if(lookPointer!==null) return;
+
+	lookPointer=e.pointerId;
+
+	lastLookX=e.clientX;
+	lastLookY=e.clientY;
+
+	lookArea.setPointerCapture(e.pointerId);
+});
+
+lookArea.addEventListener("pointermove",e=>{
+
+	if(e.pointerId!==lookPointer) return;
+
+	const dx=e.clientX-lastLookX;
+	const dy=e.clientY-lastLookY;
+
+	lastLookX=e.clientX;
+	lastLookY=e.clientY;
+
+	player.yaw-=dx*.006;
+	player.pitch-=dy*.006;
+
+	player.pitch=Math.max(
+		-1.48,
+		Math.min(1.48,player.pitch)
+	);
+});
+
+function endLook(e){
+
+	if(e.pointerId===lookPointer){
+		lookPointer=null;
+	}
+}
+
+lookArea.addEventListener("pointerup",endLook);
+lookArea.addEventListener("pointercancel",endLook);
+
+/* =========================================================
+   TOUCH BUTTONS
+========================================================= */
+
+function bindHoldButton(id,down,up){
+
+	const el=document.getElementById(id);
+
+	el.addEventListener("pointerdown",e=>{
+		e.preventDefault();
+		down();
+	});
+
+	el.addEventListener("pointerup",e=>{
+		e.preventDefault();
+		up?.();
+	});
+
+	el.addEventListener("pointercancel",()=>{
+		up?.();
+	});
+}
+
+bindHoldButton(
+	"sprint-btn",
+	()=>player.sprinting=true,
+	()=>player.sprinting=false
+);
+
+document.getElementById("jump-btn").addEventListener(
+	"pointerdown",
+	e=>{
+		e.preventDefault();
+		jump();
+	}
+);
+
+document.getElementById("break-btn").addEventListener(
+	"pointerdown",
+	e=>{
+		e.preventDefault();
+		breakTarget();
+	}
+);
+
+document.getElementById("place-btn").addEventListener(
+	"pointerdown",
+	e=>{
+		e.preventDefault();
+		placeTarget();
+	}
+);
+
+document.getElementById("inventory-btn").addEventListener(
+	"pointerdown",
+	e=>{
+		e.preventDefault();
+		toggleInventory();
+	}
+);
+
+document.getElementById("pause-btn").addEventListener(
+	"pointerdown",
+	e=>{
+		e.preventDefault();
+		togglePause();
+	}
+);
+
+/* =========================================================
+   MOVEMENT
+========================================================= */
+
+function jump(){
+
+	if(!gameRunning) return;
+
+	if(player.onGround){
+		player.velocity.y=JUMP_SPEED;
+		player.onGround=false;
+	}
+}
+
+function updateMovement(dt){
+
+	let forward=0;
+	let right=0;
+
+	if(keys["KeyW"] || keys["ArrowUp"]) forward+=1;
+	if(keys["KeyS"] || keys["ArrowDown"]) forward-=1;
+	if(keys["KeyD"] || keys["ArrowRight"]) right+=1;
+	if(keys["KeyA"] || keys["ArrowLeft"]) right-=1;
+
+	if(joystick.active){
+		right+=joystick.x;
+		forward-=joystick.y;
+	}
+
+	const len=Math.hypot(forward,right);
+
+	if(len>1){
+		forward/=len;
+		right/=len;
+	}
+
+	const speed =
+		player.sprinting ||
+		keys["ShiftLeft"] ||
+		keys["ShiftRight"]
+		? SPRINT_SPEED
+		: WALK_SPEED;
+
+	const sin=Math.sin(player.yaw);
+	const cos=Math.cos(player.yaw);
+
+	const dx=
+		(sin*forward + cos*right)
+		*speed*dt;
+
+	const dz=
+		(cos*forward - sin*right)
+		*speed*dt;
+
+	player.velocity.y-=GRAVITY*dt;
+
+	movePlayer(
+		dx,
+		player.velocity.y*dt,
+		dz
+	);
+
+	if(player.position.y<-10){
+		spawnPlayer();
+	}
+}
+
+/* =========================================================
+   CAMERA
+========================================================= */
+
+function updateCamera(){
+
+	camera.position.set(
+		player.position.x,
+		player.position.y+EYE_HEIGHT,
+		player.position.z
+	);
+
+	camera.rotation.order="YXZ";
+
+	camera.rotation.y=player.yaw;
+	camera.rotation.x=player.pitch;
+}
+
+/* =========================================================
+   RAYCASTING
+========================================================= */
+
+const rayOrigin=new THREE.Vector3();
+const rayDirection=new THREE.Vector3();
+
+function getLookRay(){
+
+	camera.getWorldPosition(rayOrigin);
+
+	camera.getWorldDirection(rayDirection);
+
+	return {
+		origin:rayOrigin,
+		direction:rayDirection
+	};
+}
+
+function voxelRaycast(maxDistance=7){
+
+	const ray=getLookRay();
+
+	let x=Math.floor(ray.origin.x);
+	let y=Math.floor(ray.origin.y);
+	let z=Math.floor(ray.origin.z);
+
+	const stepX=ray.direction.x>=0?1:-1;
+	const stepY=ray.direction.y>=0?1:-1;
+	const stepZ=ray.direction.z>=0?1:-1;
+
+	const tDeltaX=Math.abs(1/ray.direction.x);
+	const tDeltaY=Math.abs(1/ray.direction.y);
+	const tDeltaZ=Math.abs(1/ray.direction.z);
+
+	let tMaxX=ray.direction.x>=0
+		? (x+1-ray.origin.x)*tDeltaX
+		: (ray.origin.x-x)*tDeltaX;
+
+	let tMaxY=ray.direction.y>=0
+		? (y+1-ray.origin.y)*tDeltaY
+		: (ray.origin.y-y)*tDeltaY;
+
+	let tMaxZ=ray.direction.z>=0
+		? (z+1-ray.origin.z)*tDeltaZ
+		: (ray.origin.z-z)*tDeltaZ;
+
+	let previous={
+		x,y,z
+	};
+
+	for(let i=0;i<128;i++){
+
+		const block=getBlock(x,y,z);
+
+		if(
+			block!==BLOCK.AIR &&
+			block!==BLOCK.WATER
+		){
+			return {
+				x,
+				y,
+				z,
+				block,
+				previous
+			};
+		}
+
+		previous={x,y,z};
+
+		if(tMaxX<tMaxY){
+
+			if(tMaxX<tMaxZ){
+				x+=stepX;
+				tMaxX+=tDeltaX;
+			}
+			else{
+				z+=stepZ;
+				tMaxZ+=tDeltaZ;
+			}
+
+		}
+		else{
+
+			if(tMaxY<tMaxZ){
+				y+=stepY;
+				tMaxY+=tDeltaY;
+			}
+			else{
+				z+=stepZ;
+				tMaxZ+=tDeltaZ;
+			}
+		}
+
+		if(
+			Math.min(tMaxX,tMaxY,tMaxZ)>maxDistance
+		){
+			break;
+		}
+	}
+
+	return null;
+}
+
+/* =========================================================
+   BLOCK INTERACTION
+========================================================= */
+
+let selectedSlot=0;
+
+function breakTarget(){
+
+	if(!gameRunning) return;
+
+	const hit=voxelRaycast();
+
+	if(!hit) return;
+
+	if(hit.y<=0) return;
+
+	setBlock(
+		hit.x,
+		hit.y,
+		hit.z,
+		BLOCK.AIR
+	);
+}
+
+function placeTarget(){
+
+	if(!gameRunning) return;
+
+	const hit=voxelRaycast();
+
+	if(!hit) return;
+
+	const p=hit.previous;
+
+	const type=HOTBAR[selectedSlot];
+
+	if(type===BLOCK.WATER) return;
+
+	/* Prevent placing inside player. */
+
+	const bx=p.x;
+	const by=p.y;
+	const bz=p.z;
+
+	const blockMinX=bx;
+	const blockMaxX=bx+1;
+	const blockMinY=by;
+	const blockMaxY=by+1;
+	const blockMinZ=bz;
+	const blockMaxZ=bz+1;
+
+	const b=playerBounds();
+
+	const intersects=
+		b.maxX>blockMinX &&
+		b.minX<blockMaxX &&
+		b.maxY>blockMinY &&
+		b.minY<blockMaxY &&
+		b.maxZ>blockMinZ &&
+		b.minZ<blockMaxZ;
+
+	if(intersects) return;
+
+	if(getBlock(bx,by,bz)!==BLOCK.AIR) return;
+
+	setBlock(
+		bx,
+		by,
+		bz,
+		type
+	);
+}
+
+/* =========================================================
+   HOTBAR
+========================================================= */
+
+function blockColor(type){
+
+	switch(type){
+		case BLOCK.GRASS:return "#5b9d43";
+		case BLOCK.DIRT:return "#79512f";
+		case BLOCK.STONE:return "#777b7e";
+		case BLOCK.SAND:return "#d6bd79";
+		case BLOCK.WOOD:return "#80562f";
+		case BLOCK.LEAVES:return "#4e873d";
+	}
+
+	return "#888";
+}
+
+function buildHotbar(){
+
+	hotbar.innerHTML="";
+
+	HOTBAR.forEach((type,i)=>{
+
+		const slot=document.createElement("div");
+
+		slot.className="slot";
+
+		if(i===selectedSlot){
+			slot.classList.add("selected");
+		}
+
+		const number=document.createElement("span");
+		number.className="slot-number";
+		number.textContent=i+1;
+
+		const icon=document.createElement("div");
+		icon.className="block-icon";
+		icon.style.background=blockColor(type);
+
+		const count=document.createElement("span");
+		count.className="slot-count";
+		count.textContent="64";
+
+		slot.appendChild(number);
+		slot.appendChild(icon);
+		slot.appendChild(count);
+
+		slot.addEventListener("pointerdown",e=>{
+			e.preventDefault();
+			selectHotbar(i);
+		});
+
+		hotbar.appendChild(slot);
+	});
+}
+
+function selectHotbar(i){
+
+	if(i<0 || i>=HOTBAR.length) return;
+
+	selectedSlot=i;
+
+	buildHotbar();
+}
+
+/* =========================================================
+   INVENTORY
+========================================================= */
+
+function buildInventory(){
+
+	inventoryGrid.innerHTML="";
+
+	for(let i=0;i<20;i++){
+
+		const slot=document.createElement("div");
+
+		slot.className="inventory-slot";
+
+		if(i<HOTBAR.length){
+
+			const icon=document.createElement("div");
+
+			icon.className="block-icon";
+
+			icon.style.background=
+				blockColor(HOTBAR[i]);
+
+			slot.appendChild(icon);
+		}
+
+		inventoryGrid.appendChild(slot);
+	}
+}
+
+function toggleInventory(){
+
+	if(!gameRunning) return;
+
+	inventory.classList.toggle("hidden");
+
+	if(!inventory.classList.contains("hidden")){
+		pauseGameInput();
+	}
+	else{
+		resumeGameInput();
+	}
+}
+
+function pauseGameInput(){
+
+	if(document.pointerLockElement){
+		document.exitPointerLock();
+	}
+}
+
+function resumeGameInput(){
+
+	if(
+		window.matchMedia("(pointer:fine)").matches &&
+		gameRunning
+	){
+		canvas.requestPointerLock?.();
+	}
+}
+
+/* =========================================================
+   PAUSE
+========================================================= */
+
+function togglePause(){
+
+	if(!gameRunning) return;
+
+	if(pause.classList.contains("hidden")){
+		pause.classList.remove("hidden");
+		pauseGameInput();
+	}
+	else{
+		pause.classList.add("hidden");
+	}
+}
+
+/* =========================================================
+   WORLD STARTUP
+========================================================= */
+
+let gameRunning=false;
+
+function seedToNumber(seed){
+
+	let h=2166136261;
+
+	for(let i=0;i<seed.length;i++){
+
+		h^=seed.charCodeAt(i);
+		h=Math.imul(h,16777619);
+	}
+
+	return h>>>0;
+}
+
+function clearWorld(){
+
+	for(const chunk of chunks.values()){
+
+		if(chunk.mesh){
+			scene.remove(chunk.mesh);
+
+			chunk.mesh.traverse(obj=>{
+				if(obj.geometry){
+					obj.geometry.dispose();
+				}
+			});
+		}
+	}
+
+	chunks.clear();
+}
+
+function startWorld(){
+
+	const seedInput=
+		document.getElementById("seedInput").value.trim()
+		|| "frontier-001";
+
+	worldSeed=seedToNumber(seedInput);
+
+	clearWorld();
+
+	gameRunning=true;
+
+	menu.classList.add("hidden");
+	hud.classList.remove("hidden");
+	touchUI.classList.remove("hidden");
+	pause.classList.add("hidden");
+	inventory.classList.add("hidden");
+
+	spawnPlayer();
+
+	updateChunks();
+	updateCamera();
+
+	topInfo.textContent=
+		"Seed: "+seedInput+
+		" | Chunk: 0, 0";
+
+	buildHotbar();
+	buildInventory();
+
+	if(window.matchMedia("(pointer:fine)").matches){
+		setTimeout(()=>{
+			canvas.requestPointerLock?.();
+		},150);
+	}
+}
+
+function returnToTitle(){
+
+	gameRunning=false;
+
+	if(document.pointerLockElement){
+		document.exitPointerLock();
+	}
+
+	clearWorld();
+
+	menu.classList.remove("hidden");
+	hud.classList.add("hidden");
+	touchUI.classList.add("hidden");
+	pause.classList.add("hidden");
+	inventory.classList.add("hidden");
+}
+
+/* =========================================================
+   UI EVENTS
+========================================================= */
+
+document.getElementById("createWorld").addEventListener(
+	"click",
+	startWorld
+);
+
+document.getElementById("menuHelp").addEventListener(
+	"click",
+	()=>{
+		document
+			.getElementById("menuHelpText")
+			.classList.toggle("hidden");
+	}
+);
+
+document.getElementById("resumeButton").addEventListener(
+	"click",
+	()=>{
+		pause.classList.add("hidden");
+	}
+);
+
+document.getElementById("pauseTitleButton").addEventListener(
+	"click",
+	returnToTitle
+);
+
+document.getElementById("inventoryClose").addEventListener(
+	"click",
+	()=>{
+		inventory.classList.add("hidden");
+	}
+);
+
+/* =========================================================
+   RESIZE
+========================================================= */
+
+window.addEventListener("resize",()=>{
+
+	camera.aspect=
+		window.innerWidth/window.innerHeight;
+
+	camera.updateProjectionMatrix();
+
+	renderer.setSize(
+		window.innerWidth,
+		window.innerHeight
+	);
+
+	renderer.setPixelRatio(
+		Math.min(window.devicePixelRatio || 1,1.5)
+	);
+});
+
+/* =========================================================
+   GAME LOOP
+========================================================= */
+
+let lastTime=performance.now();
+let chunkTimer=0;
+
+function update(dt){
+
+	if(!gameRunning) return;
+
+	if(
+		!pause.classList.contains("hidden") ||
+		!inventory.classList.contains("hidden")
+	){
+		updateCamera();
+		return;
+	}
+
+	updateMovement(dt);
+	updateCamera();
+
+	chunkTimer+=dt;
+
+	if(chunkTimer>.45){
+
+		updateChunks();
+
+		const cx=worldToChunk(player.position.x);
+		const cz=worldToChunk(player.position.z);
+
+		topInfo.textContent=
+			"Chunk: "+cx+", "+cz+
+			" | Blocks: "+chunks.size;
+
+		chunkTimer=0;
+	}
+}
+
+function loop(now){
+
+	requestAnimationFrame(loop);
+
+	const dt=Math.min(
+		(now-lastTime)/1000,
+		0.05
+	);
+
+	lastTime=now;
+
+	update(dt);
+
+	renderer.render(scene,camera);
+}
+
+buildHotbar();
+buildInventory();
+
+requestAnimationFrame(loop);
+
+/* =========================================================
+   INITIAL CAMERA
+========================================================= */
+
+camera.position.set(0,12,0);
+
+/* =========================================================
+   MOBILE BROWSER PROTECTION
+========================================================= */
+
+document.addEventListener(
+	"touchmove",
+	e=>{
+		if(gameRunning){
+			e.preventDefault();
+		}
+	},
+	{passive:false}
+);
+
+document.addEventListener(
+	"gesturestart",
+	e=>e.preventDefault(),
+	{passive:false}
+);
+
+document.addEventListener(
+	"gesturechange",
+	e=>e.preventDefault(),
+	{passive:false}
+);
+
+document.addEventListener(
+	"gestureend",
+	e=>e.preventDefault(),
+	{passive:false}
+);
+
+</script>
+</body>
+</html>
