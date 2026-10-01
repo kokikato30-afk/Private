@@ -1,1 +1,1957 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+	content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>Island Royale</title>
 
+<style>
+*{
+	box-sizing:border-box;
+	-webkit-tap-highlight-color:transparent;
+	user-select:none;
+}
+
+html,body{
+	margin:0;
+	width:100%;
+	height:100%;
+	overflow:hidden;
+	background:#101820;
+	font-family:Arial,sans-serif;
+	touch-action:none;
+}
+
+canvas{
+	position:absolute;
+	left:0;
+	top:0;
+	width:100%;
+	height:100%;
+	display:block;
+}
+
+#hud{
+	position:absolute;
+	inset:0;
+	pointer-events:none;
+}
+
+#top{
+	position:absolute;
+	top:15px;
+	left:15px;
+	right:15px;
+	display:flex;
+	justify-content:space-between;
+	align-items:flex-start;
+}
+
+.panel{
+	background:rgba(10,18,30,.78);
+	border:1px solid rgba(255,255,255,.18);
+	border-radius:12px;
+	padding:10px 14px;
+	color:white;
+	backdrop-filter:blur(5px);
+}
+
+#health{
+	width:210px;
+}
+
+.bar{
+	width:100%;
+	height:14px;
+	background:#27313a;
+	border-radius:20px;
+	overflow:hidden;
+	margin-top:6px;
+}
+
+#healthBar{
+	height:100%;
+	width:100%;
+	background:#36d275;
+	transition:width .15s;
+}
+
+#staminaBar{
+	height:100%;
+	width:100%;
+	background:#49a9ff;
+}
+
+#stormPanel{
+	text-align:center;
+	min-width:160px;
+}
+
+#crosshair{
+	position:absolute;
+	left:50%;
+	top:50%;
+	width:20px;
+	height:20px;
+	transform:translate(-50%,-50%);
+}
+
+#crosshair:before,
+#crosshair:after{
+	content:"";
+	position:absolute;
+	background:white;
+	opacity:.85;
+}
+
+#crosshair:before{
+	width:20px;
+	height:2px;
+	top:9px;
+	left:0;
+}
+
+#crosshair:after{
+	height:20px;
+	width:2px;
+	left:9px;
+	top:0;
+}
+
+#message{
+	position:absolute;
+	left:50%;
+	top:17%;
+	transform:translateX(-50%);
+	color:white;
+	font-size:25px;
+	font-weight:bold;
+	text-shadow:0 2px 5px #000;
+	text-align:center;
+}
+
+#controls{
+	position:absolute;
+	inset:0;
+	pointer-events:none;
+}
+
+#joystick{
+	position:absolute;
+	left:25px;
+	bottom:30px;
+	width:145px;
+	height:145px;
+	border-radius:50%;
+	background:rgba(255,255,255,.10);
+	border:2px solid rgba(255,255,255,.25);
+	pointer-events:auto;
+}
+
+#stick{
+	position:absolute;
+	left:50%;
+	top:50%;
+	width:65px;
+	height:65px;
+	margin-left:-32.5px;
+	margin-top:-32.5px;
+	border-radius:50%;
+	background:rgba(255,255,255,.28);
+	border:2px solid rgba(255,255,255,.45);
+}
+
+.action{
+	position:absolute;
+	width:72px;
+	height:72px;
+	border-radius:50%;
+	border:1px solid rgba(255,255,255,.35);
+	background:rgba(10,18,30,.65);
+	color:white;
+	font-size:13px;
+	font-weight:bold;
+	pointer-events:auto;
+}
+
+#jump{
+	right:28px;
+	bottom:34px;
+}
+
+#build{
+	right:118px;
+	bottom:94px;
+}
+
+#break{
+	right:28px;
+	bottom:126px;
+}
+
+#mapBtn{
+	right:118px;
+	bottom:10px;
+}
+
+#inventory{
+	position:absolute;
+	left:50%;
+	bottom:20px;
+	transform:translateX(-50%);
+	display:flex;
+	gap:5px;
+}
+
+.slot{
+	width:55px;
+	height:55px;
+	border-radius:8px;
+	border:2px solid rgba(255,255,255,.25);
+	background:rgba(10,18,30,.7);
+	color:white;
+	display:flex;
+	align-items:center;
+	justify-content:center;
+	font-size:12px;
+}
+
+.slot.selected{
+	border-color:white;
+	background:rgba(255,255,255,.18);
+}
+
+#startScreen,
+#gameOver,
+#mapScreen{
+	position:absolute;
+	inset:0;
+	display:flex;
+	align-items:center;
+	justify-content:center;
+	background:
+	linear-gradient(rgba(5,12,22,.5),rgba(5,12,22,.88));
+	z-index:10;
+}
+
+.card{
+	width:min(520px,90%);
+	background:rgba(15,25,40,.94);
+	border:1px solid rgba(255,255,255,.15);
+	border-radius:20px;
+	padding:30px;
+	color:white;
+	text-align:center;
+	box-shadow:0 20px 60px rgba(0,0,0,.4);
+}
+
+.card h1{
+	font-size:38px;
+	margin:0 0 10px;
+}
+
+.card p{
+	color:#cbd5df;
+	line-height:1.6;
+}
+
+.mainButton{
+	width:100%;
+	padding:15px;
+	border:0;
+	border-radius:12px;
+	background:#4a9eff;
+	color:white;
+	font-size:18px;
+	font-weight:bold;
+	margin-top:15px;
+}
+
+.hidden{
+	display:none!important;
+}
+
+#mapCanvas{
+	width:min(90vw,600px);
+	height:min(75vh,600px);
+	background:#263d31;
+	border-radius:16px;
+	border:2px solid rgba(255,255,255,.25);
+}
+
+@media(max-width:700px){
+	#top{
+		top:8px;
+		left:8px;
+		right:8px;
+	}
+
+	.panel{
+		padding:7px 9px;
+		font-size:12px;
+	}
+
+	#health{
+		width:150px;
+	}
+
+	#stormPanel{
+		min-width:125px;
+	}
+
+	#message{
+		top:20%;
+		font-size:19px;
+	}
+
+	#inventory{
+		bottom:8px;
+	}
+
+	.slot{
+		width:44px;
+		height:44px;
+	}
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="game"></canvas>
+
+<div id="hud">
+
+	<div id="top">
+
+		<div class="panel" id="health">
+			<div>PLAYER</div>
+			<div class="bar">
+				<div id="healthBar"></div>
+			</div>
+
+			<div style="margin-top:5px">STAMINA</div>
+			<div class="bar">
+				<div id="staminaBar"></div>
+			</div>
+		</div>
+
+		<div class="panel" id="stormPanel">
+			<div>STORM</div>
+			<div id="stormText">120</div>
+			<div id="aliveText">PLAYERS 25</div>
+		</div>
+
+	</div>
+
+	<div id="crosshair"></div>
+	<div id="message"></div>
+
+	<div id="inventory">
+		<div class="slot selected">WOOD<br>20</div>
+		<div class="slot">STONE<br>10</div>
+		<div class="slot">METAL<br>5</div>
+		<div class="slot">MED<br>2</div>
+	</div>
+
+</div>
+
+<div id="controls">
+
+	<div id="joystick">
+		<div id="stick"></div>
+	</div>
+
+	<button class="action" id="jump">JUMP</button>
+	<button class="action" id="build">BUILD</button>
+	<button class="action" id="break">BREAK</button>
+	<button class="action" id="mapBtn">MAP</button>
+
+</div>
+
+<div id="startScreen">
+
+	<div class="card">
+
+		<h1>ISLAND ROYALE</h1>
+
+		<p>
+			広大な島に降り立ち、ストームから逃げながら
+			最後まで生き残ろう。
+		</p>
+
+		<p>
+			移動・ジャンプ・建築・探索・アイテム収集を
+			組み合わせて生存を目指します。
+		</p>
+
+		<button class="mainButton" id="startButton">
+			START
+		</button>
+
+	</div>
+
+</div>
+
+<div id="gameOver" class="hidden">
+
+	<div class="card">
+
+		<h1 id="resultTitle">VICTORY</h1>
+
+		<p id="resultText"></p>
+
+		<button class="mainButton" id="restartButton">
+			RESTART
+		</button>
+
+	</div>
+
+</div>
+
+<div id="mapScreen" class="hidden">
+
+	<div class="card">
+
+		<h2>MAP</h2>
+
+		<canvas id="mapCanvas" width="600" height="600"></canvas>
+
+		<button class="mainButton" id="closeMap">
+			CLOSE
+		</button>
+
+	</div>
+
+</div>
+
+<script>
+"use strict";
+
+const canvas=document.getElementById("game");
+const ctx=canvas.getContext("2d");
+
+const mapCanvas=document.getElementById("mapCanvas");
+const mapCtx=mapCanvas.getContext("2d");
+
+let W=innerWidth;
+let H=innerHeight;
+
+function resize(){
+	W=innerWidth;
+	H=innerHeight;
+
+	canvas.width=W;
+	canvas.height=H;
+}
+
+addEventListener("resize",resize);
+resize();
+
+
+/* =========================
+   GAME STATE
+========================= */
+
+let running=false;
+
+let lastTime=0;
+let elapsed=0;
+
+const WORLD=2600;
+
+const player={
+	x:WORLD/2,
+	y:WORLD/2,
+	z:0,
+
+	vx:0,
+	vy:0,
+	vz:0,
+
+	speed:210,
+	radius:16,
+
+	health:100,
+	stamina:100,
+
+	onGround:true
+};
+
+const camera={
+	x:player.x,
+	y:player.y
+};
+
+const storm={
+	x:WORLD/2,
+	y:WORLD/2,
+	radius:1200,
+	targetRadius:1200,
+
+	damageTimer:0
+};
+
+let blocks=[];
+let trees=[];
+let rocks=[];
+let chests=[];
+let pickups=[];
+let bots=[];
+
+let wood=20;
+let stone=10;
+let metal=5;
+
+let selectedBuild="wood";
+
+
+/* =========================
+   RANDOM
+========================= */
+
+function rand(a,b){
+	return Math.random()*(b-a)+a;
+}
+
+function dist(ax,ay,bx,by){
+	return Math.hypot(ax-bx,ay-by);
+}
+
+
+/* =========================
+   WORLD
+========================= */
+
+function generateWorld(){
+
+	blocks=[];
+	trees=[];
+	rocks=[];
+	chests=[];
+	pickups=[];
+	bots=[];
+
+	for(let i=0;i<70;i++){
+
+		trees.push({
+			x:rand(100,WORLD-100),
+			y:rand(100,WORLD-100),
+			size:rand(24,38)
+		});
+	}
+
+	for(let i=0;i<45;i++){
+
+		rocks.push({
+			x:rand(100,WORLD-100),
+			y:rand(100,WORLD-100),
+			size:rand(18,32)
+		});
+	}
+
+	for(let i=0;i<20;i++){
+
+		chests.push({
+			x:rand(150,WORLD-150),
+			y:rand(150,WORLD-150),
+			opened:false
+		});
+	}
+
+	for(let i=0;i<25;i++){
+
+		pickups.push({
+			x:rand(100,WORLD-100),
+			y:rand(100,WORLD-100),
+			type:Math.random()<.5?"wood":"stone",
+			collected:false
+		});
+	}
+
+	for(let i=0;i<24;i++){
+
+		let a=rand(0,Math.PI*2);
+		let r=rand(400,1100);
+
+		bots.push({
+			x:WORLD/2+Math.cos(a)*r,
+			y:WORLD/2+Math.sin(a)*r,
+			vx:0,
+			vy:0,
+			speed:rand(70,120),
+			alive:true,
+			dir:rand(0,Math.PI*2),
+			change:rand(1,4)
+		});
+	}
+}
+
+
+/* =========================
+   START
+========================= */
+
+function resetGame(){
+
+	player.x=WORLD/2;
+	player.y=WORLD/2;
+	player.z=0;
+
+	player.vx=0;
+	player.vy=0;
+	player.vz=0;
+
+	player.health=100;
+	player.stamina=100;
+	player.onGround=true;
+
+	storm.x=WORLD/2;
+	storm.y=WORLD/2;
+	storm.radius=1200;
+	storm.targetRadius=1200;
+	storm.damageTimer=0;
+
+	elapsed=0;
+
+	wood=20;
+	stone=10;
+	metal=5;
+
+	generateWorld();
+
+	running=true;
+
+	document.getElementById("startScreen").classList.add("hidden");
+	document.getElementById("gameOver").classList.add("hidden");
+	document.getElementById("mapScreen").classList.add("hidden");
+
+	lastTime=performance.now();
+
+	requestAnimationFrame(loop);
+}
+
+document.getElementById("startButton")
+	.addEventListener("click",resetGame);
+
+document.getElementById("restartButton")
+	.addEventListener("click",resetGame);
+
+
+/* =========================
+   TOUCH JOYSTICK
+========================= */
+
+const joystick=document.getElementById("joystick");
+const stick=document.getElementById("stick");
+
+let joyX=0;
+let joyY=0;
+let joyPointer=null;
+
+function updateJoystick(e){
+
+	const rect=joystick.getBoundingClientRect();
+
+	let x=e.clientX-rect.left-rect.width/2;
+	let y=e.clientY-rect.top-rect.height/2;
+
+	const max=52;
+
+	const d=Math.hypot(x,y);
+
+	if(d>max){
+
+		x=x/d*max;
+		y=y/d*max;
+	}
+
+	joyX=x/max;
+	joyY=y/max;
+
+	stick.style.transform=
+		`translate(${x}px,${y}px)`;
+}
+
+joystick.addEventListener("pointerdown",e=>{
+
+	joyPointer=e.pointerId;
+	joystick.setPointerCapture(e.pointerId);
+
+	updateJoystick(e);
+});
+
+joystick.addEventListener("pointermove",e=>{
+
+	if(e.pointerId===joyPointer){
+		updateJoystick(e);
+	}
+});
+
+function endJoystick(e){
+
+	if(e.pointerId!==joyPointer)return;
+
+	joyPointer=null;
+
+	joyX=0;
+	joyY=0;
+
+	stick.style.transform="translate(0,0)";
+}
+
+joystick.addEventListener("pointerup",endJoystick);
+joystick.addEventListener("pointercancel",endJoystick);
+
+
+/* =========================
+   KEYBOARD
+========================= */
+
+const keys={};
+
+addEventListener("keydown",e=>{
+
+	keys[e.key.toLowerCase()]=true;
+
+	if(e.key.toLowerCase()==="m"){
+		toggleMap();
+	}
+
+	if(e.key.toLowerCase()==="b"){
+		build();
+	}
+
+	if(e.key===" "){
+		jump();
+	}
+
+	if(e.key.toLowerCase()==="e"){
+		collect();
+	}
+});
+
+addEventListener("keyup",e=>{
+	keys[e.key.toLowerCase()]=false;
+});
+
+
+/* =========================
+   BUTTONS
+========================= */
+
+document.getElementById("jump")
+	.addEventListener("pointerdown",jump);
+
+document.getElementById("build")
+	.addEventListener("pointerdown",build);
+
+document.getElementById("break")
+	.addEventListener("pointerdown",breakObject);
+
+document.getElementById("mapBtn")
+	.addEventListener("pointerdown",toggleMap);
+
+document.getElementById("closeMap")
+	.addEventListener("click",toggleMap);
+
+
+/* =========================
+   PLAYER MOVEMENT
+========================= */
+
+function moveInput(){
+
+	let x=joyX;
+	let y=joyY;
+
+	if(keys["w"]||keys["arrowup"])y=-1;
+	if(keys["s"]||keys["arrowdown"])y=1;
+	if(keys["a"]||keys["arrowleft"])x=-1;
+	if(keys["d"]||keys["arrowright"])x=1;
+
+	const length=Math.hypot(x,y);
+
+	if(length>1){
+		x/=length;
+		y/=length;
+	}
+
+	return {x,y};
+}
+
+
+function updatePlayer(dt){
+
+	const input=moveInput();
+
+	let speed=player.speed;
+
+	if(keys["shift"] && player.stamina>0){
+
+		speed*=1.45;
+
+		player.stamina-=35*dt;
+
+	}else{
+
+		player.stamina+=22*dt;
+	}
+
+	player.stamina=Math.max(
+		0,
+		Math.min(100,player.stamina)
+	);
+
+	player.vx=input.x*speed;
+	player.vy=input.y*speed;
+
+	player.x+=player.vx*dt;
+	player.y+=player.vy*dt;
+
+	player.x=Math.max(
+		20,
+		Math.min(WORLD-20,player.x)
+	);
+
+	player.y=Math.max(
+		20,
+		Math.min(WORLD-20,player.y)
+	);
+
+	if(!player.onGround){
+
+		player.vz-=850*dt;
+
+		player.z+=player.vz*dt;
+
+		if(player.z<=0){
+
+			player.z=0;
+			player.vz=0;
+			player.onGround=true;
+		}
+	}
+}
+
+
+function jump(){
+
+	if(!running)return;
+
+	if(player.onGround){
+
+		player.vz=430;
+		player.onGround=false;
+	}
+}
+
+
+/* =========================
+   BUILDING
+========================= */
+
+function build(){
+
+	if(!running)return;
+
+	let cost=5;
+
+	if(selectedBuild==="wood" && wood<cost)return;
+	if(selectedBuild==="stone" && stone<cost)return;
+	if(selectedBuild==="metal" && metal<cost)return;
+
+	let input=moveInput();
+
+	let dx=input.x;
+	let dy=input.y;
+
+	if(Math.hypot(dx,dy)<.1){
+
+		dx=0;
+		dy=-1;
+	}
+
+	const bx=
+		Math.round(
+			(player.x+dx*90)/60
+		)*60;
+
+	const by=
+		Math.round(
+			(player.y+dy*90)/60
+		)*60;
+
+	if(selectedBuild==="wood")wood-=cost;
+	if(selectedBuild==="stone")stone-=cost;
+	if(selectedBuild==="metal")metal-=cost;
+
+	blocks.push({
+		x:bx,
+		y:by,
+		type:selectedBuild,
+		hp:100
+	});
+}
+
+
+/* =========================
+   BREAKING
+========================= */
+
+function breakObject(){
+
+	if(!running)return;
+
+	let best=null;
+	let bestD=90;
+
+	for(const b of blocks){
+
+		const d=dist(
+			player.x,
+			player.y,
+			b.x,
+			b.y
+		);
+
+		if(d<bestD){
+
+			best=b;
+			bestD=d;
+		}
+	}
+
+	if(best){
+
+		best.hp-=35;
+
+		if(best.hp<=0){
+
+			if(best.type==="wood")wood+=4;
+			if(best.type==="stone")stone+=3;
+			if(best.type==="metal")metal+=2;
+
+			blocks.splice(
+				blocks.indexOf(best),
+				1
+			);
+		}
+	}
+}
+
+
+/* =========================
+   PICKUPS
+========================= */
+
+function collect(){
+
+	for(const p of pickups){
+
+		if(p.collected)continue;
+
+		if(
+			dist(
+				player.x,
+				player.y,
+				p.x,
+				p.y
+			)<55
+		){
+
+			p.collected=true;
+
+			if(p.type==="wood")wood+=5;
+			else stone+=5;
+		}
+	}
+
+	for(const c of chests){
+
+		if(c.opened)continue;
+
+		if(
+			dist(
+				player.x,
+				player.y,
+				c.x,
+				c.y
+			)<60
+		){
+
+			c.opened=true;
+
+			wood+=10;
+			stone+=7;
+		}
+	}
+}
+
+
+/* =========================
+   BOTS
+========================= */
+
+function updateBots(dt){
+
+	for(const bot of bots){
+
+		if(!bot.alive)continue;
+
+		bot.change-=dt;
+
+		if(bot.change<=0){
+
+			bot.dir=rand(
+				0,
+				Math.PI*2
+			);
+
+			bot.change=rand(1,4);
+		}
+
+		let dx=Math.cos(bot.dir);
+		let dy=Math.sin(bot.dir);
+
+		bot.x+=dx*bot.speed*dt;
+		bot.y+=dy*bot.speed*dt;
+
+		if(bot.x<50 || bot.x>WORLD-50)
+			bot.dir=Math.PI-bot.dir;
+
+		if(bot.y<50 || bot.y>WORLD-50)
+			bot.dir=-bot.dir;
+
+		const dStorm=dist(
+			bot.x,
+			bot.y,
+			storm.x,
+			storm.y
+		);
+
+		if(dStorm>storm.radius){
+
+			bot.x+=(storm.x-bot.x)*dt*.25;
+			bot.y+=(storm.y-bot.y)*dt*.25;
+		}
+
+		if(
+			dist(
+				player.x,
+				player.y,
+				bot.x,
+				bot.y
+			)<35
+		){
+
+			bot.x+=dx*80*dt;
+			bot.y+=dy*80*dt;
+		}
+	}
+}
+
+
+/* =========================
+   STORM
+========================= */
+
+function updateStorm(dt){
+
+	if(elapsed>10){
+
+		storm.targetRadius=
+			Math.max(
+				250,
+				1200-elapsed*4
+			);
+
+		storm.radius+=
+			(storm.targetRadius-storm.radius)
+			*dt*.25;
+	}
+
+	const d=dist(
+		player.x,
+		player.y,
+		storm.x,
+		storm.y
+	);
+
+	if(d>storm.radius){
+
+		storm.damageTimer+=dt;
+
+		if(storm.damageTimer>.8){
+
+			player.health-=4;
+
+			storm.damageTimer=0;
+		}
+
+	}else{
+
+		storm.damageTimer=0;
+	}
+}
+
+
+/* =========================
+   BOT ELIMINATION
+========================= */
+
+function updateBotSurvival(dt){
+
+	for(const bot of bots){
+
+		if(!bot.alive)continue;
+
+		const d=dist(
+			bot.x,
+			bot.y,
+			storm.x,
+			storm.y
+		);
+
+		if(d>storm.radius){
+
+			if(Math.random()<dt*.08){
+
+				bot.alive=false;
+			}
+		}
+	}
+}
+
+
+/* =========================
+   CAMERA
+========================= */
+
+function updateCamera(){
+
+	camera.x+=
+		(player.x-camera.x)*.12;
+
+	camera.y+=
+		(player.y-camera.y)*.12;
+}
+
+
+/* =========================
+   WORLD TO SCREEN
+========================= */
+
+function screenX(x){
+	return x-camera.x+W/2;
+}
+
+function screenY(y){
+	return y-camera.y+H/2;
+}
+
+
+/* =========================
+   DRAW WORLD
+========================= */
+
+function drawWorld(){
+
+	ctx.clearRect(
+		0,
+		0,
+		W,
+		H
+	);
+
+	ctx.fillStyle="#7bb66b";
+	ctx.fillRect(0,0,W,H);
+
+	const grid=80;
+
+	const startX=
+		Math.floor(
+			(camera.x-W/2)/grid
+		)*grid;
+
+	const startY=
+		Math.floor(
+			(camera.y-H/2)/grid
+		)*grid;
+
+	ctx.lineWidth=1;
+	ctx.strokeStyle="rgba(40,90,50,.18)";
+
+	for(
+		let x=startX;
+		x<camera.x+W/2+grid;
+		x+=grid
+	){
+
+		ctx.beginPath();
+
+		ctx.moveTo(
+			screenX(x),
+			0
+		);
+
+		ctx.lineTo(
+			screenX(x),
+			H
+		);
+
+		ctx.stroke();
+	}
+
+	for(
+		let y=startY;
+		y<camera.y+H/2+grid;
+		y+=grid
+	){
+
+		ctx.beginPath();
+
+		ctx.moveTo(
+			0,
+			screenY(y)
+		);
+
+		ctx.lineTo(
+			W,
+			screenY(y)
+		);
+
+		ctx.stroke();
+	}
+
+	drawWater();
+
+	drawTrees();
+	drawRocks();
+	drawChests();
+	drawPickups();
+	drawBlocks();
+	drawBots();
+	drawPlayer();
+
+	drawStorm();
+}
+
+
+/* =========================
+   WATER
+========================= */
+
+function drawWater(){
+
+	ctx.fillStyle="rgba(52,142,190,.38)";
+
+	const margin=55;
+
+	ctx.fillRect(
+		screenX(0),
+		screenY(0),
+		margin,
+		H
+	);
+
+	ctx.fillRect(
+		screenX(WORLD-margin),
+		0,
+		margin,
+		H
+	);
+
+	ctx.fillRect(
+		0,
+		screenY(0),
+		W,
+		margin
+	);
+
+	ctx.fillRect(
+		0,
+		screenY(WORLD-margin),
+		W,
+		margin
+	);
+}
+
+
+/* =========================
+   TREES
+========================= */
+
+function drawTrees(){
+
+	for(const t of trees){
+
+		const x=screenX(t.x);
+		const y=screenY(t.y);
+
+		if(
+			x<-60||x>W+60||
+			y<-60||y>H+60
+		)continue;
+
+		ctx.fillStyle="rgba(0,0,0,.18)";
+		ctx.beginPath();
+		ctx.ellipse(
+			x,
+			y+10,
+			t.size*.75,
+			t.size*.3,
+			0,
+			0,
+			Math.PI*2
+		);
+		ctx.fill();
+
+		ctx.fillStyle="#76502e";
+		ctx.fillRect(
+			x-5,
+			y,
+			10,
+			t.size
+		);
+
+		ctx.fillStyle="#23643b";
+
+		ctx.beginPath();
+		ctx.arc(
+			x,
+			y-8,
+			t.size,
+			0,
+			Math.PI*2
+		);
+
+		ctx.fill();
+
+		ctx.fillStyle="#32824b";
+
+		ctx.beginPath();
+		ctx.arc(
+			x-10,
+			y-17,
+			t.size*.55,
+			0,
+			Math.PI*2
+		);
+
+		ctx.fill();
+	}
+}
+
+
+/* =========================
+   ROCKS
+========================= */
+
+function drawRocks(){
+
+	for(const r of rocks){
+
+		const x=screenX(r.x);
+		const y=screenY(r.y);
+
+		ctx.fillStyle="rgba(0,0,0,.18)";
+
+		ctx.beginPath();
+
+		ctx.ellipse(
+			x,
+			y+8,
+			r.size,
+			r.size*.35,
+			0,
+			0,
+			Math.PI*2
+		);
+
+		ctx.fill();
+
+		ctx.fillStyle="#69727a";
+
+		ctx.beginPath();
+
+		ctx.moveTo(
+			x-r.size,
+			y+5
+		);
+
+		ctx.lineTo(
+			x-r.size*.6,
+			y-r.size*.7
+		);
+
+		ctx.lineTo(
+			x+r.size*.4,
+			y-r.size
+		);
+
+		ctx.lineTo(
+			x+r.size,
+			y+3
+		);
+
+		ctx.closePath();
+
+		ctx.fill();
+	}
+}
+
+
+/* =========================
+   CHESTS
+========================= */
+
+function drawChests(){
+
+	for(const c of chests){
+
+		if(c.opened)continue;
+
+		const x=screenX(c.x);
+		const y=screenY(c.y);
+
+		ctx.fillStyle="#d09a37";
+
+		ctx.fillRect(
+			x-17,
+			y-12,
+			34,
+			24
+		);
+
+		ctx.fillStyle="#744b22";
+
+		ctx.fillRect(
+			x-17,
+			y-2,
+			34,
+			4
+		);
+
+		ctx.fillStyle="#f1ca62";
+
+		ctx.fillRect(
+			x-3,
+			y-1,
+			6,
+			8
+		);
+	}
+}
+
+
+/* =========================
+   PICKUPS
+========================= */
+
+function drawPickups(){
+
+	for(const p of pickups){
+
+		if(p.collected)continue;
+
+		const x=screenX(p.x);
+		const y=screenY(p.y);
+
+		ctx.fillStyle=
+			p.type==="wood"
+				?"#9b642f"
+				:"#858c94";
+
+		ctx.beginPath();
+
+		ctx.arc(
+			x,
+			y,
+			10,
+			0,
+			Math.PI*2
+		);
+
+		ctx.fill();
+	}
+}
+
+
+/* =========================
+   BUILDINGS
+========================= */
+
+function drawBlocks(){
+
+	for(const b of blocks){
+
+		const x=screenX(b.x);
+		const y=screenY(b.y);
+
+		let c="#8c5b34";
+
+		if(b.type==="stone")
+			c="#747b82";
+
+		if(b.type==="metal")
+			c="#8b949c";
+
+		ctx.fillStyle="rgba(0,0,0,.2)";
+		ctx.fillRect(
+			x-24,
+			y-16,
+			48,
+			48
+		);
+
+		ctx.fillStyle=c;
+
+		ctx.fillRect(
+			x-24,
+			y-24,
+			48,
+			48
+		);
+
+		ctx.strokeStyle="rgba(0,0,0,.3)";
+		ctx.strokeRect(
+			x-24,
+			y-24,
+			48,
+			48
+		);
+
+		ctx.fillStyle="rgba(255,255,255,.15)";
+		ctx.fillRect(
+			x-24,
+			y-24,
+			48,
+			7
+		);
+	}
+}
+
+
+/* =========================
+   BOTS
+========================= */
+
+function drawBots(){
+
+	for(const bot of bots){
+
+		if(!bot.alive)continue;
+
+		const x=screenX(bot.x);
+		const y=screenY(bot.y);
+
+		ctx.fillStyle="rgba(0,0,0,.2)";
+
+		ctx.beginPath();
+
+		ctx.ellipse(
+			x,
+			y+17,
+			14,
+			6,
+			0,
+			0,
+			Math.PI*2
+		);
+
+		ctx.fill();
+
+		ctx.fillStyle="#d85b5b";
+
+		ctx.beginPath();
+
+		ctx.arc(
+			x,
+			y,
+			15,
+			0,
+			Math.PI*2
+		);
+
+		ctx.fill();
+
+		ctx.fillStyle="#f0b48a";
+
+		ctx.beginPath();
+
+		ctx.arc(
+			x,
+			y-14,
+			8,
+			0,
+			Math.PI*2
+		);
+
+		ctx.fill();
+	}
+}
+
+
+/* =========================
+   PLAYER
+========================= */
+
+function drawPlayer(){
+
+	const x=screenX(player.x);
+	const y=screenY(player.y-player.z*.35);
+
+	ctx.fillStyle="rgba(0,0,0,.22)";
+
+	ctx.beginPath();
+
+	ctx.ellipse(
+		screenX(player.x),
+		screenY(player.y)+16,
+		17,
+		7,
+		0,
+		0,
+		Math.PI*2
+	);
+
+	ctx.fill();
+
+	ctx.fillStyle="#3169e8";
+
+	ctx.beginPath();
+
+	ctx.arc(
+		x,
+		y,
+		17,
+		0,
+		Math.PI*2
+	);
+
+	ctx.fill();
+
+	ctx.fillStyle="#f0bb91";
+
+	ctx.beginPath();
+
+	ctx.arc(
+		x,
+		y-18,
+		9,
+		0,
+		Math.PI*2
+	);
+
+	ctx.fill();
+
+	ctx.strokeStyle="rgba(255,255,255,.7)";
+	ctx.lineWidth=2;
+
+	ctx.beginPath();
+
+	ctx.arc(
+		x,
+		y,
+		20,
+		0,
+		Math.PI*2
+	);
+
+	ctx.stroke();
+}
+
+
+/* =========================
+   STORM
+========================= */
+
+function drawStorm(){
+
+	const cx=screenX(storm.x);
+	const cy=screenY(storm.y);
+
+	ctx.save();
+
+	ctx.fillStyle="rgba(92,62,180,.22)";
+
+	ctx.beginPath();
+
+	ctx.rect(
+		0,
+		0,
+		W,
+		H
+	);
+
+	ctx.arc(
+		cx,
+		cy,
+		storm.radius,
+		0,
+		Math.PI*2,
+		true
+	);
+
+	ctx.fill("evenodd");
+
+	ctx.strokeStyle="rgba(143,101,255,.9)";
+	ctx.lineWidth=6;
+
+	ctx.beginPath();
+
+	ctx.arc(
+		cx,
+		cy,
+		storm.radius,
+		0,
+		Math.PI*2
+	);
+
+	ctx.stroke();
+
+	ctx.restore();
+}
+
+
+/* =========================
+   MAP
+========================= */
+
+function drawMap(){
+
+	mapCtx.clearRect(
+		0,
+		0,
+		600,
+		600
+	);
+
+	mapCtx.fillStyle="#6da35e";
+	mapCtx.fillRect(
+		0,
+		0,
+		600,
+		600
+	);
+
+	mapCtx.strokeStyle="rgba(255,255,255,.15)";
+
+	for(let i=0;i<=600;i+=60){
+
+		mapCtx.beginPath();
+		mapCtx.moveTo(i,0);
+		mapCtx.lineTo(i,600);
+		mapCtx.stroke();
+
+		mapCtx.beginPath();
+		mapCtx.moveTo(0,i);
+		mapCtx.lineTo(600,i);
+		mapCtx.stroke();
+	}
+
+	mapCtx.strokeStyle="#9b78ff";
+	mapCtx.lineWidth=6;
+
+	mapCtx.beginPath();
+
+	mapCtx.arc(
+		storm.x/WORLD*600,
+		storm.y/WORLD*600,
+		storm.radius/WORLD*600,
+		0,
+		Math.PI*2
+	);
+
+	mapCtx.stroke();
+
+	for(const bot of bots){
+
+		if(!bot.alive)continue;
+
+		mapCtx.fillStyle="#df5959";
+
+		mapCtx.beginPath();
+
+		mapCtx.arc(
+			bot.x/WORLD*600,
+			bot.y/WORLD*600,
+			4,
+			0,
+			Math.PI*2
+		);
+
+		mapCtx.fill();
+	}
+
+	mapCtx.fillStyle="#ffffff";
+
+	mapCtx.beginPath();
+
+	mapCtx.arc(
+		player.x/WORLD*600,
+		player.y/WORLD*600,
+		7,
+		0,
+		Math.PI*2
+	);
+
+	mapCtx.fill();
+
+	for(const c of chests){
+
+		if(c.opened)continue;
+
+		mapCtx.fillStyle="#e1ad43";
+
+		mapCtx.fillRect(
+			c.x/WORLD*600-3,
+			c.y/WORLD*600-3,
+			6,
+			6
+		);
+	}
+}
+
+
+function toggleMap(){
+
+	const screen=
+		document.getElementById("mapScreen");
+
+	if(screen.classList.contains("hidden")){
+
+		screen.classList.remove("hidden");
+
+		drawMap();
+
+	}else{
+
+		screen.classList.add("hidden");
+	}
+}
+
+
+/* =========================
+   HUD
+========================= */
+
+function updateHUD(){
+
+	document.getElementById("healthBar")
+		.style.width=
+		Math.max(0,player.health)+"%";
+
+	document.getElementById("staminaBar")
+		.style.width=
+		Math.max(0,player.stamina)+"%";
+
+	const alive=
+		bots.filter(b=>b.alive).length+1;
+
+	document.getElementById("aliveText")
+		.textContent=
+		"PLAYERS "+alive;
+
+	const remaining=
+		Math.max(
+			0,
+			Math.ceil(
+				120-elapsed
+			)
+		);
+
+	document.getElementById("stormText")
+		.textContent=
+		remaining;
+}
+
+
+/* =========================
+   GAME END
+========================= */
+
+function checkGameOver(){
+
+	if(player.health<=0){
+
+		endGame(false);
+		return;
+	}
+
+	const alive=
+		bots.filter(b=>b.alive).length;
+
+	if(alive===0){
+
+		endGame(true);
+	}
+}
+
+
+function endGame(victory){
+
+	running=false;
+
+	const screen=
+		document.getElementById("gameOver");
+
+	screen.classList.remove("hidden");
+
+	document.getElementById("resultTitle")
+		.textContent=
+		victory
+			?"VICTORY"
+			:"GAME OVER";
+
+	document.getElementById("resultText")
+		.textContent=
+		victory
+			?"最後まで生き残りました。"
+			:"ストームに飲み込まれました。";
+}
+
+
+/* =========================
+   GAME LOOP
+========================= */
+
+function loop(time){
+
+	if(!running)return;
+
+	let dt=
+		(time-lastTime)/1000;
+
+	lastTime=time;
+
+	dt=Math.min(dt,.033);
+
+	elapsed+=dt;
+
+	updatePlayer(dt);
+	updateBots(dt);
+	updateBotSurvival(dt);
+	updateStorm(dt);
+
+	collect();
+
+	updateCamera();
+
+	drawWorld();
+
+	updateHUD();
+
+	checkGameOver();
+
+	if(running){
+		requestAnimationFrame(loop);
+	}
+}
+
+</script>
+
+</body>
+</html>
