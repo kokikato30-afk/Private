@@ -1,1 +1,1342 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>のんびりアイランド</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101820;color:#fff}
+button{font:inherit;border:0;cursor:pointer;touch-action:manipulation}
+#app{position:fixed;inset:0;overflow:hidden}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.screen{position:absolute;inset:0;display:none}
+.screen.active{display:flex}
+#titleScreen{
+align-items:center;justify-content:center;
+background:
+radial-gradient(circle at 50% 30%,rgba(255,255,255,.45),transparent 30%),
+linear-gradient(#80cdea,#bce8c0 60%,#76ba70);
+}
+.titlePanel{
+width:min(520px,90vw);padding:32px 26px;border-radius:28px;
+background:rgba(255,255,255,.88);color:#35534a;
+box-shadow:0 20px 60px rgba(0,0,0,.2);text-align:center;
+}
+.titlePanel h1{font-size:clamp(38px,7vw,66px);margin:0 0 8px;font-weight:900;letter-spacing:.06em}
+.titlePanel p{margin:0 0 24px;color:#668078}
+.menuButtons{display:grid;gap:12px}
+.menuBtn{
+min-height:58px;border-radius:17px;background:#78b96e;color:white;
+font-weight:800;font-size:18px;box-shadow:0 5px 0 #4f8e4d;
+}
+.menuBtn:active{transform:translateY(4px);box-shadow:0 1px 0 #4f8e4d}
+.menuBtn.secondary{background:#7caab4;box-shadow:0 5px 0 #527f89}
+#creatorScreen{align-items:center;justify-content:center;background:linear-gradient(#91d5ef,#d7edb7)}
+.creator{
+width:min(650px,94vw);max-height:92vh;overflow:auto;padding:24px;border-radius:24px;
+background:rgba(255,255,255,.94);color:#35534a;box-shadow:0 15px 50px #0003
+}
+.creator h2{text-align:center;margin:0 0 18px}
+.creatorGrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.preview{
+height:220px;border-radius:20px;background:linear-gradient(#a9ddf1 60%,#86bd6c 60%);
+display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden
+}
+.char{
+width:75px;height:100px;border-radius:38px 38px 24px 24px;background:#f1c39d;position:relative;
+box-shadow:inset 0 -12px #6b9f62
+}
+.char:before{content:"";position:absolute;left:8px;right:8px;top:-18px;height:42px;background:var(--hair,#49362c);border-radius:45% 45% 30% 30%}
+.char:after{content:"";position:absolute;left:18px;top:43px;width:10px;height:10px;border-radius:50%;background:#25343a;box-shadow:30px 0 #25343a}
+.optionGroup{margin-bottom:13px}
+.optionGroup label{display:block;font-weight:800;margin-bottom:6px}
+.optionRow{display:flex;flex-wrap:wrap;gap:7px}
+.opt{
+padding:9px 12px;border-radius:12px;background:#e7efeb;color:#45635b
+}
+.opt.selected{background:#72b46a;color:#fff}
+.bigBtn{width:100%;margin-top:14px;min-height:56px;border-radius:15px;background:#70b467;color:#fff;font-weight:800;font-size:18px}
+#gameScreen{background:#7cc4dd}
+#hud{position:absolute;left:0;right:0;top:0;padding:max(10px,env(safe-area-inset-top)) 12px 0;pointer-events:none}
+.hudTop{display:flex;justify-content:space-between;gap:8px}
+.hudBox{
+background:rgba(35,70,62,.78);backdrop-filter:blur(8px);
+border-radius:14px;padding:8px 12px;font-weight:800;font-size:14px
+}
+#toolBar{
+position:absolute;left:50%;bottom:max(10px,env(safe-area-inset-bottom));
+transform:translateX(-50%);display:flex;gap:6px;
+background:#24443dbb;padding:7px;border-radius:17px;pointer-events:auto
+}
+.slot{
+width:54px;height:54px;border-radius:12px;background:#dce8df;color:#304c43;
+display:flex;align-items:center;justify-content:center;flex-direction:column;font-size:11px;font-weight:800
+}
+.slot.active{outline:3px solid #fff;background:#91c77e}
+.slot span:first-child{font-size:22px}
+#actionButtons{
+position:absolute;right:18px;bottom:90px;display:grid;grid-template-columns:repeat(2,70px);gap:10px
+}
+.action{
+width:70px;height:58px;border-radius:18px;background:#31584fd9;color:#fff;font-weight:800;
+box-shadow:0 4px 0 #19382f
+}
+.action:active{transform:translateY(3px);box-shadow:0 1px 0 #19382f}
+#joystick{
+position:absolute;left:22px;bottom:84px;width:142px;height:142px;border-radius:50%;
+background:#ffffff32;border:2px solid #ffffff55;touch-action:none
+}
+#stick{
+position:absolute;left:50%;top:50%;width:62px;height:62px;margin:-31px;border-radius:50%;
+background:#ffffff9a;border:2px solid #fff;box-shadow:0 5px 15px #0002
+}
+#lookArea{
+position:absolute;right:0;top:25%;width:42%;height:45%;touch-action:none
+}
+.overlay{
+position:absolute;inset:0;display:none;align-items:center;justify-content:center;
+background:#10251d88;backdrop-filter:blur(5px);z-index:20
+}
+.overlay.active{display:flex}
+.panel{
+width:min(650px,92vw);max-height:88vh;overflow:auto;background:#f5faf5;color:#304d43;
+border-radius:22px;padding:20px;box-shadow:0 20px 60px #0005
+}
+.panel h2{margin:0 0 14px}
+.closeBtn{float:right;border-radius:10px;padding:8px 12px;background:#d8e5dd}
+.list{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.card{
+padding:12px;border-radius:14px;background:#e7efe8;min-height:90px
+}
+.card b{display:block;margin-bottom:5px}
+.card button{margin-top:8px;padding:7px 10px;border-radius:9px;background:#6eae69;color:#fff}
+#dialogueText{font-size:18px;line-height:1.7;min-height:90px}
+.dialogueName{font-weight:900;font-size:20px;color:#5d9d60}
+.dialogueChoices{display:flex;gap:8px;flex-wrap:wrap}
+.dialogueChoices button{padding:12px 18px;border-radius:12px;background:#70ad69;color:#fff}
+#toast{
+position:absolute;left:50%;top:17%;transform:translateX(-50%) translateY(-20px);
+background:#24443de8;padding:11px 18px;border-radius:14px;opacity:0;pointer-events:none;
+transition:.25s;z-index:50;font-weight:800;white-space:nowrap
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#fishing{
+position:absolute;inset:0;display:none;align-items:center;justify-content:center;
+background:#10251d77;z-index:25
+}
+#fishing.active{display:flex}
+.fishPanel{width:min(500px,88vw);background:#f5faf5;color:#315247;border-radius:22px;padding:25px;text-align:center}
+.fishBar{height:42px;border-radius:20px;background:#d6e6dc;position:relative;overflow:hidden;margin:20px 0}
+.fishTarget{position:absolute;top:4px;height:34px;border-radius:17px;background:#79b96d}
+.fishCursor{position:absolute;top:0;width:7px;height:42px;background:#365e52}
+.fishBtn{width:100%;height:55px;border-radius:15px;background:#70ae69;color:#fff;font-weight:900}
+#mapOverlay canvas{position:relative;width:100%;height:420px;border-radius:15px;background:#aad48a}
+.small{font-size:13px;color:#668078}
+@media(max-width:700px){
+.creatorGrid{grid-template-columns:1fr}
+.preview{height:150px}
+#actionButtons{right:12px;bottom:88px;grid-template-columns:repeat(2,62px)}
+.action{width:62px;height:52px}
+#joystick{left:12px;bottom:76px;width:125px;height:125px}
+#stick{width:56px;height:56px;margin:-28px}
+.slot{width:48px;height:48px}
+#toolBar{bottom:7px}
+}
+</style>
+</head>
+<body>
+<div id="app">
 
+<section id="titleScreen" class="screen active">
+<div class="titlePanel">
+<h1>のんびりアイランド</h1>
+<p>小さな島ではじまる、自由な暮らし。</p>
+<div class="menuButtons">
+<button class="menuBtn" id="newGameBtn">はじめる</button>
+<button class="menuBtn" id="continueBtn">つづきから</button>
+<button class="menuBtn secondary" id="howBtn">遊び方</button>
+<button class="menuBtn secondary" id="settingsBtn">設定</button>
+</div>
+</div>
+</section>
+
+<section id="creatorScreen" class="screen">
+<div class="creator">
+<h2>島の住人を作ろう</h2>
+<div class="creatorGrid">
+<div class="preview"><div class="char" id="charPreview"></div></div>
+<div>
+<div class="optionGroup">
+<label>髪型</label>
+<div class="optionRow">
+<button class="opt selected" data-type="hairStyle" data-value="short">ショート</button>
+<button class="opt" data-type="hairStyle" data-value="long">ロング</button>
+<button class="opt" data-type="hairStyle" data-value="curly">カール</button>
+</div>
+</div>
+<div class="optionGroup">
+<label>髪色</label>
+<div class="optionRow">
+<button class="opt selected" data-type="hair" data-value="#49362c">ブラウン</button>
+<button class="opt" data-type="hair" data-value="#191919">ブラック</button>
+<button class="opt" data-type="hair" data-value="#b77b45">オレンジ</button>
+</div>
+</div>
+<div class="optionGroup">
+<label>肌</label>
+<div class="optionRow">
+<button class="opt selected" data-type="skin" data-value="#f1c39d">明るめ</button>
+<button class="opt" data-type="skin" data-value="#d69a70">ナチュラル</button>
+<button class="opt" data-type="skin" data-value="#9a6045">ブラウン</button>
+</div>
+</div>
+<div class="optionGroup">
+<label>服</label>
+<div class="optionRow">
+<button class="opt selected" data-type="shirt" data-value="#6e9fca">ブルー</button>
+<button class="opt" data-type="shirt" data-value="#d17b6b">コーラル</button>
+<button class="opt" data-type="shirt" data-value="#78ad68">グリーン</button>
+</div>
+</div>
+</div>
+</div>
+<button class="bigBtn" id="createIslandBtn">この姿で島へ行く</button>
+</div>
+</section>
+
+<section id="gameScreen" class="screen">
+<canvas id="gameCanvas"></canvas>
+<div id="hud">
+<div class="hudTop">
+<div class="hudBox" id="moneyHud">コイン 0</div>
+<div class="hudBox" id="timeHud">08:00</div>
+<div class="hudBox" id="weatherHud">晴れ</div>
+</div>
+</div>
+
+<div id="joystick"><div id="stick"></div></div>
+<div id="lookArea"></div>
+
+<div id="actionButtons">
+<button class="action" id="interactBtn">調べる</button>
+<button class="action" id="toolBtn">道具</button>
+<button class="action" id="inventoryBtn">持ち物</button>
+<button class="action" id="mapBtn">マップ</button>
+<button class="action" id="menuBtn">メニュー</button>
+<button class="action" id="saveBtn">保存</button>
+</div>
+
+<div id="toolBar"></div>
+</section>
+
+<div id="toast"></div>
+
+<div class="overlay" id="inventoryOverlay">
+<div class="panel">
+<button class="closeBtn" data-close="inventoryOverlay">閉じる</button>
+<h2>持ち物</h2>
+<div id="inventoryList" class="list"></div>
+</div>
+</div>
+
+<div class="overlay" id="shopOverlay">
+<div class="panel">
+<button class="closeBtn" data-close="shopOverlay">閉じる</button>
+<h2 id="shopTitle">島のお店</h2>
+<p id="shopStatus" class="small"></p>
+<div id="shopList" class="list"></div>
+</div>
+</div>
+
+<div class="overlay" id="dialogueOverlay">
+<div class="panel">
+<div class="dialogueName" id="dialogueName"></div>
+<div id="dialogueText"></div>
+<div class="dialogueChoices" id="dialogueChoices"></div>
+</div>
+</div>
+
+<div class="overlay" id="houseOverlay">
+<div class="panel">
+<button class="closeBtn" data-close="houseOverlay">外へ出る</button>
+<h2>あなたの家</h2>
+<p>家具を選び、好きな場所に配置できます。</p>
+<div id="furnitureList" class="list"></div>
+<div id="houseGrid" style="margin-top:15px;display:grid;grid-template-columns:repeat(8,1fr);gap:3px;background:#d7b98d;padding:8px;border-radius:12px"></div>
+</div>
+</div>
+
+<div class="overlay" id="mapOverlay">
+<div class="panel">
+<button class="closeBtn" data-close="mapOverlay">閉じる</button>
+<h2>島マップ</h2>
+<canvas id="mapCanvas" width="800" height="420"></canvas>
+</div>
+</div>
+
+<div class="overlay" id="menuOverlay">
+<div class="panel">
+<button class="closeBtn" data-close="menuOverlay">閉じる</button>
+<h2>メニュー</h2>
+<div class="menuButtons">
+<button class="menuBtn" id="menuSaveBtn">ゲームを保存</button>
+<button class="menuBtn secondary" id="weatherBtn">天気を変える</button>
+<button class="menuBtn secondary" id="titleBtn">タイトルへ戻る</button>
+</div>
+</div>
+</div>
+
+<div class="overlay" id="infoOverlay">
+<div class="panel">
+<button class="closeBtn" data-close="infoOverlay">閉じる</button>
+<h2>遊び方</h2>
+<p><b>移動：</b>タブレットは左のジョイスティック、PCはWASDまたは矢印キー。</p>
+<p><b>調べる：</b>近くの木・果物・貝殻・岩・住民などを調べます。</p>
+<p><b>道具：</b>現在の道具を切り替えます。</p>
+<p><b>釣り：</b>水辺で「釣り竿」を選んでアクション。</p>
+<p><b>持ち物：</b>拾ったものや購入したものを確認します。</p>
+<p><b>マップ：</b>島全体と重要地点を確認できます。</p>
+<p><b>保存：</b>localStorageへゲーム状態を保存します。</p>
+</div>
+</div>
+
+<div id="fishing">
+<div class="fishPanel">
+<h2>釣り</h2>
+<p id="fishMessage">魚が浮きを見ています……</p>
+<div class="fishBar">
+<div class="fishTarget" id="fishTarget"></div>
+<div class="fishCursor" id="fishCursor"></div>
+</div>
+<button class="fishBtn" id="fishAction">タイミングよくタップ！</button>
+</div>
+</div>
+
+</div>
+
+<script>
+"use strict";
+
+const canvas=document.getElementById("gameCanvas");
+const ctx=canvas.getContext("2d");
+const mapCanvas=document.getElementById("mapCanvas");
+const mapCtx=mapCanvas.getContext("2d");
+
+let W=innerWidth,H=innerHeight,dpr=Math.min(devicePixelRatio||1,2);
+
+function resize(){
+	W=innerWidth;H=innerHeight;
+	canvas.width=W*dpr;canvas.height=H*dpr;
+	canvas.style.width=W+"px";canvas.style.height=H+"px";
+	ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+addEventListener("resize",resize);
+resize();
+
+const SAVE_KEY="nonbiri_island_save_v1";
+
+const items={
+wood:{name:"木材",price:18,emoji:"木"},
+fruit:{name:"島りんご",price:35,emoji:"果"},
+stone:{name:"石",price:12,emoji:"石"},
+shell:{name:"貝殻",price:24,emoji:"貝"},
+flower:{name:"野花",price:15,emoji:"花"},
+weed:{name:"草",price:5,emoji:"草"},
+fish_blue:{name:"青い魚",price:80,emoji:"魚"},
+fish_gold:{name:"金色の魚",price:160,emoji:"魚"},
+bug:{name:"森の虫",price:65,emoji:"虫"},
+seed:{name:"花の種",price:20,emoji:"種"},
+lamp:{name:"ランプ",price:120,emoji:"灯"},
+table:{name:"テーブル",price:160,emoji:"机"},
+chair:{name:"イス",price:100,emoji:"椅"},
+bed:{name:"ベッド",price:220,emoji:"寝"},
+plant:{name:"観葉植物",price:90,emoji:"植"}
+};
+
+const tools=[
+{name:"手",key:"hand"},
+{name:"網",key:"net"},
+{name:"釣り竿",key:"rod"},
+{name:"スコップ",key:"shovel"}
+];
+
+const furniture=["bed","table","chair","lamp","plant"];
+
+let state=null;
+let running=false;
+let lastTime=performance.now();
+let toastTimer=null;
+let fishGame=null;
+
+const player={
+x:0,y:0,speed:145,dir:0,
+vx:0,vy:0
+};
+
+const camera={x:0,y:0};
+
+let input={
+up:false,down:false,left:false,right:false,
+joyX:0,joyY:0
+};
+
+let touchLook=null;
+
+function makeDefaultState(){
+	return {
+		version:1,
+		seed:Math.floor(Math.random()*999999999),
+		player:{x:0,y:0},
+		money:800,
+		inventory:{
+			wood:0,fruit:0,stone:0,shell:0,flower:0,weed:0,
+			fish_blue:0,fish_gold:0,bug:0,seed:3,
+			lamp:0,table:0,chair:0,bed:0,plant:0
+		},
+		selectedTool:0,
+		character:{
+			hair:"#49362c",
+			skin:"#f1c39d",
+			shirt:"#6e9fca",
+			hairStyle:"short"
+		},
+		hour:8,
+		minute:0,
+		weather:"晴れ",
+		day:1,
+		friendship:{ミナ:0,ソラ:0,コハク:0},
+		collected:{},
+		fruitTimer:0,
+		purchased:{},
+		furniturePlaced:[],
+		islandLevel:1
+	};
+}
+
+let world={w:2200,h:1500,tiles:[],objects:[],npcs:[]};
+
+function rng(seed){
+	let x=seed>>>0;
+	return function(){
+		x+=0x6D2B79F5;
+		let t=x;
+		t=Math.imul(t^t>>>15,t|1);
+		t^=t+Math.imul(t^t>>>7,t|61);
+		return ((t^t>>>14)>>>0)/4294967296;
+	};
+}
+
+function dist(a,b){
+	return Math.hypot(a.x-b.x,a.y-b.y);
+}
+
+function makeWorld(seed){
+	const r=rng(seed);
+	world.tiles=[];
+	world.objects=[];
+	world.npcs=[];
+
+	const w=110,h=75;
+	for(let y=0;y<h;y++){
+		world.tiles[y]=[];
+		for(let x=0;x<w;x++){
+			const nx=(x-w/2)/(w/2);
+			const ny=(y-h/2)/(h/2);
+			const d=Math.sqrt(nx*nx+ny*ny);
+			let t=d<.83?"grass":"water";
+			if(d>.72&&d<.83)t="sand";
+			if(d>.88)t="water";
+			if(t==="grass"&&r()<.12)t="dirt";
+			if(t==="grass"&&r()<.035)t="cliff";
+			world.tiles[y][x]=t;
+		}
+	}
+
+	const center={x:world.w/2,y:world.h/2};
+	const safe=[];
+	for(let i=0;i<120;i++){
+		const a=r()*Math.PI*2;
+		const rad=100+r()*700;
+		const px=center.x+Math.cos(a)*rad;
+		const py=center.y+Math.sin(a)*rad*.68;
+		if(isLand(px,py))safe.push({x:px,y:py});
+	}
+
+	for(let i=0;i<70;i++){
+		const p=safe[Math.floor(r()*safe.length)]||{x:center.x,y:center.y};
+		world.objects.push({type:"tree",x:p.x,y:p.y,active:true});
+	}
+
+	for(let i=0;i<35;i++){
+		const p=safe[Math.floor(r()*safe.length)]||{x:center.x,y:center.y};
+		world.objects.push({type:"rock",x:p.x,y:p.y,active:true});
+	}
+
+	for(let i=0;i<45;i++){
+		const p=safe[Math.floor(r()*safe.length)]||{x:center.x,y:center.y};
+		world.objects.push({type:"flower",x:p.x,y:p.y,active:true});
+	}
+
+	for(let i=0;i<28;i++){
+		const p=safe[Math.floor(r()*safe.length)]||{x:center.x,y:center.y};
+		world.objects.push({type:"shell",x:p.x,y:p.y,active:true});
+	}
+
+	const centerX=world.w/2;
+	const centerY=world.h/2;
+
+	world.objects.push({type:"house",x:centerX-260,y:centerY+20,active:true});
+	world.objects.push({type:"shop",x:centerX+270,y:centerY-40,active:true});
+	world.objects.push({type:"office",x:centerX+50,y:centerY-250,active:true});
+
+	const npcData=[
+		{name:"ミナ",personality:"元気",color:"#e48772",x:centerX-480,y:centerY-250},
+		{name:"ソラ",personality:"のんびり",color:"#719ac5",x:centerX+450,y:centerY+240},
+		{name:"コハク",personality:"知的",color:"#c69a58",x:centerX+100,y:centerY+420}
+	];
+
+	for(const n of npcData){
+		world.npcs.push({...n,homeX:n.x,homeY:n.y,tx:n.x,ty:n.y,timer:0});
+	}
+}
+
+function isLand(x,y){
+	const tx=Math.floor(x/20);
+	const ty=Math.floor(y/20);
+	if(ty<0||ty>=world.tiles.length||tx<0||tx>=world.tiles[0].length)return false;
+	return world.tiles[ty][tx]!=="water";
+}
+
+function getTile(x,y){
+	const tx=Math.floor(x/20);
+	const ty=Math.floor(y/20);
+	if(ty<0||ty>=world.tiles.length||tx<0||tx>=world.tiles[0].length)return "water";
+	return world.tiles[ty][tx];
+}
+
+function startGame(newGame){
+	if(newGame){
+		state=makeDefaultState();
+		makeWorld(state.seed);
+	}else{
+		const raw=localStorage.getItem(SAVE_KEY);
+		if(!raw){
+			showToast("保存データがありません");
+			return;
+		}
+		try{
+			state=JSON.parse(raw);
+			makeWorld(state.seed);
+		}catch(e){
+			console.error(e);
+			showToast("保存データを読み込めませんでした");
+			return;
+		}
+	}
+
+	player.x=state.player.x||world.w/2;
+	player.y=state.player.y||world.h/2;
+	player.vx=player.vy=0;
+	camera.x=player.x;
+	camera.y=player.y;
+	running=true;
+	showScreen("gameScreen");
+	updateHUD();
+}
+
+function showScreen(id){
+	document.querySelectorAll(".screen").forEach(e=>e.classList.remove("active"));
+	document.getElementById(id).classList.add("active");
+}
+
+function showToast(text){
+	const el=document.getElementById("toast");
+	el.textContent=text;
+	el.classList.add("show");
+	clearTimeout(toastTimer);
+	toastTimer=setTimeout(()=>el.classList.remove("show"),1900);
+}
+
+function addItem(id,count=1){
+	if(!state.inventory[id])state.inventory[id]=0;
+	state.inventory[id]+=count;
+	showToast(items[id].name+" ×"+count);
+}
+
+function removeItem(id,count=1){
+	if(!state.inventory[id]||state.inventory[id]<count)return false;
+	state.inventory[id]-=count;
+	return true;
+}
+
+function saveGame(show=true){
+	if(!state)return;
+	state.player.x=player.x;
+	state.player.y=player.y;
+	try{
+		localStorage.setItem(SAVE_KEY,JSON.stringify(state));
+		if(show)showToast("ゲームを保存しました");
+	}catch(e){
+		console.error(e);
+		showToast("保存に失敗しました");
+	}
+}
+
+function updateHUD(){
+	if(!state)return;
+	document.getElementById("moneyHud").textContent="コイン "+state.money;
+	const h=String(Math.floor(state.hour)%24).padStart(2,"0");
+	const m=String(state.minute).padStart(2,"0");
+	document.getElementById("timeHud").textContent=h+":"+m;
+	document.getElementById("weatherHud").textContent=state.weather;
+	renderToolbar();
+}
+
+function renderToolbar(){
+	const bar=document.getElementById("toolBar");
+	bar.innerHTML="";
+	tools.forEach((t,i)=>{
+		const b=document.createElement("button");
+		b.className="slot"+(state.selectedTool===i?" active":"");
+		b.innerHTML="<span>"+(["手","網","釣","掘"][i])+"</span><span>"+t.name+"</span>";
+		b.onclick=()=>{state.selectedTool=i;renderToolbar();};
+		bar.appendChild(b);
+	});
+}
+
+function screenToWorld(sx,sy){
+	return {
+		x:sx-camera.x+W/2,
+		y:sy-camera.y+H/2
+	};
+}
+
+function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+
+function update(dt){
+	if(!running||!state)return;
+
+	let dx=(input.right?1:0)-(input.left?1:0)+input.joyX;
+	let dy=(input.down?1:0)-(input.up?1:0)+input.joyY;
+	const len=Math.hypot(dx,dy);
+	if(len>1){dx/=len;dy/=len;}
+
+	player.vx=dx*player.speed;
+	player.vy=dy*player.speed;
+
+	const nx=player.x+player.vx*dt;
+	const ny=player.y+player.vy*dt;
+
+	if(isLand(nx,player.y))player.x=nx;
+	if(isLand(player.x,ny))player.y=ny;
+
+	camera.x+=(player.x-camera.x)*Math.min(1,dt*8);
+	camera.y+=(player.y-camera.y)*Math.min(1,dt*8);
+
+	state.minute+=dt*2.2;
+	if(state.minute>=60){
+		state.minute-=60;
+		state.hour++;
+		if(state.hour>=24){
+			state.hour=0;
+			state.day++;
+			state.fruitTimer++;
+			if(state.day%3===0)state.weather=["晴れ","曇り","雨"][Math.floor(Math.random()*3)];
+		}
+	}
+
+	updateNPCs(dt);
+	updateHUD();
+}
+
+function updateNPCs(dt){
+	for(const n of world.npcs){
+		n.timer-=dt;
+		if(n.timer<=0){
+			n.timer=3+Math.random()*6;
+			const a=Math.random()*Math.PI*2;
+			const r=50+Math.random()*170;
+			const tx=n.homeX+Math.cos(a)*r;
+			const ty=n.homeY+Math.sin(a)*r;
+			if(isLand(tx,ty)){n.tx=tx;n.ty=ty;}
+		}
+		const dx=n.tx-n.x,dy=n.ty-n.y,l=Math.hypot(dx,dy);
+		if(l>3){
+			n.x+=dx/l*25*dt;
+			n.y+=dy/l*25*dt;
+		}
+	}
+}
+
+function draw(){
+	ctx.clearRect(0,0,W,H);
+
+	if(!running)return;
+
+	const night=getNightFactor();
+	const left=camera.x-W/2-40;
+	const top=camera.y-H/2-40;
+	const right=camera.x+W/2+40;
+	const bottom=camera.y+H/2+40;
+
+	ctx.save();
+	ctx.translate(W/2-camera.x,H/2-camera.y);
+
+	const startX=Math.floor(left/20);
+	const endX=Math.ceil(right/20);
+	const startY=Math.floor(top/20);
+	const endY=Math.ceil(bottom/20);
+
+	for(let y=startY;y<=endY;y++){
+		for(let x=startX;x<=endX;x++){
+			if(y<0||x<0||y>=world.tiles.length||x>=world.tiles[0].length)continue;
+			const t=world.tiles[y][x];
+			drawTile(x*20,y*20,t);
+		}
+	}
+
+	for(const o of world.objects){
+		if(!o.active)continue;
+		if(o.x<left-80||o.x>right+80||o.y<top-80||o.y>bottom+80)continue;
+		drawObject(o);
+	}
+
+	for(const n of world.npcs)drawNPC(n);
+
+	drawPlayer();
+
+	if(state.weather==="雨")drawRain();
+
+	ctx.restore();
+
+	if(night>0){
+		ctx.fillStyle=`rgba(24,39,70,${night*.42})`;
+		ctx.fillRect(0,0,W,H);
+	}
+
+	if(state.weather==="曇り"){
+		ctx.fillStyle="rgba(110,120,125,.1)";
+		ctx.fillRect(0,0,W,H);
+	}
+}
+
+function getNightFactor(){
+	const h=state.hour+state.minute/60;
+	if(h>=6&&h<9)return (9-h)/3*.25;
+	if(h>=9&&h<17)return 0;
+	if(h>=17&&h<20)return (h-17)/3*.45;
+	if(h>=20||h<6)return .65;
+	return 0;
+}
+
+function drawTile(x,y,t){
+	let c="#7fbe70";
+	if(t==="water")c="#62b8d2";
+	if(t==="sand")c="#e7cf8d";
+	if(t==="dirt")c="#9c7a55";
+	if(t==="cliff")c="#77776c";
+	ctx.fillStyle=c;
+	ctx.fillRect(x,y,20,20);
+
+	if(t==="grass"){
+		ctx.strokeStyle="#72ac67";
+		ctx.lineWidth=1;
+		ctx.beginPath();
+		ctx.moveTo(x+5,y+14);ctx.lineTo(x+7,y+10);
+		ctx.moveTo(x+15,y+17);ctx.lineTo(x+14,y+12);
+		ctx.stroke();
+	}
+	if(t==="water"){
+		ctx.strokeStyle="#86d1df";
+		ctx.beginPath();
+		ctx.moveTo(x+3,y+9);ctx.quadraticCurveTo(x+10,y+5,x+17,y+9);
+		ctx.stroke();
+	}
+}
+
+function drawObject(o){
+	const x=o.x,y=o.y;
+	ctx.save();
+	ctx.translate(x,y);
+
+	if(o.type==="tree"){
+		ctx.fillStyle="#805735";ctx.fillRect(-8,4,16,35);
+		ctx.fillStyle="#3f8b58";
+		ctx.beginPath();ctx.arc(0,-5,29,0,Math.PI*2);ctx.fill();
+		ctx.fillStyle="#62a968";
+		ctx.beginPath();ctx.arc(-13,-18,18,0,Math.PI*2);ctx.fill();
+		ctx.beginPath();ctx.arc(14,-15,17,0,Math.PI*2);ctx.fill();
+		ctx.fillStyle="#dca44d";
+		ctx.beginPath();ctx.arc(-15,0,4,0,Math.PI*2);ctx.fill();
+		ctx.beginPath();ctx.arc(13,-3,4,0,Math.PI*2);ctx.fill();
+	}
+	if(o.type==="rock"){
+		ctx.fillStyle="#777b78";
+		ctx.beginPath();
+		ctx.moveTo(-23,10);ctx.lineTo(-14,-13);ctx.lineTo(5,-22);ctx.lineTo(24,-8);ctx.lineTo(17,15);ctx.closePath();ctx.fill();
+		ctx.fillStyle="#9a9d98";
+		ctx.fillRect(-8,-9,8,5);
+	}
+	if(o.type==="flower"){
+		ctx.strokeStyle="#4d8d50";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(0,18);ctx.stroke();
+		ctx.fillStyle=["#e98585","#e7d56e","#a68ed3","#f3a85b"][Math.floor((x+y)/20)%4];
+		for(let i=0;i<5;i++){
+			const a=i*Math.PI*2/5;
+			ctx.beginPath();ctx.arc(Math.cos(a)*7,Math.sin(a)*7,5,0,Math.PI*2);ctx.fill();
+		}
+	}
+	if(o.type==="shell"){
+		ctx.fillStyle="#f1b8a5";ctx.beginPath();ctx.arc(0,0,9,0,Math.PI*2);ctx.fill();
+		ctx.strokeStyle="#d48e83";ctx.beginPath();ctx.arc(0,0,6,-2,1.5);ctx.stroke();
+	}
+	if(o.type==="house"){
+		ctx.fillStyle="#f4e2bd";ctx.fillRect(-65,-45,130,90);
+		ctx.fillStyle="#c46f5d";
+		ctx.beginPath();ctx.moveTo(-78,-45);ctx.lineTo(0,-95);ctx.lineTo(78,-45);ctx.closePath();ctx.fill();
+		ctx.fillStyle="#6d594b";ctx.fillRect(-15,0,30,45);
+		ctx.fillStyle="#91c5d3";ctx.fillRect(32,-20,23,23);
+	}
+	if(o.type==="shop"){
+		ctx.fillStyle="#f4d28f";ctx.fillRect(-70,-45,140,90);
+		ctx.fillStyle="#df765f";ctx.fillRect(-78,-58,156,25);
+		for(let i=0;i<7;i++){
+			ctx.fillStyle=i%2?"#f4d28f":"#df765f";
+			ctx.fillRect(-78+i*22,-58,22,25);
+		}
+		ctx.fillStyle="#6c5545";ctx.fillRect(-15,2,30,43);
+	}
+	if(o.type==="office"){
+		ctx.fillStyle="#c7dfdf";ctx.fillRect(-65,-50,130,100);
+		ctx.fillStyle="#5d8585";ctx.fillRect(-72,-60,144,20);
+		ctx.fillStyle="#6c5545";ctx.fillRect(-15,5,30,45);
+	}
+
+	ctx.restore();
+}
+
+function drawNPC(n){
+	const x=n.x,y=n.y;
+	ctx.save();ctx.translate(x,y);
+	ctx.fillStyle="#0002";ctx.beginPath();ctx.ellipse(0,24,25,8,0,0,Math.PI*2);ctx.fill();
+	ctx.fillStyle=n.color;ctx.beginPath();ctx.arc(0,-8,23,0,Math.PI*2);ctx.fill();
+	ctx.fillStyle="#f1c39d";ctx.beginPath();ctx.arc(0,-8,15,0,Math.PI*2);ctx.fill();
+	ctx.fillStyle="#333";ctx.fillRect(-8,-10,4,5);ctx.fillRect(4,-10,4,5);
+	ctx.fillStyle=n.color;ctx.fillRect(-18,8,36,28);
+	ctx.restore();
+}
+
+function drawPlayer(){
+	const x=player.x,y=player.y;
+	ctx.save();ctx.translate(x,y);
+	ctx.fillStyle="#0003";ctx.beginPath();ctx.ellipse(0,25,23,8,0,0,Math.PI*2);ctx.fill();
+	ctx.fillStyle=state.character.shirt;
+	ctx.beginPath();ctx.roundRect(-20,0,40,34,12);ctx.fill();
+	ctx.fillStyle=state.character.skin;
+	ctx.beginPath();ctx.arc(0,-13,19,0,Math.PI*2);ctx.fill();
+	ctx.fillStyle=state.character.hair;
+	if(state.character.hairStyle==="long"){
+		ctx.beginPath();ctx.arc(0,-18,22,Math.PI,Math.PI*2);ctx.fill();
+		ctx.fillRect(-21,-18,9,42);ctx.fillRect(12,-18,9,42);
+	}else if(state.character.hairStyle==="curly"){
+		for(let i=0;i<8;i++){
+			const a=i*Math.PI*2/8;
+			ctx.beginPath();ctx.arc(Math.cos(a)*16,-18+Math.sin(a)*11,9,0,Math.PI*2);ctx.fill();
+		}
+	}else{
+		ctx.beginPath();ctx.arc(0,-20,21,Math.PI,Math.PI*2);ctx.fill();
+		ctx.fillRect(-20,-20,9,18);ctx.fillRect(11,-20,9,18);
+	}
+	ctx.fillStyle="#283a3d";ctx.fillRect(-7,-14,4,5);ctx.fillRect(3,-14,4,5);
+	ctx.restore();
+}
+
+function drawRain(){
+	ctx.strokeStyle="rgba(210,235,255,.55)";
+	ctx.lineWidth=1;
+	for(let i=0;i<90;i++){
+		const x=(i*97+performance.now()/5)%W;
+		const y=(i*53+performance.now()/3)%H;
+		ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-5,y+13);ctx.stroke();
+	}
+}
+
+function nearestInteractable(){
+	let best=null,bestD=70;
+	for(const o of world.objects){
+		if(!o.active)continue;
+		const d=Math.hypot(player.x-o.x,player.y-o.y);
+		if(d<bestD){best={kind:"object",obj:o};bestD=d;}
+	}
+	for(const n of world.npcs){
+		const d=Math.hypot(player.x-n.x,player.y-n.y);
+		if(d<bestD){best={kind:"npc",npc:n};bestD=d;}
+	}
+	return best;
+}
+
+function interact(){
+	const near=nearestInteractable();
+	if(!near){
+		if(getTile(player.x,player.y)==="water"||nearWater()){
+			if(state.selectedTool===2){startFishing();return;}
+		}
+		showToast("近くに調べられるものがありません");
+		return;
+	}
+
+	if(near.kind==="npc"){openDialogue(near.npc);return;}
+
+	const o=near.obj;
+	if(o.type==="tree"){
+		if(state.selectedTool===0||state.selectedTool===3){
+			addItem("wood",1);
+			if(Math.random()<.22)addItem("fruit",1);
+			o.active=false;
+		}else showToast("この道具では木を調べられません");
+	}
+	else if(o.type==="rock"){
+		addItem("stone",1);
+		o.active=false;
+	}
+	else if(o.type==="flower"){
+		addItem("flower",1);
+		o.active=false;
+	}
+	else if(o.type==="shell"){
+		addItem("shell",1);
+		o.active=false;
+	}
+	else if(o.type==="house"){
+		openHouse();
+	}
+	else if(o.type==="shop"){
+		openShop();
+	}
+	else if(o.type==="office"){
+		showToast("島の案内所です");
+	}
+}
+
+function nearWater(){
+	for(let a=0;a<Math.PI*2;a+=Math.PI/8){
+		if(getTile(player.x+Math.cos(a)*30,player.y+Math.sin(a)*30)==="water")return true;
+	}
+	return false;
+}
+
+function startFishing(){
+	if(fishGame)return;
+	const target=25+Math.random()*45;
+	fishGame={cursor:0,dir:1,target,width:22,active:true,time:0};
+	document.getElementById("fishing").classList.add("active");
+	document.getElementById("fishMessage").textContent="魚が近づいています……";
+	requestAnimationFrame(fishingLoop);
+}
+
+function fishingLoop(t){
+	if(!fishGame)return;
+	const f=fishGame;
+	f.time+=.016;
+	f.cursor+=f.dir*.7;
+	if(f.cursor>100){f.cursor=100;f.dir=-1}
+	if(f.cursor<0){f.cursor=0;f.dir=1}
+	document.getElementById("fishCursor").style.left=f.cursor+"%";
+	document.getElementById("fishTarget").style.left=f.target+"%";
+	if(f.active)requestAnimationFrame(fishingLoop);
+}
+
+function fishAction(){
+	if(!fishGame)return;
+	const f=fishGame;
+	const success=f.cursor>=f.target-2&&f.cursor<=f.target+f.width;
+	if(success){
+		const id=Math.random()<.15?"fish_gold":"fish_blue";
+		addItem(id,1);
+		document.getElementById("fishMessage").textContent="釣れました！";
+		setTimeout(endFishing,700);
+	}else{
+		document.getElementById("fishMessage").textContent="魚に逃げられました……";
+		setTimeout(endFishing,700);
+	}
+}
+
+function endFishing(){
+	fishGame=null;
+	document.getElementById("fishing").classList.remove("active");
+}
+
+function openInventory(){
+	const overlay=document.getElementById("inventoryOverlay");
+	const list=document.getElementById("inventoryList");
+	list.innerHTML="";
+	for(const id of Object.keys(state.inventory)){
+		const count=state.inventory[id];
+		if(count<=0)continue;
+		const it=items[id];
+		const card=document.createElement("div");
+		card.className="card";
+		card.innerHTML="<b>"+it.emoji+" "+it.name+"</b><span>所持数："+count+"</span><br><span>売値："+it.price+"</span>";
+		const sell=document.createElement("button");
+		sell.textContent="1個売る";
+		sell.onclick=()=>{
+			if(removeItem(id,1)){
+				state.money+=it.price;
+				showToast(it.name+"を売りました");
+				openInventory();
+			}
+		};
+		card.appendChild(sell);
+		list.appendChild(card);
+	}
+	if(!list.children.length)list.innerHTML="<p>まだ何も持っていません。</p>";
+	overlay.classList.add("active");
+}
+
+function isShopOpen(){
+	const h=state.hour+state.minute/60;
+	return h>=8&&h<20;
+}
+
+function openShop(){
+	const overlay=document.getElementById("shopOverlay");
+	const list=document.getElementById("shopList");
+	list.innerHTML="";
+	document.getElementById("shopStatus").textContent=isShopOpen()?"営業中":"現在は閉店しています。営業時間 08:00〜20:00";
+	const products=[
+		{id:"seed",price:20},
+		{id:"lamp",price:120},
+		{id:"table",price:160},
+		{id:"chair",price:100},
+		{id:"bed",price:220},
+		{id:"plant",price:90}
+	];
+	for(const p of products){
+		const it=items[p.id];
+		const card=document.createElement("div");
+		card.className="card";
+		card.innerHTML="<b>"+it.emoji+" "+it.name+"</b><span>"+p.price+"コイン</span>";
+		const b=document.createElement("button");
+		b.textContent="購入";
+		b.onclick=()=>{
+			if(!isShopOpen()){showToast("お店は閉店しています");return}
+			if(state.money<p.price){showToast("コインが足りません");return}
+			state.money-=p.price;
+			addItem(p.id,1);
+			saveGame(false);
+			openShop();
+		};
+		card.appendChild(b);
+		list.appendChild(card);
+	}
+	overlay.classList.add("active");
+}
+
+function openDialogue(n){
+	const overlay=document.getElementById("dialogueOverlay");
+	document.getElementById("dialogueName").textContent=n.name+" — "+n.personality;
+	const friendship=state.friendship[n.name]||0;
+	let lines={
+		"ミナ":["今日は島を走り回るのにぴったりの日だね！","最近、島に花が増えてきた気がするよ。"],
+		"ソラ":["海の音を聞いていると眠くなるなあ。","釣りをすると、時間を忘れちゃうよ。"],
+		"コハク":["島にはまだ秘密の場所があるかもしれないね。","集めたものを記録しておくと面白いよ。"]
+	};
+	const text=lines[n.name][Math.floor(Math.random()*lines[n.name].length)];
+	document.getElementById("dialogueText").textContent=text;
+	const choices=document.getElementById("dialogueChoices");
+	choices.innerHTML="";
+	["またね","もっと話す","プレゼント"].forEach(choice=>{
+		const b=document.createElement("button");
+		b.textContent=choice;
+		b.onclick=()=>{
+			if(choice==="またね"){
+				overlay.classList.remove("active");
+			}else if(choice==="もっと話す"){
+				state.friendship[n.name]=(friendship||0)+1;
+				document.getElementById("dialogueText").textContent="話してくれてありがとう！また遊ぼうね。";
+			}else{
+				if(state.inventory.fruit>0){
+					removeItem("fruit",1);
+					state.friendship[n.name]=(friendship||0)+3;
+					document.getElementById("dialogueText").textContent="わあ、ありがとう！大切にするね。";
+				}else{
+					document.getElementById("dialogueText").textContent="何かプレゼントを持っている？";
+				}
+			}
+		};
+		choices.appendChild(b);
+	});
+	overlay.classList.add("active");
+}
+
+function openHouse(){
+	document.getElementById("houseOverlay").classList.add("active");
+	renderFurniture();
+}
+
+function renderFurniture(){
+	const list=document.getElementById("furnitureList");
+	list.innerHTML="";
+	for(const id of furniture){
+		const it=items[id];
+		const count=state.inventory[id]||0;
+		const card=document.createElement("div");
+		card.className="card";
+		card.innerHTML="<b>"+it.emoji+" "+it.name+"</b><span>所持数："+count+"</span>";
+		const b=document.createElement("button");
+		b.textContent="配置";
+		b.disabled=count<=0;
+		b.onclick=()=>{
+			if(removeItem(id,1)){
+				state.furniturePlaced.push({id,x:Math.floor(Math.random()*8),y:Math.floor(Math.random()*5)});
+				renderFurniture();
+				renderHouseGrid();
+			}
+		};
+		card.appendChild(b);
+		list.appendChild(card);
+	}
+	renderHouseGrid();
+}
+
+function renderHouseGrid(){
+	const grid=document.getElementById("houseGrid");
+	grid.innerHTML="";
+	for(let y=0;y<5;y++){
+		for(let x=0;x<8;x++){
+			const cell=document.createElement("div");
+			cell.style.aspectRatio="1";
+			cell.style.background="#e9d7b5";
+			cell.style.borderRadius="5px";
+			const f=state.furniturePlaced.find(a=>a.x===x&&a.y===y);
+			if(f){
+				cell.textContent=items[f.id].emoji;
+				cell.style.display="flex";
+				cell.style.alignItems="center";
+				cell.style.justifyContent="center";
+				cell.style.fontSize="24px";
+			}
+			grid.appendChild(cell);
+		}
+	}
+}
+
+function openMap(){
+	document.getElementById("mapOverlay").classList.add("active");
+	drawMap();
+}
+
+function drawMap(){
+	const mw=mapCanvas.width,mh=mapCanvas.height;
+	mapCtx.clearRect(0,0,mw,mh);
+	mapCtx.fillStyle="#65b9d0";mapCtx.fillRect(0,0,mw,mh);
+	const scaleX=mw/world.w,scaleY=mh/world.h;
+	for(let y=0;y<world.tiles.length;y++){
+		for(let x=0;x<world.tiles[y].length;x++){
+			const t=world.tiles[y][x];
+			mapCtx.fillStyle=t==="water"?"#65b9d0":t==="sand"?"#ead28e":t==="dirt"?"#9d7b59":t==="cliff"?"#77776c":"#82bd72";
+			mapCtx.fillRect(x*20*scaleX,y*20*scaleY,20*scaleX+1,20*scaleY+1);
+		}
+	}
+	for(const o of world.objects){
+		if(!o.active)continue;
+		mapCtx.fillStyle=o.type==="tree"?"#39774b":o.type==="house"?"#b75f50":o.type==="shop"?"#df8c58":"#fff";
+		mapCtx.beginPath();
+		mapCtx.arc(o.x*scaleX,o.y*scaleY,5,0,Math.PI*2);mapCtx.fill();
+	}
+	mapCtx.fillStyle="#ff3d3d";
+	mapCtx.beginPath();mapCtx.arc(player.x*scaleX,player.y*scaleY,7,0,Math.PI*2);mapCtx.fill();
+}
+
+function returnTitle(){
+	saveGame(false);
+	running=false;
+	document.querySelectorAll(".overlay").forEach(e=>e.classList.remove("active"));
+	showScreen("titleScreen");
+}
+
+document.getElementById("newGameBtn").onclick=()=>{
+	state=makeDefaultState();
+	showScreen("creatorScreen");
+};
+
+document.getElementById("continueBtn").onclick=()=>{
+	const raw=localStorage.getItem(SAVE_KEY);
+	if(!raw){showToast("保存データがありません");return}
+	showScreen("creatorScreen");
+	try{
+		const loaded=JSON.parse(raw);
+		state=loaded;
+	}catch(e){
+		showToast("データを読み込めません");
+	}
+};
+
+document.getElementById("howBtn").onclick=()=>{
+	document.getElementById("infoOverlay").classList.add("active");
+};
+
+document.getElementById("settingsBtn").onclick=()=>{
+	showToast("設定：現在はタッチ・PC操作に自動対応しています");
+};
+
+document.getElementById("createIslandBtn").onclick=()=>{
+	if(!state)state=makeDefaultState();
+	makeWorld(state.seed);
+	player.x=state.player.x||world.w/2;
+	player.y=state.player.y||world.h/2;
+	showScreen("gameScreen");
+	running=true;
+	updateHUD();
+};
+
+document.querySelectorAll(".opt").forEach(b=>{
+	b.onclick=()=>{
+		document.querySelectorAll(`[data-type="${b.dataset.type}"]`).forEach(x=>x.classList.remove("selected"));
+		b.classList.add("selected");
+		if(!state)state=makeDefaultState();
+		state.character[b.dataset.type==="hairStyle"?"hairStyle":b.dataset.type]=b.dataset.value;
+		updateCharacterPreview();
+	};
+});
+
+function updateCharacterPreview(){
+	if(!state)return;
+	const c=document.getElementById("charPreview");
+	c.style.background=state.character.skin;
+	c.style.setProperty("--hair",state.character.hair);
+	c.style.boxShadow="inset 0 -12px "+state.character.shirt;
+}
+
+document.getElementById("interactBtn").onclick=interact;
+
+document.getElementById("inventoryBtn").onclick=openInventory;
+document.getElementById("mapBtn").onclick=openMap;
+document.getElementById("saveBtn").onclick=()=>saveGame(true);
+
+document.getElementById("toolBtn").onclick=()=>{
+	state.selectedTool=(state.selectedTool+1)%tools.length;
+	renderToolbar();
+	showToast("道具："+tools[state.selectedTool].name);
+};
+
+document.getElementById("menuBtn").onclick=()=>{
+	document.getElementById("menuOverlay").classList.add("active");
+};
+
+document.getElementById("menuSaveBtn").onclick=()=>{
+	saveGame(true);
+};
+
+document.getElementById("weatherBtn").onclick=()=>{
+	const list=["晴れ","曇り","雨"];
+	state.weather=list[(list.indexOf(state.weather)+1)%list.length];
+	updateHUD();
+	showToast("天気："+state.weather);
+};
+
+document.getElementById("titleBtn").onclick=returnTitle;
+
+document.querySelectorAll("[data-close]").forEach(b=>{
+	b.onclick=()=>document.getElementById(b.dataset.close).classList.remove("active");
+});
+
+document.getElementById("fishAction").onclick=fishAction;
+
+addEventListener("keydown",e=>{
+	if(e.key==="w"||e.key==="W"||e.key==="ArrowUp")input.up=true;
+	if(e.key==="s"||e.key==="S"||e.key==="ArrowDown")input.down=true;
+	if(e.key==="a"||e.key==="A"||e.key==="ArrowLeft")input.left=true;
+	if(e.key==="d"||e.key==="D"||e.key==="ArrowRight")input.right=true;
+	if(e.key==="e"||e.key==="E")interact();
+	if(e.key==="i"||e.key==="I")openInventory();
+	if(e.key==="m"||e.key==="M")openMap();
+	if(e.key==="Escape")document.querySelectorAll(".overlay").forEach(x=>x.classList.remove("active"));
+	if(e.key==="1"&&state){state.selectedTool=0;renderToolbar()}
+	if(e.key==="2"&&state){state.selectedTool=1;renderToolbar()}
+	if(e.key==="3"&&state){state.selectedTool=2;renderToolbar()}
+	if(e.key==="4"&&state){state.selectedTool=3;renderToolbar()}
+});
+
+addEventListener("keyup",e=>{
+	if(e.key==="w"||e.key==="W"||e.key==="ArrowUp")input.up=false;
+	if(e.key==="s"||e.key==="S"||e.key==="ArrowDown")input.down=false;
+	if(e.key==="a"||e.key==="A"||e.key==="ArrowLeft")input.left=false;
+	if(e.key==="d"||e.key==="D"||e.key==="ArrowRight")input.right=false;
+});
+
+const joystick=document.getElementById("joystick");
+const stick=document.getElementById("stick");
+let joyPointer=null;
+
+function setJoy(e){
+	const r=joystick.getBoundingClientRect();
+	const cx=r.left+r.width/2,cy=r.top+r.height/2;
+	let dx=e.clientX-cx,dy=e.clientY-cy;
+	const max=r.width*.34;
+	const l=Math.hypot(dx,dy);
+	if(l>max){dx=dx/l*max;dy=dy/l*max}
+	stick.style.transform=`translate(${dx}px,${dy}px)`;
+	input.joyX=dx/max;
+	input.joyY=dy/max;
+}
+
+joystick.addEventListener("pointerdown",e=>{
+	joyPointer=e.pointerId;
+	joystick.setPointerCapture(e.pointerId);
+	setJoy(e);
+});
+
+joystick.addEventListener("pointermove",e=>{
+	if(e.pointerId===joyPointer)setJoy(e);
+});
+
+function resetJoy(){
+	joyPointer=null;
+	input.joyX=input.joyY=0;
+	stick.style.transform="translate(0,0)";
+}
+
+joystick.addEventListener("pointerup",resetJoy);
+joystick.addEventListener("pointercancel",resetJoy);
+
+document.getElementById("lookArea").addEventListener("pointerdown",e=>{
+	touchLook={x:e.clientX,y:e.clientY};
+});
+
+document.getElementById("lookArea").addEventListener("pointermove",e=>{
+	if(!touchLook)return;
+	const dx=e.clientX-touchLook.x;
+	const dy=e.clientY-touchLook.y;
+	player.dir=Math.atan2(dy,dx);
+	touchLook={x:e.clientX,y:e.clientY};
+});
+
+document.getElementById("lookArea").addEventListener("pointerup",()=>touchLook=null);
+document.getElementById("lookArea").addEventListener("pointercancel",()=>touchLook=null);
+
+canvas.addEventListener("pointerdown",e=>{
+	if(!running)return;
+	if(e.clientX>W*.6&&e.clientY<H*.65)interact();
+});
+
+function loop(t){
+	const dt=Math.min(.05,(t-lastTime)/1000);
+	lastTime=t;
+	update(dt);
+	draw();
+	requestAnimationFrame(loop);
+}
+
+window.addEventListener("beforeunload",()=>{
+	if(state&&running)saveGame(false);
+});
+
+setInterval(()=>{
+	if(state&&running)saveGame(false);
+},30000);
+
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
