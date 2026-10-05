@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>3D BASEBALL — Diamond Clash</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#07101d;color:#fff;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;touch-action:none}
+body{position:fixed;inset:0}
+#game{position:absolute;inset:0}
+canvas{display:block;width:100%;height:100%}
+.hud{position:absolute;inset:0;pointer-events:none}
+.topbar{position:absolute;left:max(10px,env(safe-area-inset-left));right:max(10px,env(safe-area-inset-right));top:max(10px,env(safe-area-inset-top));display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.card{background:rgba(5,12,21,.78);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.12);box-shadow:0 10px 35px rgba(0,0,0,.22);border-radius:14px}
+.score{min-width:250px;padding:9px 13px}
+.score .row{display:flex;align-items:center;justify-content:space-between;gap:18px}
+.team{font-weight:800;letter-spacing:.08em}
+.score .num{font-size:28px;font-weight:900;line-height:1}
+.inning{font-size:12px;color:#b9c7d8;text-align:center;margin-top:3px}
+.pitch{padding:10px 13px;text-align:center;min-width:130px}
+.pitch .big{font-size:22px;font-weight:900}
+.pitch .small{font-size:11px;color:#b9c7d8}
+#message{position:absolute;left:50%;top:14%;transform:translateX(-50%);padding:9px 15px;border-radius:999px;background:rgba(5,12,21,.75);border:1px solid rgba(255,255,255,.14);font-weight:800;letter-spacing:.04em;opacity:0;transition:opacity .18s;white-space:nowrap}
+#message.show{opacity:1}
+.center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none}
+#countdown{font-size:min(17vw,120px);font-weight:1000;text-shadow:0 4px 30px #000;opacity:0}
+#result{display:none;min-width:260px;padding:17px 20px}
+#result .title{font-size:30px;font-weight:1000}
+#result .sub{color:#bec9d8;margin-top:4px}
+.controls{position:absolute;left:0;right:0;bottom:max(14px,env(safe-area-inset-bottom));display:flex;justify-content:space-between;align-items:flex-end;padding:0 max(14px,env(safe-area-inset-left)) 0 max(14px,env(safe-area-inset-right));gap:20px}
+.leftControls,.rightControls{display:flex;align-items:flex-end;gap:12px;pointer-events:auto}
+.joystick{width:132px;height:132px;border-radius:50%;position:relative;background:rgba(5,12,21,.52);border:1px solid rgba(255,255,255,.15);box-shadow:inset 0 0 30px rgba(255,255,255,.04)}
+.stick{width:56px;height:56px;border-radius:50%;position:absolute;left:38px;top:38px;background:rgba(255,255,255,.24);border:1px solid rgba(255,255,255,.24);box-shadow:0 5px 20px rgba(0,0,0,.25)}
+.btn{width:86px;height:86px;border-radius:50%;border:1px solid rgba(255,255,255,.18);background:rgba(5,12,21,.68);color:#fff;font-weight:900;box-shadow:0 8px 25px rgba(0,0,0,.25);font-size:17px;pointer-events:auto}
+.btn:active{transform:scale(.95)}
+.btn.primary{width:106px;height:106px;background:rgba(20,89,180,.8);font-size:20px}
+.btn.warn{background:rgba(180,74,26,.76)}
+.pitchBtns{display:flex;gap:7px;position:absolute;right:14px;bottom:140px;pointer-events:auto}
+.pitchBtn{padding:9px 12px;border-radius:12px;background:rgba(5,12,21,.74);border:1px solid rgba(255,255,255,.12);color:#fff;font-weight:800}
+.pitchBtn.active{outline:2px solid rgba(92,175,255,.8)}
+#startScreen{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 35%,rgba(34,86,142,.32),rgba(2,8,16,.96) 65%);z-index:5}
+.startPanel{width:min(94vw,560px);padding:28px;border-radius:24px;text-align:center;background:rgba(4,12,21,.82);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.14);box-shadow:0 25px 80px rgba(0,0,0,.45)}
+.logo{font-size:clamp(38px,8vw,72px);font-weight:1000;letter-spacing:.04em;line-height:.95}
+.logo span{display:block;font-size:16px;letter-spacing:.28em;color:#91b5dc;margin-top:10px}
+.startPanel p{color:#b9c7d8;line-height:1.6;font-size:14px}
+.startBtn{width:100%;border:0;border-radius:16px;padding:16px;background:#1868c7;color:#fff;font-size:19px;font-weight:900}
+.tip{font-size:12px;color:#8fa1b7;margin-top:12px}
+@media (max-width:760px) and (orientation:portrait){
+  #startScreen:after{content:"画面を横向きにすると、より遊びやすくなります";position:absolute;bottom:28px;left:50%;transform:translateX(-50%);font-size:12px;color:#9fb1c7;white-space:nowrap}
+  .score{min-width:190px}.pitch{min-width:100px}
+  .joystick{width:110px;height:110px}.stick{left:32px;top:32px;width:46px;height:46px}
+  .btn{width:72px;height:72px;font-size:14px}.btn.primary{width:92px;height:92px;font-size:18px}
+  .pitchBtns{bottom:122px}
+}
+</style>
+</head>
+<body>
+<div id="game"></div>
+
+<div class="hud">
+  <div class="topbar">
+    <div class="card score">
+      <div class="row">
+        <div class="team">YOU</div><div id="runsYou" class="num">0</div>
+        <div style="color:#8191a5">—</div>
+        <div id="runsCpu" class="num">0</div><div class="team">CPU</div>
+      </div>
+      <div id="countLine" class="inning">1回表　0アウト</div>
+    </div>
+    <div class="card pitch">
+      <div class="big" id="speed">-- km/h</div>
+      <div class="small" id="pitchTypeLabel">投球待機中</div>
+    </div>
+  </div>
+  <div id="message"></div>
+  <div class="center"><div id="countdown">3</div></div>
+  <div class="controls">
+    <div class="leftControls">
+      <div class="joystick" id="joystick"><div class="stick" id="stick"></div></div>
+      <button class="btn" id="stealBtn">走る</button>
+    </div>
+    <div class="rightControls">
+      <button class="btn warn" id="powerBtn">強振</button>
+      <button class="btn primary" id="swingBtn">打つ</button>
+    </div>
+  </div>
+  <div class="pitchBtns">
+    <button class="pitchBtn active" data-pitch="fast">速球</button>
+    <button class="pitchBtn" data-pitch="curve">カーブ</button>
+    <button class="pitchBtn" data-pitch="slider">スライダー</button>
+    <button class="pitchBtn" data-pitch="change">チェンジ</button>
+  </div>
+  <div id="result" class="card">
+    <div class="title" id="resultTitle">ゲーム終了</div>
+    <div class="sub" id="resultSub"></div>
+  </div>
+</div>
+
+<div id="startScreen">
+  <div class="startPanel">
+    <div class="logo">DIAMOND CLASH<span>3D BASEBALL</span></div>
+    <p>3D球場で投球を読み、タイミングを合わせて打ち返そう。<br>タブレットでは「打つ」「強振」「走る」をタップして操作できます。</p>
+    <button id="startBtn" class="startBtn">PLAY BALL</button>
+    <div class="tip">PCでは W/A/S/D・矢印キー・スペースでも操作できます</div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.min.js"></script>
+<script>
+(() => {
+"use strict";
+
+const game = document.getElementById("game");
+const startScreen = document.getElementById("startScreen");
+const startBtn = document.getElementById("startBtn");
+const swingBtn = document.getElementById("swingBtn");
+const powerBtn = document.getElementById("powerBtn");
+const stealBtn = document.getElementById("stealBtn");
+const joystick = document.getElementById("joystick");
+const stick = document.getElementById("stick");
+const message = document.getElementById("message");
+const speedEl = document.getElementById("speed");
+const pitchTypeLabel = document.getElementById("pitchTypeLabel");
+const countLine = document.getElementById("countLine");
+const runsYouEl = document.getElementById("runsYou");
+const runsCpuEl = document.getElementById("runsCpu");
+const result = document.getElementById("result");
+const resultTitle = document.getElementById("resultTitle");
+const resultSub = document.getElementById("resultSub");
+const countdown = document.getElementById("countdown");
+
+let scene,camera,renderer,clock;
+let field, ball, bat, batter, pitcher;
+let bases = [];
+let defenders = [];
+let clouds = [];
+let particles = [];
+let fireflies = [];
+let started = false;
+let gamePhase = "idle";
+let pitch = null;
+let pitchTimer = 0;
+let aiTimer = 0;
+let swingState = null;
+let battingCamera = false;
+let cameraMode = "bat";
+let shake = 0;
+let lastTime = 0;
+
+const state = {
+  inning:1, maxInnings:3, outs:0,
+  balls:0, strikes:0,
+  scoreYou:0, scoreCpu:0,
+  bases:[false,false,false],
+  selectedPitch:"fast",
+  batting:true,
+  nextPlay:0
+};
+const input = {x:0,y:0,power:false,run:false};
+
+const pitchDefs = {
+  fast:{name:"ストレート",base:148,curve:0,break:0},
+  curve:{name:"カーブ",base:118,curve:-0.30,break:0.18},
+  slider:{name:"スライダー",base:132,curve:-0.06,break:0.34},
+  change:{name:"チェンジアップ",base:108,curve:-0.12,break:-0.10}
+};
+
+function rand(a,b){return a+Math.random()*(b-a)}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+function lerp(a,b,t){return a+(b-a)*t}
+function easeOut(t){return 1-Math.pow(1-t,3)}
+function showMessage(t,ms=1200){
+  message.textContent=t;message.classList.add("show");
+  clearTimeout(showMessage.timer);showMessage.timer=setTimeout(()=>message.classList.remove("show"),ms);
+}
+function setCamera(pos,look){
+  camera.position.lerp(new THREE.Vector3(pos.x,pos.y,pos.z),.13);
+  camera.lookAt(look.x,look.y,look.z);
+}
+
+function mat(color,rough=.8,metal=0){
+  return new THREE.MeshStandardMaterial({color,roughness:rough,metalness:metal});
+}
+function box(w,h,d,m,seg=1){
+  const g=new THREE.BoxGeometry(w,h,d,seg,seg,seg);
+  const o=new THREE.Mesh(g,m);o.castShadow=true;o.receiveShadow=true;return o;
+}
+function cyl(r1,r2,h,m,seg=16){
+  const g=new THREE.CylinderGeometry(r1,r2,h,seg);
+  const o=new THREE.Mesh(g,m);o.castShadow=true;o.receiveShadow=true;return o;
+}
+function sphere(r,m,seg=18){
+  const o=new THREE.Mesh(new THREE.SphereGeometry(r,seg,seg),m);o.castShadow=true;o.receiveShadow=true;return o;
+}
+
+function init(){
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x76a7d3);
+  scene.fog = new THREE.Fog(0x76a7d3,70,240);
+  camera = new THREE.PerspectiveCamera(60,innerWidth/innerHeight,.1,500);
+  camera.position.set(0,4.8,21);
+
+  renderer = new THREE.WebGLRenderer({antialias:true,powerPreference:"high-performance"});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));
+  renderer.setSize(innerWidth,innerHeight);
+  renderer.shadowMap.enabled=true;
+  renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  game.appendChild(renderer.domElement);
+
+  clock = new THREE.Clock();
+  const hemi = new THREE.HemisphereLight(0xbfdcff,0x35512d,1.35);
+  scene.add(hemi);
+  const sun = new THREE.DirectionalLight(0xffffff,2.0);
+  sun.position.set(-40,70,30);
+  sun.castShadow=true;
+  sun.shadow.mapSize.set(2048,2048);
+  sun.shadow.camera.left=-80;sun.shadow.camera.right=80;sun.shadow.camera.top=100;sun.shadow.camera.bottom=-30;
+  scene.add(sun);
+
+  buildField();
+  buildStadium();
+  buildPlayers();
+  buildBall();
+  buildBat();
+
+  window.addEventListener("resize",onResize);
+  window.addEventListener("orientationchange",onResize);
+  bindControls();
+  animate();
+}
+
+function buildField(){
+  const grassMat=mat(0x2c8b46,0.95);
+  const dirtMat=mat(0x9b6337,0.95);
+  const darkGrass=mat(0x226c37,.98);
+  const ground=box(250,.6,250,grassMat);
+  ground.position.y=-.3;scene.add(ground);
+  for(let i=0;i<18;i++){
+    const stripe=box(250,.02,11,darkGrass);
+    stripe.position.set(0,.01,-70+i*18);
+    scene.add(stripe);
+  }
+  const infield=cyl(29,29,.35,dirtMat,64);infield.scale.z=.95;infield.position.set(0,.08,-1);scene.add(infield);
+  const mound=cyl(1.9,2.0,.35,dirtMat,32);mound.position.set(0,.25,-28);scene.add(mound);
+  const home=cyl(.85,.85,.18,mat(0xffffff),4);home.rotation.y=Math.PI/4;home.position.set(0,.28,0);scene.add(home);
+  const baseMat=mat(0xf3f3ea);
+  [[13,-13],[-13,-13],[13,13],[-13,13]].forEach((p,i)=>{
+    const b=box(1.25,.2,1.25,baseMat);b.position.set(i===0||i===2?p[0]:p[0],.32,p[1]);b.rotation.y=Math.PI/4;
+    if(i===1)b.position.z=0;
+    if(i===2)b.position.z=-13;
+    scene.add(b);bases.push(b);
+  });
+  const foulMat=mat(0xf3f3f0);
+  const line1=box(.11,.07,68,foulMat);line1.position.set(-34,.15,-34);line1.rotation.y=Math.PI/4;scene.add(line1);
+  const line2=box(.11,.07,68,foulMat);line2.position.set(34,.15,-34);line2.rotation.y=-Math.PI/4;scene.add(line2);
+
+  const wallMat=mat(0x214b31,1,0);
+  const wall=box(130,6,1.8,wallMat);wall.position.set(0,3,-78);scene.add(wall);
+  for(let i=0;i<18;i++){
+    const ad=box(6,2.4,.12,mat([0x21476c,0x274e67,0x5a4a2a,0x244f31][i%4],.9));
+    ad.position.set(-54+i*6.3,1.8,-77);scene.add(ad);
+  }
+  // foul poles
+  const poleMat=mat(0xf4c642,.55,.15);
+  [-35,35].forEach(x=>{const p=cyl(.13,.13,16,poleMat,12);p.position.set(x,8,-77);scene.add(p)});
+}
+
+function buildStadium(){
+  const seatMats=[mat(0x3d5575),mat(0x5b344e),mat(0x465e4a)];
+  for(let row=0;row<9;row++){
+    const z=-73-row*5;
+    const width=116-row*2;
+    const seats=26;
+    for(let i=0;i<seats;i++){
+      const x=-width/2+i*(width/(seats-1));
+      const s=box(3.2,1.0,2.1,seatMats[(i+row)%seatMats.length]);
+      s.position.set(x,3+row*.75,z);
+      scene.add(s);
+    }
+  }
+  const roof=box(128,2.5,20,mat(0x223446,.9),1);roof.position.set(0,15,-83);scene.add(roof);
+  const board=box(30,12,1.1,mat(0x141a21,.8));board.position.set(0,9,-75);scene.add(board);
+  const boardInner=box(26,8.6,.12,mat(0x0e141a,1));boardInner.position.set(0,9,-74.35);scene.add(boardInner);
+
+  const towerM=mat(0x2b3540);
+  for(const x of [-43,43]){
+    const t=cyl(1.2,1.8,18,towerM,16);t.position.set(x,9,-73);scene.add(t);
+    const light=cyl(2.2,2.2,1.2,mat(0xe9f2ff,.35),32);light.position.set(x,18,-73);scene.add(light);
+  }
+  // clouds
+  const cmat=mat(0xffffff,.95);
+  for(let i=0;i<14;i++){
+    const g=new THREE.Group();
+    for(let j=0;j<5;j++){const c=sphere(rand(1.4,2.6),cmat,14);c.position.set(rand(-2.5,2.5),rand(-1,1),rand(-1.3,1.3));g.add(c)}
+    g.position.set(rand(-90,90),rand(40,60),rand(-110,40));scene.add(g);clouds.push(g);
+  }
+}
+
+function humanGroup(team){
+  const g=new THREE.Group();
+  const jersey=team==="home"?mat(0xeaeff4,.68):mat(0x315eab,.7);
+  const cap=team==="home"?mat(0x142a52,.7):mat(0x162027,.7);
+  const skin=mat(0xd7a27b,.9);
+  const pants=mat(0x253244,.9);
+  const body=cyl(.58,.66,1.55,jersey,18);body.position.y=2.1;g.add(body);
+  const head=sphere(.44,skin,18);head.position.y=3.25;g.add(head);
+  const c=cyl(.5,.5,.24,cap,18);c.position.y=3.62;g.add(c);
+  const leg1=box(.28,1.25,.35,pants),leg2=box(.28,1.25,.35,pants);leg1.position.set(-.28,.75,0);leg2.position.set(.28,.75,0);g.add(leg1,leg2);
+  const arm1=box(.25,1.18,.28,jersey),arm2=box(.25,1.18,.28,jersey);
+  arm1.position.set(-.73,2.05,0);arm2.position.set(.73,2.05,0);arm1.rotation.z=-.15;arm2.rotation.z=.15;g.add(arm1,arm2);
+  g.userData={leg1,leg2,arm1,arm2,team,homeX:0,homeZ:0,target:null,phase:Math.random()*10};
+  return g;
+}
+
+function buildPlayers(){
+  batter=humanGroup("home");batter.position.set(2.05,0,1.2);batter.rotation.y=-.18;scene.add(batter);
+  pitcher=humanGroup("away");pitcher.position.set(0,0,-28);scene.add(pitcher);
+  // defenders
+  const spots=[
+    [-24,0,-42],[22,0,-42],[-35,0,-57],[34,0,-57],
+    [-18,0,-60],[18,0,-60],[-5,0,-69],[5,0,-69]
+  ];
+  defenders=spots.map((p,i)=>{
+    const d=humanGroup("away");d.position.set(p[0],p[1],p[2]);d.userData.homeX=p[0];d.userData.homeZ=p[2];scene.add(d);return d;
+  });
+}
+
+function buildBall(){
+  ball=sphere(.23,mat(0xf7f7ee,.62),18);ball.visible=false;scene.add(ball);
+  const seam=new THREE.TorusGeometry(.19,.012,6,24);
+  const sm=mat(0xc53030,.6);
+  const s1=new THREE.Mesh(seam,sm);s1.rotation.y=Math.PI/2;ball.add(s1);
+  const s2=new THREE.Mesh(seam,sm);s2.rotation.x=Math.PI/2;ball.add(s2);
+}
+function buildBat(){
+  bat=cyl(.22,.1,4.1,mat(0x8a542b,.8),20);
+  bat.rotation.z=Math.PI/2;bat.position.set(2.4,2.0,.6);scene.add(bat);
+}
+
+function bindControls(){
+  startBtn.addEventListener("click",startGame);
+  swingBtn.addEventListener("pointerdown",e=>{e.preventDefault();performSwing(false)});
+  powerBtn.addEventListener("pointerdown",e=>{e.preventDefault();performSwing(true)});
+  stealBtn.addEventListener("pointerdown",e=>{e.preventDefault();input.run=true;runBases()});
+  document.querySelectorAll(".pitchBtn").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      document.querySelectorAll(".pitchBtn").forEach(x=>x.classList.remove("active"));
+      btn.classList.add("active");state.selectedPitch=btn.dataset.pitch;
+    });
+  });
+
+  let jid=null;
+  function setJoy(e){
+    const r=joystick.getBoundingClientRect();
+    const cx=r.left+r.width/2,cy=r.top+r.height/2;
+    let dx=e.clientX-cx,dy=e.clientY-cy;
+    const max=r.width*.34,len=Math.hypot(dx,dy);
+    if(len>max){dx=dx/len*max;dy=dy/len*max}
+    stick.style.transform=`translate(${dx}px,${dy}px)`;
+    input.x=dx/max;input.y=dy/max;
+  }
+  joystick.addEventListener("pointerdown",e=>{jid=e.pointerId;joystick.setPointerCapture(jid);setJoy(e)});
+  joystick.addEventListener("pointermove",e=>{if(e.pointerId===jid)setJoy(e)});
+  joystick.addEventListener("pointerup",e=>{if(e.pointerId===jid){jid=null;input.x=input.y=0;stick.style.transform=""}});
+  joystick.addEventListener("pointercancel",()=>{jid=null;input.x=input.y=0;stick.style.transform=""});
+
+  window.addEventListener("keydown",e=>{
+    if(e.code==="Space"){e.preventDefault();performSwing(e.shiftKey)}
+    if(e.code==="ShiftLeft"||e.code==="ShiftRight")input.power=true;
+    if(e.code==="ArrowUp"||e.code==="KeyW")input.y=-1;
+    if(e.code==="ArrowDown"||e.code==="KeyS")input.y=1;
+    if(e.code==="ArrowLeft"||e.code==="KeyA")input.x=-1;
+    if(e.code==="ArrowRight"||e.code==="KeyD")input.x=1;
+    if(e.code==="KeyR")runBases();
+  });
+  window.addEventListener("keyup",e=>{
+    if(e.code==="ShiftLeft"||e.code==="ShiftRight")input.power=false;
+    if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight","KeyW","KeyS","KeyA","KeyD"].includes(e.code)){input.x=0;input.y=0}
+  });
+}
+
+function startGame(){
+  startScreen.style.display="none";started=true;resetGame();showMessage("PLAY BALL",1000);
+  setTimeout(nextPitch,1100);
+}
+function resetGame(){
+  Object.assign(state,{inning:1,outs:0,balls:0,strikes:0,scoreYou:0,scoreCpu:0,bases:[false,false,false],batting:true});
+  updateHud();
+  result.style.display="none";gamePhase="idle";
+}
+function updateHud(){
+  runsYouEl.textContent=state.scoreYou;runsCpuEl.textContent=state.scoreCpu;
+  countLine.textContent=`${state.inning}回表　${state.outs}アウト　B${state.balls} S${state.strikes}`;
+}
+function nextPitch(){
+  if(!started||!state.batting||gamePhase==="end")return;
+  pitch=makePitch();
+  gamePhase="pitching";pitchTimer=0;swingState=null;
+  const def=pitchDefs[pitch.type];
+  speedEl.textContent=`${Math.round(pitch.speed)} km/h`;
+  pitchTypeLabel.textContent=def.name;
+  ball.position.copy(pitch.start);ball.visible=true;
+  pitcher.userData.pitchAnim=0;
+  showMessage(def.name,550);
+}
+
+function makePitch(){
+  const def=pitchDefs[state.selectedPitch];
+  const speed=def.base+rand(-7,7);
+  const missX=rand(-.75,.75),missY=rand(2.0,3.3);
+  return {
+    type:state.selectedPitch,speed,start:new THREE.Vector3(rand(-.25,.25),2.95,-27),
+    target:new THREE.Vector3(missX,missY,1.2),t:0,duration:clamp(1.38-(speed-100)*.0028,.86,1.3),
+    curve:rand(-.4,.4)+def.curve*2,br:rand(-.18,.18)+def.break
+  };
+}
+
+function performSwing(power){
+  if(!started||gamePhase!=="pitching"||swingState)return;
+  swingState={time:0,power:power||input.power,hit:false};
+  batter.userData.swing=0;
+}
+function runBases(){
+  if(!started)return;
+  const b=state.bases;
+  if(state.outs>=3||(!b[0]&&!b[1]&&!b[2]))return;
+  let runs=0;
+  if(b[2])runs++;
+  state.bases=[true,b[0],b[1]];
+  if(runs)state.scoreYou+=runs;
+  updateHud();
+  showMessage(runs?`走塁成功 +${runs}`:"走塁",700);
+}
+
+function resolveContact(power){
+  if(!pitch)return;
+  const t=pitch.t;
+  const ideal=.84;
+  const diff=Math.abs(t-ideal);
+  const chance=clamp(1-diff/0.34,0,1);
+  if(chance<=0.12){
+    strike();
+    return;
+  }
+  const perfect=chance>.82;
+  const launch=perfect?rand(.7,.96):rand(.38,.72);
+  const direction=clamp((pitch.target.x-0.2)*1.9+rand(-.3,.3),-1,1);
+  const distance=(power?75:56)*(0.72+chance*.48);
+  const vertical=power?rand(23,32):rand(18,28);
+  launchBall(direction,distance,vertical,perfect);
+}
+
+function strike(){
+  state.strikes++;
+  if(state.strikes>=3){
+    state.outs++;state.strikes=0;state.balls=0;state.bases=[false,state.bases[0],state.bases[1]];
+    showMessage("STRIKE OUT",1000);
+    updateHud();
+    if(state.outs>=3){advanceInning();return}
+    gamePhase="idle";setTimeout(nextPitch,850);
+  }else{
+    showMessage("STRIKE",700);updateHud();gamePhase="idle";setTimeout(nextPitch,750);
+  }
+}
+
+function ballCall(){
+  state.balls++;
+  if(state.balls>=4){
+    state.balls=0;state.strikes=0;
+    const old=state.bases.slice();
+    state.bases=[true,old[0],old[1]];
+    if(old[2])state.scoreYou++;
+    showMessage("四球",900);
+  }else showMessage("BALL",700);
+  updateHud();gamePhase="idle";setTimeout(nextPitch,750);
+}
+
+function launchBall(direction,distance,vertical,perfect){
+  gamePhase="ballInPlay";ball.userData.flight={t:0,dir:direction,dist:distance,vert:vertical,perfect,hitTime:performance.now()};
+  shake=perfect?.22:.12;
+  showMessage(perfect?"PERFECT HIT":"HIT!",900);
+  // runner advancement
+  const advance=perfect?2:1;
+  let runs=0;
+  let nb=[false,false,false];
+  for(let i=2;i>=0;i--){
+    if(state.bases[i]){
+      if(i+advance>=3)runs++; else nb[i+advance]=true;
+    }
+  }
+  nb[clamp(advance-1,0,2)]=true;
+  state.bases=nb;
+  state.strikes=0;state.balls=0;
+  if(runs)state.scoreYou+=runs;
+  updateHud();
+  defenders.forEach((d,i)=>{d.userData.target={x:direction*(distance*.5+rand(-10,10)),z:-20-distance*.52-rand(-6,10),start:performance.now()+i*40}});
+  spawnHitParticles(perfect);
+}
+
+function spawnHitParticles(perfect){
+  for(let i=0;i<(perfect?35:18);i++){
+    const p=sphere(rand(.025,.08),mat(0xf4cf73,.8),8);p.position.copy(ball.position);scene.add(p);
+    particles.push({mesh:p,t:0,v:new THREE.Vector3(rand(-3,3),rand(1,6),rand(-3,3))});
+  }
+}
+function advanceInning(){
+  if(state.inning>=state.maxInnings){
+    endGame();return;
+  }
+  state.inning++;state.outs=0;state.balls=0;state.strikes=0;state.bases=[false,false,false];
+  updateHud();showMessage(`${state.inning}回表`,1200);gamePhase="idle";setTimeout(nextPitch,1200);
+}
+function endGame(){
+  gamePhase="end";
+  const win=state.scoreYou>state.scoreCpu;
+  result.style.display="block";
+  resultTitle.textContent=win?"WIN":"GAME OVER";
+  resultSub.textContent=`YOU ${state.scoreYou} — ${state.scoreCpu} CPU`;
+}
+
+function animate(){
+  requestAnimationFrame(animate);
+  const dt=Math.min(clock.getDelta(),.05);
+  if(started)update(dt);
+  renderer.render(scene,camera);
+}
+function update(dt){
+  pitchTimer+=dt;
+  aiTimer+=dt;
+
+  // small idle animations
+  animateHuman(batter,dt,!!swingState);
+  animateHuman(pitcher,dt,gamePhase==="pitching");
+  defenders.forEach((d,i)=>animateHuman(d,dt,false));
+
+  // clouds
+  clouds.forEach(c=>{c.position.x+=dt*1.4;if(c.position.x>110)c.position.x=-110});
+
+  if(gamePhase==="pitching"&&pitch){
+    pitch.t=clamp(pitch.t+dt/pitch.duration,0,1);
+    const u=pitch.t;
+    const p0=pitch.start,p1=pitch.target;
+    const pos=new THREE.Vector3(
+      lerp(p0.x,p1.x,easeOut(u))+Math.sin(u*Math.PI)*pitch.curve,
+      lerp(p0.y,p1.y,easeOut(u))+Math.sin(u*Math.PI)*pitch.br,
+      lerp(p0.z,p1.z,easeOut(u))
+    );
+    ball.position.copy(pos);
+    if(u>=1){
+      ball.visible=false;
+      if(!swingState)ballCall();
+    }
+  }
+
+  if(swingState){
+    swingState.time+=dt;
+    batter.userData.swing=clamp(swingState.time/.32,0,1);
+    const s=batter.userData.swing;
+    bat.rotation.y = -Math.PI/2 + Math.sin(s*Math.PI)*1.85;
+    bat.position.x=2.35-Math.sin(s*Math.PI)*.75;
+    bat.position.z=.65-Math.sin(s*Math.PI)*.55;
+    if(!swingState.hit && pitch && pitch.t>.58){
+      swingState.hit=true;resolveContact(swingState.power);
+    }
+    if(s>=1){
+      swingState=null;
+      bat.rotation.set(0,Math.PI/2,0);bat.position.set(2.4,2.0,.6);
+    }
+  }
+
+  if(gamePhase==="ballInPlay"){
+    const f=ball.userData.flight;
+    if(f){
+      f.t+=dt/2.15;
+      const t=f.t;
+      const z=1.2- f.dist*t;
+      const x=2.2 + f.dir*f.dist*.65*t;
+      const y=.32 + Math.sin(Math.min(1,t)*Math.PI*.92)*f.vert;
+      ball.position.set(x,y,z);
+      if(t>=1){
+        ball.visible=false;
+        resolveFielding();
+      }
+    }
+  }
+
+  particles.forEach(p=>{
+    p.t+=dt;p.mesh.position.addScaledVector(p.v,dt);p.v.y-=8*dt;p.mesh.scale.multiplyScalar(.985)
+  });
+  particles=particles.filter(p=>{if(p.t>1.5){scene.remove(p.mesh);return false}return true});
+
+  defenders.forEach(d=>{
+    const target=d.userData.target;
+    if(target){
+      const dx=target.x-d.position.x,dz=target.z-d.position.z;
+      const dist=Math.hypot(dx,dz);
+      if(dist>.8){d.position.x+=dx/dist*dt*8;d.position.z+=dz/dist*dt*8}
+      else{d.userData.target=null}
+    }
+  });
+
+  // camera
+  let desired,look;
+  if(gamePhase==="pitching"){
+    desired={x:4.8,y:4.3,z:16.5};look={x:0,y:2.0,z:-11};
+  }else if(gamePhase==="ballInPlay"){
+    const f=ball.userData.flight||{t:0};
+    desired={x:ball.position.x*.6,y:Math.max(7,ball.position.y*.55+3),z:Math.min(28,ball.position.z+23)};
+    look={x:ball.position.x,y:ball.position.y*.6,z:ball.position.z-12};
+    battingCamera=false;
+  }else{
+    desired={x:4.8,y:4.3,z:16.5};look={x:0,y:2.0,z:-11};
+    battingCamera=true;
+  }
+  if(shake>0){
+    shake=Math.max(0,shake-dt*1.8);
+    desired.x+=rand(-shake,shake);desired.y+=rand(-shake,shake);
+  }
+  setCamera(desired,look);
+}
+
+function resolveFielding(){
+  const f=ball.userData.flight;
+  const skill=clamp(0.2+f.dist/130,0.2,.86);
+  const error=Math.random();
+  if(error<skill*.55){
+    state.outs++;
+    showMessage(f.perfect?"SUPER CATCH!":"OUT",1000);
+    // reset runners conservatively on out
+    if(state.outs>=3){advanceInning();return}
+  }else{
+    showMessage(f.dist>60?"LONG HIT!":"SAFE",800);
+  }
+  updateHud();gamePhase="idle";setTimeout(nextPitch,900);
+}
+
+function animateHuman(g,dt,moving){
+  const u=g.userData;
+  u.phase+=dt*(moving?9:2);
+  const a=moving?Math.sin(u.phase)*.5:0;
+  u.leg1.rotation.x=a;u.leg2.rotation.x=-a;
+  u.arm1.rotation.x=-a*.65;u.arm2.rotation.x=a*.65;
+}
+
+function onResize(){
+  if(!camera||!renderer)return;
+  camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();
+  renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));
+  renderer.setSize(innerWidth,innerHeight);
+}
+
+init();
+})();
+</script>
+</body>
+</html>
