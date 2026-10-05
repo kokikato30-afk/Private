@@ -1,0 +1,1674 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Voxel World</title>
+
+<style>
+*{
+	box-sizing:border-box;
+	-webkit-tap-highlight-color:transparent;
+}
+
+html,body{
+	margin:0;
+	width:100%;
+	height:100%;
+	overflow:hidden;
+	background:#000;
+	font-family:Arial,sans-serif;
+	touch-action:none;
+}
+
+#game{
+	position:fixed;
+	inset:0;
+	width:100%;
+	height:100%;
+	display:block;
+	background:#78bff0;
+}
+
+#hud{
+	position:fixed;
+	inset:0;
+	pointer-events:none;
+	color:white;
+	text-shadow:2px 2px 3px #000;
+}
+
+#crosshair{
+	position:absolute;
+	left:50%;
+	top:50%;
+	width:22px;
+	height:22px;
+	transform:translate(-50%,-50%);
+}
+
+#crosshair::before,
+#crosshair::after{
+	content:"";
+	position:absolute;
+	background:white;
+	box-shadow:0 0 2px #000;
+}
+
+#crosshair::before{
+	left:10px;
+	top:0;
+	width:2px;
+	height:22px;
+}
+
+#crosshair::after{
+	left:0;
+	top:10px;
+	width:22px;
+	height:2px;
+}
+
+#status{
+	position:absolute;
+	left:12px;
+	top:12px;
+	font-size:14px;
+	line-height:1.5;
+}
+
+#hearts,#food{
+	letter-spacing:2px;
+	font-size:20px;
+}
+
+#hotbar{
+	position:absolute;
+	left:50%;
+	bottom:18px;
+	transform:translateX(-50%);
+	display:flex;
+	gap:4px;
+	pointer-events:auto;
+}
+
+.slot{
+	width:52px;
+	height:52px;
+	border:3px solid rgba(0,0,0,.55);
+	background:rgba(40,40,40,.72);
+	border-radius:5px;
+	position:relative;
+	display:flex;
+	align-items:center;
+	justify-content:center;
+}
+
+.slot.selected{
+	border-color:white;
+	box-shadow:0 0 0 2px #222;
+}
+
+.block-icon{
+	width:30px;
+	height:30px;
+	border:2px solid rgba(0,0,0,.3);
+}
+
+.slot span{
+	position:absolute;
+	right:3px;
+	bottom:1px;
+	font-size:12px;
+	color:white;
+}
+
+#joystick{
+	position:absolute;
+	left:22px;
+	bottom:25px;
+	width:145px;
+	height:145px;
+	border-radius:50%;
+	background:rgba(255,255,255,.14);
+	border:2px solid rgba(255,255,255,.28);
+	pointer-events:auto;
+}
+
+#stick{
+	position:absolute;
+	left:50%;
+	top:50%;
+	width:64px;
+	height:64px;
+	transform:translate(-50%,-50%);
+	border-radius:50%;
+	background:rgba(255,255,255,.32);
+	border:2px solid rgba(255,255,255,.5);
+}
+
+.action{
+	position:absolute;
+	border:2px solid rgba(255,255,255,.45);
+	background:rgba(20,20,20,.5);
+	color:white;
+	border-radius:50%;
+	font-weight:bold;
+	pointer-events:auto;
+	user-select:none;
+}
+
+#jump{
+	right:25px;
+	bottom:135px;
+	width:72px;
+	height:72px;
+}
+
+#break{
+	right:110px;
+	bottom:55px;
+	width:62px;
+	height:62px;
+}
+
+#place{
+	right:32px;
+	bottom:50px;
+	width:62px;
+	height:62px;
+}
+
+#menuButton{
+	position:absolute;
+	right:12px;
+	top:12px;
+	width:48px;
+	height:48px;
+	border-radius:8px;
+	border:2px solid rgba(255,255,255,.5);
+	background:rgba(0,0,0,.45);
+	color:white;
+	font-size:22px;
+	pointer-events:auto;
+}
+
+#menu{
+	position:absolute;
+	left:50%;
+	top:50%;
+	transform:translate(-50%,-50%);
+	width:min(380px,90vw);
+	background:rgba(15,15,15,.94);
+	border:2px solid #777;
+	border-radius:12px;
+	padding:22px;
+	display:none;
+	pointer-events:auto;
+}
+
+#menu h1{
+	margin:0 0 20px;
+	font-size:25px;
+}
+
+.menuButton{
+	width:100%;
+	height:48px;
+	margin:6px 0;
+	border:0;
+	border-radius:7px;
+	background:#555;
+	color:white;
+	font-size:16px;
+}
+
+#loading{
+	position:fixed;
+	inset:0;
+	background:#111;
+	display:flex;
+	align-items:center;
+	justify-content:center;
+	flex-direction:column;
+	color:white;
+	z-index:20;
+}
+
+#loadingText{
+	font-size:22px;
+	margin-bottom:15px;
+}
+
+#progress{
+	width:250px;
+	height:10px;
+	background:#333;
+	border-radius:10px;
+	overflow:hidden;
+}
+
+#progressBar{
+	height:100%;
+	width:0%;
+	background:#eee;
+}
+
+@media(max-width:700px){
+	.slot{
+		width:43px;
+		height:43px;
+	}
+	.block-icon{
+		width:25px;
+		height:25px;
+	}
+	#hotbar{
+		bottom:8px;
+	}
+}
+
+@media(min-width:900px){
+	#joystick{
+		left:30px;
+		bottom:30px;
+	}
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="game"></canvas>
+
+<div id="loading">
+	<div id="loadingText">ワールドを生成中...</div>
+	<div id="progress">
+		<div id="progressBar"></div>
+	</div>
+</div>
+
+<div id="hud">
+
+	<div id="status">
+		<div id="hearts">♥ ♥ ♥ ♥ ♥</div>
+		<div id="food">● ● ● ● ●</div>
+		<div id="coords">X: 0 Y: 0 Z: 0</div>
+	</div>
+
+	<div id="crosshair"></div>
+
+	<div id="joystick">
+		<div id="stick"></div>
+	</div>
+
+	<button id="jump" class="action">JUMP</button>
+	<button id="break" class="action">破壊</button>
+	<button id="place" class="action">設置</button>
+
+	<button id="menuButton">☰</button>
+
+	<div id="hotbar"></div>
+
+	<div id="menu">
+		<h1>ゲームメニュー</h1>
+		<button class="menuButton" id="saveButton">ワールドを保存</button>
+		<button class="menuButton" id="loadButton">ワールドを読み込む</button>
+		<button class="menuButton" id="newButton">新しいワールド</button>
+		<button class="menuButton" id="closeButton">閉じる</button>
+	</div>
+</div>
+
+<script>
+"use strict";
+
+/* =========================================================
+   基本設定
+========================================================= */
+
+const canvas = document.getElementById("game");
+const gl = canvas.getContext("webgl", {
+	alpha:false,
+	antialias:false,
+	preserveDrawingBuffer:false
+});
+
+if(!gl){
+	alert("WebGLに対応していません。");
+	throw new Error("WebGL unavailable");
+}
+
+let WIDTH = innerWidth;
+let HEIGHT = innerHeight;
+
+function resize(){
+	WIDTH = innerWidth;
+	HEIGHT = innerHeight;
+
+	canvas.width = Math.floor(WIDTH * devicePixelRatio);
+	canvas.height = Math.floor(HEIGHT * devicePixelRatio);
+
+	gl.viewport(0,0,canvas.width,canvas.height);
+}
+
+addEventListener("resize",resize);
+resize();
+
+
+/* =========================================================
+   ブロック
+========================================================= */
+
+const BLOCK = {
+	AIR:0,
+	GRASS:1,
+	DIRT:2,
+	STONE:3,
+	SAND:4,
+	WOOD:5,
+	LEAVES:6,
+	WATER:7,
+	GLASS:8,
+	COBBLE:9
+};
+
+const blockNames = {
+	1:"草",
+	2:"土",
+	3:"石",
+	4:"砂",
+	5:"木",
+	6:"葉",
+	7:"水",
+	8:"ガラス",
+	9:"丸石"
+};
+
+const blockColors = {
+	1:[0.28,0.68,0.18],
+	2:[0.48,0.30,0.15],
+	3:[0.43,0.43,0.43],
+	4:[0.78,0.70,0.42],
+	5:[0.42,0.25,0.10],
+	6:[0.18,0.55,0.16],
+	7:[0.15,0.42,0.78],
+	8:[0.60,0.82,0.92],
+	9:[0.35,0.35,0.35]
+};
+
+const hotbarBlocks = [
+	BLOCK.GRASS,
+	BLOCK.DIRT,
+	BLOCK.STONE,
+	BLOCK.SAND,
+	BLOCK.WOOD,
+	BLOCK.LEAVES,
+	BLOCK.GLASS,
+	BLOCK.COBBLE
+];
+
+let selectedSlot = 0;
+
+
+/* =========================================================
+   ワールド
+========================================================= */
+
+const WORLD_SIZE = 48;
+const WORLD_HEIGHT = 28;
+
+let world = new Uint8Array(
+	WORLD_SIZE * WORLD_HEIGHT * WORLD_SIZE
+);
+
+function index(x,y,z){
+	return x +
+		WORLD_SIZE * (
+			z +
+			WORLD_SIZE * y
+		);
+}
+
+function inside(x,y,z){
+	return (
+		x>=0 &&
+		x<WORLD_SIZE &&
+		y>=0 &&
+		y<WORLD_HEIGHT &&
+		z>=0 &&
+		z<WORLD_SIZE
+	);
+}
+
+function getBlock(x,y,z){
+	if(!inside(x,y,z)) return BLOCK.AIR;
+	return world[index(x,y,z)];
+}
+
+function setBlock(x,y,z,type){
+	if(!inside(x,y,z)) return;
+	world[index(x,y,z)] = type;
+}
+
+
+/* =========================================================
+   ノイズ
+========================================================= */
+
+function hash(x,z){
+	let n = x * 374761393 + z * 668265263;
+	n = (n ^ (n >> 13)) * 1274126177;
+	n ^= n >> 16;
+	return (n >>> 0) / 4294967295;
+}
+
+function smoothNoise(x,z){
+	const x0 = Math.floor(x);
+	const z0 = Math.floor(z);
+
+	const xf = x-x0;
+	const zf = z-z0;
+
+	const a = hash(x0,z0);
+	const b = hash(x0+1,z0);
+	const c = hash(x0,z0+1);
+	const d = hash(x0+1,z0+1);
+
+	const sx = xf*xf*(3-2*xf);
+	const sz = zf*zf*(3-2*zf);
+
+	const ab = a+(b-a)*sx;
+	const cd = c+(d-c)*sx;
+
+	return ab+(cd-ab)*sz;
+}
+
+function terrainHeight(x,z){
+
+	let n = 0;
+
+	n += smoothNoise(x*0.035,z*0.035)*8;
+	n += smoothNoise(x*0.08,z*0.08)*3;
+	n += smoothNoise(x*0.18,z*0.18)*1.2;
+
+	return Math.floor(6+n);
+}
+
+
+/* =========================================================
+   ワールド生成
+========================================================= */
+
+function generateWorld(){
+
+	world.fill(BLOCK.AIR);
+
+	for(let x=0;x<WORLD_SIZE;x++){
+
+		for(let z=0;z<WORLD_SIZE;z++){
+
+			let h = terrainHeight(x,z);
+
+			if(h<3) h=3;
+			if(h>WORLD_HEIGHT-5) h=WORLD_HEIGHT-5;
+
+			for(let y=0;y<=h;y++){
+
+				let type;
+
+				if(y===h){
+					type = h<=5 ? BLOCK.SAND : BLOCK.GRASS;
+				}
+				else if(y>h-3){
+					type = h<=5 ? BLOCK.SAND : BLOCK.DIRT;
+				}
+				else{
+					type = BLOCK.STONE;
+				}
+
+				setBlock(x,y,z,type);
+			}
+
+			/* 木 */
+			if(
+				h>7 &&
+				hash(x*7,z*13)>0.975 &&
+				x>3 &&
+				x<WORLD_SIZE-4 &&
+				z>3 &&
+				z<WORLD_SIZE-4
+			){
+
+				const trunk = 4;
+
+				for(let y=1;y<=trunk;y++){
+					setBlock(x,h+y,z,BLOCK.WOOD);
+				}
+
+				for(let dx=-2;dx<=2;dx++){
+					for(let dz=-2;dz<=2;dz++){
+						for(let dy=2;dy<=4;dy++){
+
+							const distance =
+								Math.abs(dx)+
+								Math.abs(dz)+
+								Math.abs(dy-3);
+
+							if(distance<4){
+								setBlock(
+									x+dx,
+									h+dy,
+									z+dz,
+									BLOCK.LEAVES
+								);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/* 水 */
+	const waterLevel = 5;
+
+	for(let x=0;x<WORLD_SIZE;x++){
+		for(let z=0;z<WORLD_SIZE;z++){
+
+			for(let y=0;y<waterLevel;y++){
+
+				const b=getBlock(x,y,z);
+
+				if(b===BLOCK.AIR){
+					setBlock(x,y,z,BLOCK.WATER);
+				}
+			}
+		}
+	}
+}
+
+
+/* =========================================================
+   WebGLシェーダー
+========================================================= */
+
+const vertexShaderSource = `
+attribute vec3 aPosition;
+attribute vec3 aColor;
+
+uniform mat4 uMatrix;
+
+varying vec3 vColor;
+
+void main(){
+	gl_Position = uMatrix * vec4(aPosition,1.0);
+	vColor = aColor;
+}
+`;
+
+const fragmentShaderSource = `
+precision mediump float;
+
+varying vec3 vColor;
+
+void main(){
+	gl_FragColor = vec4(vColor,1.0);
+}
+`;
+
+function compile(type,source){
+
+	const shader=gl.createShader(type);
+
+	gl.shaderSource(shader,source);
+	gl.compileShader(shader);
+
+	if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS)){
+		throw new Error(gl.getShaderInfoLog(shader));
+	}
+
+	return shader;
+}
+
+const program=gl.createProgram();
+
+gl.attachShader(
+	program,
+	compile(gl.VERTEX_SHADER,vertexShaderSource)
+);
+
+gl.attachShader(
+	program,
+	compile(gl.FRAGMENT_SHADER,fragmentShaderSource)
+);
+
+gl.linkProgram(program);
+
+if(!gl.getProgramParameter(program,gl.LINK_STATUS)){
+	throw new Error(gl.getProgramInfoLog(program));
+}
+
+gl.useProgram(program);
+
+const positionLocation =
+	gl.getAttribLocation(program,"aPosition");
+
+const colorLocation =
+	gl.getAttribLocation(program,"aColor");
+
+const matrixLocation =
+	gl.getUniformLocation(program,"uMatrix");
+
+
+/* =========================================================
+   行列
+========================================================= */
+
+function identity(){
+
+	return [
+		1,0,0,0,
+		0,1,0,0,
+		0,0,1,0,
+		0,0,0,1
+	];
+}
+
+function multiply(a,b){
+
+	const r=new Array(16);
+
+	for(let row=0;row<4;row++){
+		for(let col=0;col<4;col++){
+
+			r[col+row*4]=
+				a[row*4+0]*b[col+0]+
+				a[row*4+1]*b[col+4]+
+				a[row*4+2]*b[col+8]+
+				a[row*4+3]*b[col+12];
+		}
+	}
+
+	return r;
+}
+
+function perspective(fov,aspect,near,far){
+
+	const f=1/Math.tan(fov/2);
+
+	return [
+		f/aspect,0,0,0,
+		0,f,0,0,
+		0,0,(far+near)/(near-far),-1,
+		0,0,(2*far*near)/(near-far),0
+	];
+}
+
+function cameraMatrix(){
+
+	const pitch=player.pitch;
+	const yaw=player.yaw;
+
+	const cp=Math.cos(pitch);
+	const sp=Math.sin(pitch);
+	const cy=Math.cos(yaw);
+	const sy=Math.sin(yaw);
+
+	const forward=[
+		cp*sy,
+		sp,
+		cp*cy
+	];
+
+	const right=[
+		cy,
+		0,
+		-sy
+	];
+
+	const up=[
+		-right[1]*forward[2]+right[2]*forward[1],
+		-right[2]*forward[0]+right[0]*forward[2],
+		-right[0]*forward[1]+right[1]*forward[0]
+	];
+
+	const px=player.x;
+	const py=player.y+1.6;
+	const pz=player.z;
+
+	const view=[
+		right[0],up[0],-forward[0],0,
+		right[1],up[1],-forward[1],0,
+		right[2],up[2],-forward[2],0,
+		-(right[0]*px+right[1]*py+right[2]*pz),
+		-(up[0]*px+up[1]*py+up[2]*pz),
+		forward[0]*px+forward[1]*py+forward[2]*pz,
+		1
+	];
+
+	return multiply(
+		perspective(
+			Math.PI/3,
+			canvas.width/canvas.height,
+			0.05,
+			100
+		),
+		view
+	);
+}
+
+
+/* =========================================================
+   プレイヤー
+========================================================= */
+
+const player={
+	x:WORLD_SIZE/2,
+	y:14,
+	z:WORLD_SIZE/2,
+
+	vx:0,
+	vy:0,
+	vz:0,
+
+	yaw:0,
+	pitch:-0.12,
+
+	onGround:false,
+
+	hp:20,
+	food:20
+};
+
+function findSpawn(){
+
+	for(let y=WORLD_HEIGHT-1;y>=0;y--){
+
+		if(getBlock(
+			Math.floor(player.x),
+			y,
+			Math.floor(player.z)
+		)!==BLOCK.AIR){
+
+			player.y=y+1.01;
+			return;
+		}
+	}
+}
+
+
+/* =========================================================
+   衝突
+========================================================= */
+
+function solid(x,y,z){
+
+	const b=getBlock(
+		Math.floor(x),
+		Math.floor(y),
+		Math.floor(z)
+	);
+
+	return (
+		b!==BLOCK.AIR &&
+		b!==BLOCK.WATER &&
+		b!==BLOCK.LEAVES
+	);
+}
+
+function collides(x,y,z){
+
+	const r=0.3;
+
+	for(let dx=-1;dx<=1;dx++){
+		for(let dy=0;dy<=2;dy++){
+			for(let dz=-1;dz<=1;dz++){
+
+				if(
+					solid(
+						x+dx*r,
+						y+dy*0.45,
+						z+dz*r
+					)
+				){
+					return true;
+				}
+			}
+		}
+	}
+
+	return false;
+}
+
+
+/* =========================================================
+   操作
+========================================================= */
+
+const keys={};
+
+addEventListener("keydown",e=>{
+	keys[e.key.toLowerCase()]=true;
+
+	if(e.key>="1" && e.key<="8"){
+		selectedSlot=Number(e.key)-1;
+		updateHotbar();
+	}
+});
+
+addEventListener("keyup",e=>{
+	keys[e.key.toLowerCase()]=false;
+});
+
+
+/* ジョイスティック */
+
+const joystick=document.getElementById("joystick");
+const stick=document.getElementById("stick");
+
+let joy={
+	active:false,
+	id:null,
+	x:0,
+	y:0
+};
+
+function joystickMove(e){
+
+	const rect=joystick.getBoundingClientRect();
+
+	let x=e.clientX-(rect.left+rect.width/2);
+	let y=e.clientY-(rect.top+rect.height/2);
+
+	const max=48;
+
+	const length=Math.hypot(x,y);
+
+	if(length>max){
+		x=x/length*max;
+		y=y/length*max;
+	}
+
+	joy.x=x/max;
+	joy.y=y/max;
+
+	stick.style.transform=
+		`translate(calc(-50% + ${x}px),calc(-50% + ${y}px))`;
+}
+
+joystick.addEventListener("pointerdown",e=>{
+	joy.active=true;
+	joy.id=e.pointerId;
+	joystick.setPointerCapture(e.pointerId);
+	joystickMove(e);
+});
+
+joystick.addEventListener("pointermove",e=>{
+	if(joy.active && e.pointerId===joy.id){
+		joystickMove(e);
+	}
+});
+
+function resetJoystick(){
+	joy.active=false;
+	joy.x=0;
+	joy.y=0;
+	stick.style.transform="translate(-50%,-50%)";
+}
+
+joystick.addEventListener("pointerup",resetJoystick);
+joystick.addEventListener("pointercancel",resetJoystick);
+
+
+/* =========================================================
+   視点操作
+========================================================= */
+
+let lookPointer=null;
+let lastLookX=0;
+let lastLookY=0;
+
+canvas.addEventListener("pointerdown",e=>{
+
+	lookPointer=e.pointerId;
+	lastLookX=e.clientX;
+	lastLookY=e.clientY;
+
+	canvas.setPointerCapture(e.pointerId);
+});
+
+canvas.addEventListener("pointermove",e=>{
+
+	if(e.pointerId!==lookPointer) return;
+
+	const dx=e.clientX-lastLookX;
+	const dy=e.clientY-lastLookY;
+
+	lastLookX=e.clientX;
+	lastLookY=e.clientY;
+
+	player.yaw-=dx*0.008;
+	player.pitch-=dy*0.008;
+
+	player.pitch=
+		Math.max(
+			-Math.PI/2+0.05,
+			Math.min(Math.PI/2-0.05,player.pitch)
+		);
+});
+
+canvas.addEventListener("pointerup",()=>{
+	lookPointer=null;
+});
+
+
+/* =========================================================
+   移動
+========================================================= */
+
+function updatePlayer(dt){
+
+	let forward=0;
+	let strafe=0;
+
+	if(keys["w"]) forward+=1;
+	if(keys["s"]) forward-=1;
+	if(keys["a"]) strafe-=1;
+	if(keys["d"]) strafe+=1;
+
+	forward+=-joy.y;
+	strafe+=joy.x;
+
+	const len=Math.hypot(forward,strafe);
+
+	if(len>1){
+		forward/=len;
+		strafe/=len;
+	}
+
+	const speed=keys["shift"]?6:3.4;
+
+	const sy=Math.sin(player.yaw);
+	const cy=Math.cos(player.yaw);
+
+	const targetX=
+		(forward*sy+strafe*cy)*speed;
+
+	const targetZ=
+		(forward*cy-strafe*sy)*speed;
+
+	player.vx+=(targetX-player.vx)*Math.min(1,dt*10);
+	player.vz+=(targetZ-player.vz)*Math.min(1,dt*10);
+
+	player.vy-=18*dt;
+
+	if(
+		keys[" "] &&
+		player.onGround
+	){
+		player.vy=7;
+		player.onGround=false;
+	}
+
+	const nx=player.x+player.vx*dt;
+
+	if(!collides(nx,player.y,player.z)){
+		player.x=nx;
+	}else{
+		player.vx=0;
+	}
+
+	const nz=player.z+player.vz*dt;
+
+	if(!collides(player.x,player.y,nz)){
+		player.z=nz;
+	}else{
+		player.vz=0;
+	}
+
+	const ny=player.y+player.vy*dt;
+
+	if(!collides(player.x,ny,player.z)){
+		player.y=ny;
+		player.onGround=false;
+	}else{
+
+		if(player.vy<0){
+			player.onGround=true;
+		}
+
+		player.vy=0;
+	}
+
+	if(player.y<-10){
+		findSpawn();
+		player.vy=0;
+	}
+
+	player.x=Math.max(1,Math.min(WORLD_SIZE-2,player.x));
+	player.z=Math.max(1,Math.min(WORLD_SIZE-2,player.z));
+}
+
+
+/* =========================================================
+   キューブ描画
+========================================================= */
+
+const cubeVertices=[
+	[-.5,-.5,-.5],
+	[ .5,-.5,-.5],
+	[ .5, .5,-.5],
+	[-.5, .5,-.5],
+
+	[-.5,-.5,.5],
+	[ .5,-.5,.5],
+	[ .5,.5,.5],
+	[-.5,.5,.5]
+];
+
+const faces=[
+	[0,1,2,3],
+	[5,4,7,6],
+	[4,0,3,7],
+	[1,5,6,2],
+	[3,2,6,7],
+	[4,5,1,0]
+];
+
+const normals=[
+	[0,0,-1],
+	[0,0,1],
+	[-1,0,0],
+	[1,0,0],
+	[0,1,0],
+	[0,-1,0]
+];
+
+function addFace(vertices,colors,x,y,z,face,type){
+
+	const base=blockColors[type] || [1,1,1];
+
+	const n=normals[face];
+
+	let light;
+
+	if(n[1]>0) light=1.0;
+	else if(n[1]<0) light=.55;
+	else light=.78;
+
+	for(const index of faces[face]){
+
+		const p=cubeVertices[index];
+
+		vertices.push(
+			x+p[0],
+			y+p[1],
+			z+p[2]
+		);
+
+		colors.push(
+			base[0]*light,
+			base[1]*light,
+			base[2]*light
+		);
+	}
+}
+
+function buildMesh(){
+
+	const vertices=[];
+	const colors=[];
+
+	const px=Math.floor(player.x);
+	const pz=Math.floor(player.z);
+
+	const renderDistance=18;
+
+	for(let x=Math.max(0,px-renderDistance);
+		x<Math.min(WORLD_SIZE,px+renderDistance);
+		x++){
+
+		for(let y=0;y<WORLD_HEIGHT;y++){
+
+			for(let z=Math.max(0,pz-renderDistance);
+				z<Math.min(WORLD_SIZE,pz+renderDistance);
+				z++){
+
+				const type=getBlock(x,y,z);
+
+				if(type===BLOCK.AIR) continue;
+
+				for(let f=0;f<6;f++){
+
+					const n=normals[f];
+
+					const nx=x+n[0];
+					const ny=y+n[1];
+					const nz=z+n[2];
+
+					const neighbor=getBlock(nx,ny,nz);
+
+					if(
+						neighbor===BLOCK.AIR ||
+						neighbor===BLOCK.WATER ||
+						(type===BLOCK.WATER && neighbor!==BLOCK.WATER) ||
+						(type===BLOCK.GLASS && neighbor!==BLOCK.GLASS)
+					){
+
+						addFace(
+							vertices,
+							colors,
+							x+.5,
+							y+.5,
+							z+.5,
+							f,
+							type
+						);
+					}
+				}
+			}
+		}
+	}
+
+	return {
+		vertices:new Float32Array(vertices),
+		colors:new Float32Array(colors)
+	};
+}
+
+
+/* =========================================================
+   描画
+========================================================= */
+
+let vertexBuffer=gl.createBuffer();
+let colorBuffer=gl.createBuffer();
+
+let mesh=null;
+let meshTimer=0;
+
+function draw(){
+
+	if(!mesh) return;
+
+	gl.enable(gl.DEPTH_TEST);
+	gl.clearColor(
+		0.42,
+		0.68,
+		0.88,
+		1
+	);
+
+	gl.clear(
+		gl.COLOR_BUFFER_BIT |
+		gl.DEPTH_BUFFER_BIT
+	);
+
+	const matrix=cameraMatrix();
+
+	gl.uniformMatrix4fv(
+		matrixLocation,
+		false,
+		new Float32Array(matrix)
+	);
+
+	gl.bindBuffer(gl.ARRAY_BUFFER,vertexBuffer);
+
+	gl.bufferData(
+		gl.ARRAY_BUFFER,
+		mesh.vertices,
+		gl.DYNAMIC_DRAW
+	);
+
+	gl.enableVertexAttribArray(positionLocation);
+
+	gl.vertexAttribPointer(
+		positionLocation,
+		3,
+		gl.FLOAT,
+		false,
+		0,
+		0
+	);
+
+	gl.bindBuffer(gl.ARRAY_BUFFER,colorBuffer);
+
+	gl.bufferData(
+		gl.ARRAY_BUFFER,
+		mesh.colors,
+		gl.DYNAMIC_DRAW
+	);
+
+	gl.enableVertexAttribArray(colorLocation);
+
+	gl.vertexAttribPointer(
+		colorLocation,
+		3,
+		gl.FLOAT,
+		false,
+		0,
+		0
+	);
+
+	gl.drawArrays(
+		gl.TRIANGLES,
+		0,
+		mesh.vertices.length/3
+	);
+}
+
+
+/* =========================================================
+   ブロック選択
+========================================================= */
+
+function raycast(){
+
+	const maxDistance=6;
+	const step=.05;
+
+	const cp=Math.cos(player.pitch);
+	const sp=Math.sin(player.pitch);
+
+	const dx=cp*Math.sin(player.yaw);
+	const dy=sp;
+	const dz=cp*Math.cos(player.yaw);
+
+	let last=null;
+
+	for(let d=0;d<maxDistance;d+=step){
+
+		const x=player.x+dx*d;
+		const y=player.y+1.6+dy*d;
+		const z=player.z+dz*d;
+
+		const bx=Math.floor(x);
+		const by=Math.floor(y);
+		const bz=Math.floor(z);
+
+		const type=getBlock(bx,by,bz);
+
+		if(type!==BLOCK.AIR){
+
+			return {
+				x:bx,
+				y:by,
+				z:bz,
+				previous:last
+			};
+		}
+
+		last={
+			x:bx,
+			y:by,
+			z:bz
+		};
+	}
+
+	return null;
+}
+
+function breakBlock(){
+
+	const hit=raycast();
+
+	if(!hit) return;
+
+	if(hit.y<=0) return;
+
+	setBlock(
+		hit.x,
+		hit.y,
+		hit.z,
+		BLOCK.AIR
+	);
+
+	rebuild();
+}
+
+function placeBlock(){
+
+	const hit=raycast();
+
+	if(!hit || !hit.previous) return;
+
+	const p=hit.previous;
+
+	if(
+		p.x<0 ||
+		p.x>=WORLD_SIZE ||
+		p.y<0 ||
+		p.y>=WORLD_HEIGHT ||
+		p.z<0 ||
+		p.z>=WORLD_SIZE
+	) return;
+
+	if(getBlock(p.x,p.y,p.z)!==BLOCK.AIR) return;
+
+	/* プレイヤーの中には置けない */
+
+	if(
+		Math.abs(p.x-player.x)<1 &&
+		Math.abs(p.y-player.y)<2 &&
+		Math.abs(p.z-player.z)<1
+	){
+		return;
+	}
+
+	setBlock(
+		p.x,
+		p.y,
+		p.z,
+		hotbarBlocks[selectedSlot]
+	);
+
+	rebuild();
+}
+
+
+/* =========================================================
+   ボタン
+========================================================= */
+
+document.getElementById("break")
+	.addEventListener("pointerdown",e=>{
+		e.preventDefault();
+		breakBlock();
+	});
+
+document.getElementById("place")
+	.addEventListener("pointerdown",e=>{
+		e.preventDefault();
+		placeBlock();
+	});
+
+document.getElementById("jump")
+	.addEventListener("pointerdown",e=>{
+	e.preventDefault();
+
+	if(player.onGround){
+		player.vy=7;
+		player.onGround=false;
+	}
+});
+
+
+/* =========================================================
+   ホットバー
+========================================================= */
+
+const hotbar=document.getElementById("hotbar");
+
+function updateHotbar(){
+
+	hotbar.innerHTML="";
+
+	hotbarBlocks.forEach((type,i)=>{
+
+		const slot=document.createElement("div");
+
+		slot.className=
+			"slot"+
+			(i===selectedSlot?" selected":"");
+
+		const icon=document.createElement("div");
+
+		icon.className="block-icon";
+
+		const c=blockColors[type];
+
+		icon.style.background=
+			`rgb(${c[0]*255},${c[1]*255},${c[2]*255})`;
+
+		const number=document.createElement("span");
+
+		number.textContent=i+1;
+
+		slot.appendChild(icon);
+		slot.appendChild(number);
+
+		slot.addEventListener("pointerdown",()=>{
+			selectedSlot=i;
+			updateHotbar();
+		});
+
+		hotbar.appendChild(slot);
+	});
+}
+
+
+/* =========================================================
+   セーブ
+========================================================= */
+
+function saveWorld(){
+
+	try{
+
+		const data={
+			world:Array.from(world),
+			player:{
+				x:player.x,
+				y:player.y,
+				z:player.z,
+				yaw:player.yaw,
+				pitch:player.pitch,
+				hp:player.hp,
+				food:player.food
+			}
+		};
+
+		localStorage.setItem(
+			"voxel_world_save",
+			JSON.stringify(data)
+		);
+
+		alert("ワールドを保存しました。");
+
+	}catch(e){
+
+		alert("保存に失敗しました。");
+	}
+}
+
+function loadWorld(){
+
+	try{
+
+		const raw=
+			localStorage.getItem("voxel_world_save");
+
+		if(!raw){
+			alert("セーブデータがありません。");
+			return;
+		}
+
+		const data=JSON.parse(raw);
+
+		world=new Uint8Array(data.world);
+
+		Object.assign(player,data.player);
+
+		rebuild();
+
+		alert("ワールドを読み込みました。");
+
+	}catch(e){
+
+		console.error(e);
+
+		alert("読み込みに失敗しました。");
+	}
+}
+
+
+/* =========================================================
+   メニュー
+========================================================= */
+
+const menu=document.getElementById("menu");
+
+document.getElementById("menuButton")
+	.addEventListener("pointerdown",()=>{
+		menu.style.display="block";
+	});
+
+document.getElementById("closeButton")
+	.addEventListener("pointerdown",()=>{
+		menu.style.display="none";
+	});
+
+document.getElementById("saveButton")
+	.addEventListener("pointerdown",()=>{
+		saveWorld();
+	});
+
+document.getElementById("loadButton")
+	.addEventListener("pointerdown",()=>{
+		loadWorld();
+		menu.style.display="none";
+	});
+
+document.getElementById("newButton")
+	.addEventListener("pointerdown",()=>{
+
+		if(!confirm("新しいワールドを作成しますか？")){
+			return;
+		}
+
+		generateWorld();
+
+		player.x=WORLD_SIZE/2;
+		player.z=WORLD_SIZE/2;
+
+		findSpawn();
+
+		player.vx=0;
+		player.vy=0;
+		player.vz=0;
+
+		rebuild();
+
+		menu.style.display="none";
+	});
+
+
+/* =========================================================
+   メッシュ更新
+========================================================= */
+
+function rebuild(){
+	mesh=buildMesh();
+}
+
+
+/* =========================================================
+   HUD
+========================================================= */
+
+function updateHUD(){
+
+	let hearts="";
+
+	for(let i=0;i<5;i++){
+		hearts+=
+			i<Math.ceil(player.hp/4)
+			?"♥ "
+			:"♡ ";
+	}
+
+	document.getElementById("hearts")
+		.textContent=hearts;
+
+	let food="";
+
+	for(let i=0;i<5;i++){
+		food+=
+			i<Math.ceil(player.food/4)
+			?"● "
+			:"○ ";
+	}
+
+	document.getElementById("food")
+		.textContent=food;
+
+	document.getElementById("coords")
+		.textContent=
+			`X: ${Math.floor(player.x)} `+
+			`Y: ${Math.floor(player.y)} `+
+			`Z: ${Math.floor(player.z)}`;
+}
+
+
+/* =========================================================
+   ゲームループ
+========================================================= */
+
+let lastTime=performance.now();
+
+function loop(now){
+
+	const dt=Math.min(
+		0.05,
+		(now-lastTime)/1000
+	);
+
+	lastTime=now;
+
+	updatePlayer(dt);
+
+	meshTimer+=dt;
+
+	if(meshTimer>0.35){
+
+		rebuild();
+		meshTimer=0;
+	}
+
+	updateHUD();
+
+	draw();
+
+	requestAnimationFrame(loop);
+}
+
+
+/* =========================================================
+   起動
+========================================================= */
+
+async function start(){
+
+	const progress=
+		document.getElementById("progressBar");
+
+	generateWorld();
+
+	for(let i=0;i<=100;i+=10){
+
+		progress.style.width=i+"%";
+
+		await new Promise(
+			resolve=>setTimeout(resolve,5)
+		);
+	}
+
+	findSpawn();
+
+	updateHotbar();
+
+	rebuild();
+
+	document.getElementById("loading")
+		.style.display="none";
+
+	requestAnimationFrame(loop);
+}
+
+start();
+
+</script>
+
+</body>
+</html>
