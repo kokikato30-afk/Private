@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#101626">
+<title>Prompt Studio｜プロンプト作成ツール</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1020;--panel:#121a2d;--panel2:#18233a;--line:#293752;--text:#edf3ff;--muted:#9caecc;--accent:#8b8cff;--accent2:#54d8cc;--good:#8ee6b0;--danger:#ff8e9c;--shadow:0 14px 38px #02061155}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(ellipse at 15% 0%,#252a5b 0,transparent 38%),radial-gradient(ellipse at 100% 10%,#123e4b 0,transparent 27%),var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.55;min-height:100vh}button,input,textarea,select{font:inherit}button{cursor:pointer;touch-action:manipulation}.app{max-width:1500px;margin:auto;padding:22px clamp(12px,2.5vw,32px) 34px}.topbar{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:24px}.brand{display:flex;align-items:center;gap:13px}.logo{width:46px;height:46px;border-radius:15px;background:linear-gradient(135deg,#888cff,#55d9ce);display:grid;place-items:center;color:#11172c;font-size:23px;font-weight:900;box-shadow:0 8px 24px #737aff30}.eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent2);font-weight:800}.brand h1{font-size:clamp(21px,3vw,29px);line-height:1.15;letter-spacing:-.04em;margin:2px 0 0}.top-actions{display:flex;gap:9px;flex-wrap:wrap}.btn{border:1px solid var(--line);background:#1a2540;color:var(--text);padding:10px 14px;border-radius:12px;font-weight:750;transition:.18s;min-height:42px}.btn:hover{border-color:#858aff;transform:translateY(-1px)}.btn.primary{background:linear-gradient(135deg,#8588ff,#a08cff);border-color:transparent;color:#0b1020}.btn.secondary{background:#16363c;border-color:#2d7775;color:#c8fff4}.btn.quiet{background:transparent;color:var(--muted)}.hero{display:flex;justify-content:space-between;gap:18px;align-items:end;margin:0 0 20px}.hero h2{margin:0 0 5px;font-size:clamp(20px,2.6vw,30px);letter-spacing:-.035em}.hero p{color:var(--muted);margin:0;max-width:760px;font-size:14px}.autosave{color:var(--muted);font-size:12px;white-space:nowrap}.workspace{display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,.83fr);gap:18px;align-items:start}.leftcol,.rightcol{min-width:0;display:grid;gap:16px}.panel{background:linear-gradient(160deg,#151e33ee,#10182aee);border:1px solid var(--line);border-radius:20px;padding:clamp(15px,2vw,22px);box-shadow:var(--shadow);min-width:0}.panel-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:15px}.panel-head h3{font-size:16px;margin:0}.step{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:9px;background:#282e58;color:#c2c4ff;font-weight:850;font-size:12px;margin-right:8px}.section-sub{font-size:12px;color:var(--muted);margin:-8px 0 15px}.template-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}.template{min-height:84px;text-align:left;padding:11px 10px;background:#141e32;border:1px solid #2a3854;border-radius:13px;color:var(--text);display:flex;flex-direction:column;gap:7px;justify-content:space-between}.template:hover{border-color:#858aff;background:#1a2540}.template.active{border-color:#8e91ff;background:linear-gradient(145deg,#2d315f,#1a2540);box-shadow:inset 0 0 0 1px #8588ff33}.template .t-icon{font-size:19px;line-height:1}.template .t-name{font-size:12px;font-weight:800;line-height:1.3}.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}.field{min-width:0}.field.full{grid-column:1/-1}label{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:12px;font-weight:800;color:#dbe5ff;margin-bottom:7px}label small{font-size:10px;font-weight:500;color:var(--muted)}input,textarea,select{display:block;width:100%;border:1px solid #30405e;border-radius:11px;background:#0c1425;color:var(--text);padding:11px 12px;outline:none;min-width:0}input:focus,textarea:focus,select:focus{border-color:#9294ff;box-shadow:0 0 0 3px #8b8cff20}textarea{min-height:88px;resize:vertical;line-height:1.6}textarea.short{min-height:65px}input::placeholder,textarea::placeholder{color:#677997}.hint{font-size:11px;color:var(--muted);margin:6px 0 0}.checks{display:grid;grid-template-columns:1fr 1fr;gap:9px}.check{display:flex;align-items:flex-start;gap:9px;padding:10px;border-radius:11px;border:1px solid #293651;background:#0e1729;color:#d6e0f8;font-size:12px;font-weight:600}.check input{width:16px;height:16px;padding:0;margin:2px 0 0;accent-color:#9596ff;flex:0 0 auto}.quality-row{display:flex;gap:8px;flex-wrap:wrap}.chip{padding:8px 12px;border:1px solid #31405c;background:#111b2e;color:#c8d6f1;border-radius:999px;font-size:12px;font-weight:700}.chip.selected{background:#303362;border-color:#8b8cff;color:#fff}.preview-panel{position:sticky;top:12px}.preview-title{display:flex;align-items:center;justify-content:space-between;gap:10px}.live{display:inline-flex;align-items:center;gap:6px;color:var(--good);font-size:11px;font-weight:800}.live:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--good);box-shadow:0 0 10px #8ee6b088}.preview{white-space:pre-wrap;overflow-wrap:anywhere;min-height:360px;max-height:64vh;overflow:auto;background:#0a1120;border:1px solid #2d3a56;border-radius:14px;padding:16px;font-size:13px;line-height:1.85;color:#e1eaff;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}.stats{display:flex;gap:8px;flex-wrap:wrap;margin:11px 0 14px}.stat{background:#172238;border:1px solid #283753;border-radius:9px;padding:6px 9px;color:var(--muted);font-size:11px}.stat strong{color:var(--text);margin-right:4px}.action-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.action-grid .btn{min-height:46px}.tip{border-left:3px solid var(--accent2);padding:10px 12px;background:#10252b;border-radius:0 10px 10px 0;color:#cce9e7;font-size:12px}.footer{display:flex;justify-content:space-between;gap:12px;color:#7486a5;font-size:11px;margin-top:18px;flex-wrap:wrap}.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,18px);opacity:0;pointer-events:none;background:#e6fff4;color:#08251d;padding:11px 17px;border-radius:12px;font-weight:800;font-size:13px;box-shadow:var(--shadow);transition:.2s;z-index:20;max-width:90vw;text-align:center}.toast.show{transform:translate(-50%,0);opacity:1}.small-btn{padding:6px 9px;border-radius:8px;font-size:11px;min-height:30px}.divider{height:1px;background:var(--line);margin:17px 0}
+@media(max-width:1000px){.workspace{grid-template-columns:1fr}.preview-panel{position:static}.preview{max-height:46vh;min-height:300px}.template-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}@media(max-width:600px){.app{padding:13px 10px 24px}.topbar{align-items:flex-start;flex-direction:column;margin-bottom:18px}.top-actions{width:100%}.top-actions .btn{flex:1}.hero{align-items:flex-start;flex-direction:column;gap:7px}.template-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.field-grid{grid-template-columns:1fr}.field.full{grid-column:auto}.checks{grid-template-columns:1fr}.panel{border-radius:16px}.preview{font-size:12px;min-height:300px;max-height:55vh}.action-grid{grid-template-columns:1fr}.brand h1{font-size:23px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand"><div class="logo">P</div><div><div class="eyebrow">PROMPT WORKSPACE</div><h1>Prompt Studio</h1></div></div>
+    <div class="top-actions"><button class="btn quiet" id="resetBtn" type="button">リセット</button><button class="btn" id="exportBtn" type="button">設定をTXT保存</button></div>
+  </header>
+  <section class="hero"><div><h2>伝わる指示を、すばやく作る。</h2><p>用途を選び、必要な情報を入力するだけ。AIにそのまま渡せる、具体的で整理されたプロンプトを作成します。</p></div><div class="autosave" id="saveStatus">この端末に自動保存</div></section>
+
+  <main class="workspace">
+    <div class="leftcol">
+      <section class="panel">
+        <div class="panel-head"><h3><span class="step">01</span>用途を選ぶ</h3><span class="section-sub" style="margin:0">テンプレート</span></div>
+        <div class="template-grid" id="templateGrid">
+          <button class="template active" data-template="general" type="button"><span class="t-icon">✦</span><span class="t-name">万能プロンプト</span></button>
+          <button class="template" data-template="coding" type="button"><span class="t-icon">&lt;/&gt;</span><span class="t-name">プログラミング</span></button>
+          <button class="template" data-template="game" type="button"><span class="t-icon">▣</span><span class="t-name">HTMLゲーム制作</span></button>
+          <button class="template" data-template="debug" type="button"><span class="t-icon">⌁</span><span class="t-name">バグ修正</span></button>
+          <button class="template" data-template="research" type="button"><span class="t-icon">⌕</span><span class="t-name">調査・比較</span></button>
+          <button class="template" data-template="writing" type="button"><span class="t-icon">✎</span><span class="t-name">文章作成</span></button>
+          <button class="template" data-template="image" type="button"><span class="t-icon">▧</span><span class="t-name">画像生成</span></button>
+          <button class="template" data-template="study" type="button"><span class="t-icon">◎</span><span class="t-name">学習サポート</span></button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head"><h3><span class="step">02</span>依頼内容を入力</h3></div>
+        <div class="field-grid">
+          <div class="field full"><label for="goal">何をしてほしい？ <small>必須に近い項目</small></label><textarea id="goal" placeholder="例：タブレットで遊べる、見た目も操作性もよい2Dアクションゲームを作ってほしい。"></textarea></div>
+          <div class="field"><label for="role">AIの役割</label><input id="role" placeholder="例：経験豊富なゲーム開発者"></div>
+          <div class="field"><label for="audience">対象・使う人</label><input id="audience" placeholder="例：初心者、iPadユーザー"></div>
+          <div class="field full"><label for="context">背景・現在の状況</label><textarea id="context" class="short" placeholder="例：HTMLOnline Viewerで実行する。外部ライブラリは使わない。"></textarea></div>
+          <div class="field full"><label for="requirements">入れてほしい機能・条件</label><textarea id="requirements" placeholder="例：タッチ操作、セーブ機能、開始画面、ステージ選択。1行に1項目でもOK。"></textarea></div>
+          <div class="field full"><label for="avoid">避けてほしいこと・制約</label><textarea id="avoid" class="short" placeholder="例：ログイン必須、課金、動かないボタン、説明だけでコードがないこと。"></textarea></div>
+          <div class="field"><label for="output">出力形式</label><select id="output"><option value="指定がなければ、最も使いやすい形式を選ぶ">AIに任せる</option><option value="完成したコードを1つのHTMLファイルとして、最初から最後まで省略せず出力する">HTMLコード（完全版）</option><option value="コードをTXTファイルに保存できる形で出力する">TXTファイル向けコード</option><option value="手順を番号付きで、初心者にもわかる日本語で説明する">手順を詳しく説明</option><option value="要点を見出しと箇条書きで整理する">見出し・箇条書き</option><option value="比較表のあとに、理由付きの結論を示す">比較表＋結論</option><option value="そのままコピーして使える完成文だけを出力する">完成文だけ</option></select></div>
+          <div class="field"><label for="tone">回答の雰囲気</label><select id="tone"><option>わかりやすく、具体的に</option><option>短く、要点重視</option><option>丁寧で詳しい</option><option>専門的で正確</option><option>初心者向けにやさしく</option><option>アイデア豊富で創造的</option></select></div>
+          <div class="field full"><label for="extra">追加の指示 <small>自由入力</small></label><textarea id="extra" class="short" placeholder="例：確認の質問で止まらず、足りない部分は妥当な仮定を置いて完成させる。"></textarea></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head"><h3><span class="step">03</span>品質オプション</h3></div>
+        <div class="checks">
+          <label class="check"><input type="checkbox" id="complete" checked><span>途中を省略せず、完成形まで出力</span></label>
+          <label class="check"><input type="checkbox" id="check" checked><span>回答前に矛盾・ミスを自己チェック</span></label>
+          <label class="check"><input type="checkbox" id="assume" checked><span>不明点は妥当な仮定を明記して進める</span></label>
+          <label class="check"><input type="checkbox" id="preserve"><span>指定した変更点以外は変えない</span></label>
+          <label class="check"><input type="checkbox" id="steps"><span>作業を順番に分けて進める</span></label>
+          <label class="check"><input type="checkbox" id="test" checked><span>動作確認の方法やテスト例も付ける</span></label>
+        </div>
+        <div class="divider"></div>
+        <label>力を入れたいポイント</label>
+        <div class="quality-row" id="qualityRow">
+          <button class="chip selected" data-quality="正確さ" type="button">正確さ</button>
+          <button class="chip selected" data-quality="使いやすさ" type="button">使いやすさ</button>
+          <button class="chip" data-quality="見た目の品質" type="button">見た目</button>
+          <button class="chip" data-quality="独創性" type="button">独創性</button>
+          <button class="chip" data-quality="処理速度" type="button">処理速度</button>
+          <button class="chip" data-quality="保守しやすさ" type="button">保守性</button>
+        </div>
+        <p class="hint">選択したポイントは、完成プロンプトの優先事項に反映されます。</p>
+      </section>
+    </div>
+
+    <div class="rightcol">
+      <section class="panel preview-panel">
+        <div class="panel-head preview-title"><h3><span class="step">04</span>完成プロンプト</h3><span class="live">リアルタイム更新</span></div>
+        <p class="section-sub">下の文章をそのままAIに送れます。入力を変更すると自動で更新します。</p>
+        <div class="preview" id="preview" aria-live="polite"></div>
+        <div class="stats"><span class="stat"><strong id="charCount">0</strong>文字</span><span class="stat"><strong id="wordCount">0</strong>項目</span><span class="stat"><strong id="readTime">約0秒</strong>入力目安</span></div>
+        <div class="action-grid"><button class="btn primary" id="copyBtn" type="button">プロンプトをコピー</button><button class="btn secondary" id="downloadBtn" type="button">プロンプトをTXT保存</button><button class="btn" id="selectBtn" type="button">全文を選択</button><button class="btn quiet" id="clearBtn" type="button">入力欄をクリア</button></div>
+        <p class="hint" id="copyHint">コピーに失敗したときは「全文を選択」を押してコピーできます。</p>
+        <div class="divider"></div>
+        <div class="tip">コツ：AIが迷わないように、「何を作るか」「どこで動かすか」「絶対に必要な機能」「避けること」を具体的に書くと、結果が安定しやすくなります。</div>
+      </section>
+      <section class="panel">
+        <div class="panel-head"><h3>プロンプトのヒント</h3></div>
+        <div style="display:grid;gap:12px;font-size:12px;color:#c7d4ef">
+          <div><strong style="color:#fff">1. 目的をはっきりさせる</strong><div class="hint">「いい感じに」だけでなく、完成したときに何ができればよいかを書きます。</div></div>
+          <div><strong style="color:#fff">2. 実行環境を書く</strong><div class="hint">例：iPad、ブラウザ、単一HTML、外部ライブラリなし、タッチ操作対応。</div></div>
+          <div><strong style="color:#fff">3. 完了条件を入れる</strong><div class="hint">例：全ボタンが動く、エラー時の対処がある、コードを省略しない。</div></div>
+          <div><strong style="color:#fff">4. 大きな依頼は分ける</strong><div class="hint">まず動く土台を作り、そのあと機能追加・見た目調整・バグ修正に分ける方法も有効です。</div></div>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="footer"><span>Prompt Studio · ローカル動作 · 外部ライブラリ不要</span><span>入力内容はこのブラウザ内に保存されます。</span></footer>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+(function(){
+  'use strict';
+  const $=id=>document.getElementById(id);
+  const templates={
+    general:{role:'依頼内容に詳しい専門家',goal:'',audience:'',context:'',requirements:'',avoid:'',extra:'最初に依頼の目的を整理し、目的に合った完成度の高い成果物を作成してください。'},
+    coding:{role:'実務経験のあるソフトウェア開発者',goal:'要件を満たす、実際に動作するプログラムを作成してください。',audience:'初心者',context:'使用する言語・実行環境・ファイル構成を確認してから作業してください。',requirements:'必要な機能をすべて実装する。\n変数名や処理を読みやすくする。\nエラーが起きやすい箇所を確認する。',avoid:'存在しないAPIやライブラリを使わない。\n未実装の機能を完成済みと説明しない。',extra:'必要な前提条件があれば明記し、コピーして実行しやすい形にしてください。'},
+    game:{role:'ゲーム開発の経験豊富なフロントエンドエンジニア兼ゲームデザイナー',goal:'遊び始めからクリアまで成立する、完成度の高いHTMLゲームを作成してください。',audience:'タブレット・スマートフォン・PCのプレイヤー',context:'HTML / CSS / JavaScriptを使用。できるだけ単一のHTMLファイルで動く構成にしてください。タッチ操作とマウス・キーボード操作に対応し、画面サイズに合わせてレイアウトを調整してください。',requirements:'タイトル画面と開始ボタンを実際に動作させる。\nプレイヤー・敵・障害物などを画面に確実に表示する。\nゲームの勝敗条件、スコア、再スタートを実装する。\n操作方法を画面に表示する。\nボタンの押しっぱなしや連打でも不具合が起きないようにする。\nプレイ中の状態変化を分かりやすくする。',avoid:'外部ライブラリの読み込み失敗で全体が停止する構成は避ける。\n押しても反応しないボタンや見た目だけの機能を作らない。\nコードの一部を「省略」として飛ばさない。',extra:'見た目だけでなく実際の遊びやすさを重視してください。完成後、操作・当たり判定・勝敗・再スタートを確認してください。'},
+    debug:{role:'原因調査とデバッグが得意なプログラマー',goal:'提示した不具合の原因を特定し、再発しにくい形で修正してください。',audience:'既存のコードを直したい開発者',context:'既存コードとエラーメッセージを優先して確認してください。',requirements:'エラーが起きる原因をコードから特定する。\n修正後も元の機能を維持する。\n必要な変更だけに絞る。\n修正済みコードを実行できる形で提示する。',avoid:'原因を確認せず、関係ない部分を大幅に書き換えない。\nボタンや機能を削除してエラーを隠さない。',extra:'もし原因を一つに断定できない場合は、可能性と確認方法を分けて説明してください。'},
+    research:{role:'信頼できる情報源を使って調査するリサーチャー',goal:'テーマについて調査し、根拠に基づいた分かりやすい結論をまとめてください。',audience:'初めて調べる人',context:'最新情報が重要な話題では、現在の情報源を確認してください。',requirements:'重要な事実と推測を区別する。\n複数の信頼できる情報源を比較する。\n結論と、その結論に至る理由を説明する。\n日付・数値・条件を可能な限り具体的に示す。',avoid:'根拠のない断定や、確認していない情報源の引用をしない。',extra:'情報が見つからない項目は、分かったふりをせず不明と明記してください。'},
+    writing:{role:'目的と読者に合わせて文章を整える編集者',goal:'目的が伝わり、読みやすく、自然な文章を作成してください。',audience:'指定された読者',context:'文章の用途と読者に合わせ、言葉の難しさや長さを調整してください。',requirements:'最初に伝えるべき要点を明確にする。\n段落ごとに話題を整理する。\n冗長な表現や重複を減らす。',avoid:'指定されていない事実や数字を勝手に追加しない。',extra:'内容の意味を変えず、用途に合った自然な日本語にしてください。'},
+    image:{role:'画像生成向けの指示文を設計するアートディレクター',goal:'イメージが伝わりやすい、具体的な画像生成プロンプトを作成してください。',audience:'画像生成AI',context:'被写体、構図、視点、背景、光、色、画風、質感、アスペクト比を必要に応じて指定します。',requirements:'主役とポーズを具体的に記述する。\n構図・背景・照明・色彩の関係を指定する。\n必要なら避けたい要素も分けて記述する。\n画像内に文字が必要かどうかを明記する。',avoid:'矛盾する画風や、同時に成立しにくい指示を詰め込みすぎない。',extra:'画像内に文章を表示する必要がない場合は、文字やロゴを入れないよう指定してください。'},
+    study:{role:'相手の理解度に合わせて教える学習コーチ',goal:'答えを伝えるだけでなく、考え方を理解できるように教えてください。',audience:'初心者',context:'難しい専門用語はかみ砕き、身近な例を使ってください。',requirements:'まず基本を説明する。\n具体例を示す。\n理解を確認できる練習問題を出す。\n間違えやすいポイントも説明する。',avoid:'説明を急に難しくしない。\n分からないことを責めるような言い方をしない。',extra:'必要に応じて一つずつ段階的に説明し、初めて学ぶ人にも分かる日本語を使ってください。'}
+  };
+  const fieldIds=['goal','role','audience','context','requirements','avoid','output','tone','extra'];
+  const optionIds=['complete','check','assume','preserve','steps','test'];
+  const defaultOptions={complete:true,check:true,assume:true,preserve:false,steps:false,test:true};
+  let currentTemplate='general';let toastTimer=null;let lastSaved='';
+  function notify(message){const t=$('toast');t.textContent=message;t.classList.add('show');if(toastTimer)clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2200)}
+  function getQualities(){return [...document.querySelectorAll('.chip.selected')].map(b=>b.dataset.quality)}
+  function val(id){return $(id).value.trim()}
+  function buildPrompt(){
+    const sections=[];
+    const role=val('role'); if(role)sections.push('## あなたの役割\n'+role);
+    const goal=val('goal'); if(goal)sections.push('## 目的\n'+goal);else sections.push('## 目的\n依頼の目的を整理し、実現可能な成果物を作成してください。');
+    const audience=val('audience');if(audience)sections.push('## 対象・利用者\n'+audience);
+    const context=val('context');if(context)sections.push('## 背景・実行環境\n'+context);
+    const req=val('requirements');if(req)sections.push('## 必須要件\n'+req);
+    const avoid=val('avoid');if(avoid)sections.push('## 制約・避けること\n'+avoid);
+    const qualities=getQualities();if(qualities.length)sections.push('## 優先する品質\n'+qualities.map(x=>'・'+x).join('\n'));
+    const tone=val('tone');if(tone)sections.push('## 回答の方針\n'+tone+'。専門用語を使う場合は、必要に応じて短く説明してください。');
+    const output=val('output');if(output)sections.push('## 出力形式\n'+output+'。');
+    const instructions=[];
+    if($('complete').checked)instructions.push('必要な部分を省略せず、実際に使える完成形を提示する。');
+    if($('check').checked)instructions.push('回答を出す前に、要件との不一致、矛盾、誤り、抜け漏れを確認して修正する。');
+    if($('assume').checked)instructions.push('不足情報があっても作業を止めず、重要な仮定を短く明記したうえで合理的に進める。');
+    if($('preserve').checked)instructions.push('修正依頼の場合は、指定された変更点以外の動作やデザインを維持する。');
+    if($('steps').checked)instructions.push('複雑な作業は、実装・確認の順序が分かるよう段階的に進める。');
+    if($('test').checked)instructions.push('完成後に確認すべき操作やテスト項目を提示する。未確認のテストを実施済みと主張しない。');
+    if(instructions.length)sections.push('## 作業ルール\n'+instructions.map(x=>'・'+x).join('\n'));
+    const extra=val('extra');if(extra)sections.push('## 追加指示\n'+extra);
+    sections.push('## 完了条件\n依頼内容と必須要件を満たし、未実装の機能・制約・不確かな点があれば明確に説明してください。');
+    sections.push('以上の条件に沿って作業してください。');
+    return sections.join('\n\n');
+  }
+  function updatePreview(){const p=buildPrompt();$('preview').textContent=p;$('charCount').textContent=p.length.toLocaleString('ja-JP');$('wordCount').textContent=(p.match(/^## /gm)||[]).length;$('readTime').textContent='約'+Math.max(1,Math.ceil(p.length/500))+'秒';saveDraft()}
+  function saveDraft(){try{const data={template:currentTemplate,fields:Object.fromEntries(fieldIds.map(id=>[id,$(id).value])),options:Object.fromEntries(optionIds.map(id=>[id,$(id).checked])),qualities:getQualities()};const json=JSON.stringify(data);localStorage.setItem('promptStudioDraftV1',json);lastSaved=json;$('saveStatus').textContent='自動保存済み';}catch(e){$('saveStatus').textContent='自動保存は利用できません';}}
+  function loadDraft(){try{const raw=localStorage.getItem('promptStudioDraftV1');if(!raw)return false;const d=JSON.parse(raw);if(!d||!d.fields)return false;currentTemplate=d.template||'general';fieldIds.forEach(id=>{if(typeof d.fields[id]==='string')$(id).value=d.fields[id]});optionIds.forEach(id=>$(id).checked=typeof d.options?.[id]==='boolean'?d.options[id]:defaultOptions[id]);document.querySelectorAll('.chip').forEach(b=>b.classList.toggle('selected',(d.qualities||[]).includes(b.dataset.quality)));document.querySelectorAll('.template').forEach(b=>b.classList.toggle('active',b.dataset.template===currentTemplate));return true}catch(e){return false}}
+  function applyTemplate(key){const t=templates[key];if(!t)return;currentTemplate=key;Object.keys(t).forEach(id=>{if($(id))$(id).value=t[id]});document.querySelectorAll('.template').forEach(b=>b.classList.toggle('active',b.dataset.template===key));if(key==='debug')$('preserve').checked=true;if(key==='coding'||key==='game'){$('complete').checked=true;$('check').checked=true;$('test').checked=true}else if(key==='research'){$('assume').checked=true;$('check').checked=true}updatePreview()}
+  function downloadFile(filename,content,type){const blob=new Blob([content],{type:type||'text/plain;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+  async function copyPrompt(){const text=buildPrompt();try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(text);notify('プロンプトをコピーしました');return}}catch(e){}const area=document.createElement('textarea');area.value=text;area.style.position='fixed';area.style.opacity='0';area.style.left='-9999px';document.body.appendChild(area);area.focus();area.select();let ok=false;try{ok=document.execCommand('copy')}catch(e){}area.remove();if(ok)notify('プロンプトをコピーしました');else{selectPrompt();notify('全文を選択しました。コピーしてください')}}
+  function selectPrompt(){const range=document.createRange();range.selectNodeContents($('preview'));const sel=window.getSelection();sel.removeAllRanges();sel.addRange(range);$('preview').scrollTop=0;$('copyHint').textContent='文章が選択されています。コピー操作を行ってください。'}
+  function clearFields(){if(!confirm('入力欄をすべてクリアしますか？'))return;fieldIds.forEach(id=>{if(id==='output')$(id).selectedIndex=0;else if(id==='tone')$(id).selectedIndex=0;else $(id).value=''});optionIds.forEach(id=>$(id).checked=defaultOptions[id]);document.querySelectorAll('.chip').forEach(b=>b.classList.toggle('selected',['正確さ','使いやすさ'].includes(b.dataset.quality)));currentTemplate='general';document.querySelectorAll('.template').forEach(b=>b.classList.toggle('active',b.dataset.template==='general'));updatePreview();notify('入力欄をクリアしました')}
+  $('templateGrid').addEventListener('click',e=>{const b=e.target.closest('[data-template]');if(b)applyTemplate(b.dataset.template)});
+  fieldIds.forEach(id=>$(id).addEventListener('input',updatePreview));fieldIds.forEach(id=>$(id).addEventListener('change',updatePreview));optionIds.forEach(id=>$(id).addEventListener('change',updatePreview));
+  $('qualityRow').addEventListener('click',e=>{const b=e.target.closest('[data-quality]');if(!b)return;b.classList.toggle('selected');updatePreview()});
+  $('copyBtn').addEventListener('click',copyPrompt);$('downloadBtn').addEventListener('click',()=>{downloadFile('prompt.txt',buildPrompt());notify('prompt.txt を保存しました')});$('selectBtn').addEventListener('click',selectPrompt);$('clearBtn').addEventListener('click',clearFields);$('resetBtn').addEventListener('click',clearFields);
+  $('exportBtn').addEventListener('click',()=>{const data={template:currentTemplate,fields:Object.fromEntries(fieldIds.map(id=>[id,$(id).value])),options:Object.fromEntries(optionIds.map(id=>[id,$(id).checked])),qualities:getQualities()};const lines=['Prompt Studio 設定バックアップ','※入力した設定の控えです。完成プロンプトではありません。','',JSON.stringify(data,null,2)];downloadFile('prompt-studio-settings.txt',lines.join('\n'));notify('設定をTXTで保存しました')});
+  if(!loadDraft()){applyTemplate('general')}else updatePreview();
+})();
+</script>
+</body>
+</html>
