@@ -1,0 +1,872 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f4f2ec">
+  <meta name="description" content="hincra editor — HTML・CSS・JavaScriptを心地よく編集できる、軽量なブラウザ内コードエディター。">
+  <title>hincra editor</title>
+  <style>
+    :root{
+      color-scheme:light;
+      --page:#f4f2ec;--surface:#fffefa;--surface-2:#fbfaf6;--surface-3:#f3f2eb;
+      --ink:#344038;--muted:#89938b;--muted-2:#a7aea5;--line:#e7e5dc;--line-2:#d9ddd3;
+      --sage:#829b8b;--sage-dark:#5d7968;--sage-soft:#eaf0e9;--sand:#d9c6a8;--sand-soft:#f5efe5;
+      --rose:#c98d7b;--blue:#7e9bab;--shadow:0 12px 36px rgba(55,67,56,.055);
+      --radius:17px;--radius-sm:10px;--mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;
+      --sans:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans JP",Meiryo,sans-serif;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;width:100%;height:100%;overflow:hidden}
+    body{background:var(--page);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+    button,input,select{font:inherit}button{cursor:pointer;-webkit-tap-highlight-color:transparent}
+    button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid rgba(130,155,139,.26);outline-offset:2px}
+    .app{height:100dvh;min-height:0;display:flex;flex-direction:column}
+    .topbar{height:70px;flex:0 0 70px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 clamp(14px,2.4vw,34px);background:rgba(255,254,250,.9);border-bottom:1px solid var(--line);position:relative;z-index:5}
+    .brand{display:flex;align-items:center;gap:11px;min-width:0}
+    .brand-mark{width:40px;height:40px;display:grid;place-items:center;border-radius:13px;background:linear-gradient(145deg,#a9bcad,#789483);color:#fff;box-shadow:0 5px 13px rgba(92,126,103,.18);flex:0 0 auto}
+    .brand-mark svg{width:21px;height:21px}
+    .brand-name{font-size:16px;font-weight:760;letter-spacing:.015em;line-height:1.2}
+    .brand-sub{font-size:9px;letter-spacing:.14em;color:var(--muted);margin-top:4px}
+    .top-right{display:flex;align-items:center;gap:9px}
+    .top-hint{font-size:11px;color:var(--muted);margin-right:5px;white-space:nowrap}
+    .local-pill{display:flex;align-items:center;gap:7px;padding:7px 11px;border:1px solid #e3eae1;background:#eff3ed;border-radius:999px;color:#6c826f;font-size:10px;white-space:nowrap}
+    .local-dot{width:6px;height:6px;border-radius:50%;background:#83a18b}
+    .btn{min-height:33px;padding:0 10px;border:1px solid var(--line-2);border-radius:9px;background:var(--surface);color:#66736a;font-size:11px;font-weight:620;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;transition:background .15s,border-color .15s,transform .15s}
+    .btn:hover{background:#f6f8f3;border-color:#cbd7ca}.btn:active{transform:translateY(1px)}
+    .btn svg{width:14px;height:14px;flex:0 0 auto}
+    .btn-primary{color:#fff;background:var(--sage);border-color:var(--sage)}.btn-primary:hover{background:var(--sage-dark);border-color:var(--sage-dark)}
+    .btn-soft{background:var(--sage-soft);border-color:#e0e9df;color:var(--sage-dark)}
+    .btn-quiet{background:transparent;border-color:transparent}.btn-quiet:hover{background:var(--surface-3);border-color:transparent}
+    .btn-danger:hover{background:#fbefec;color:#a66e5d}
+    .icon-btn{width:33px;min-width:33px;padding:0}
+    .workbench{flex:1;min-height:0;width:100%;max-width:1900px;margin:0 auto;padding:16px clamp(12px,2.2vw,30px) 11px;display:grid;grid-template-columns:218px minmax(380px,1.08fr) minmax(320px,.92fr);gap:14px}
+    .pane{min-width:0;min-height:0;display:flex;flex-direction:column;overflow:hidden;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);box-shadow:var(--shadow)}
+    .sidebar{background:#fcfbf7}
+    .side-head{height:54px;flex:0 0 54px;display:flex;align-items:center;justify-content:space-between;padding:0 13px;border-bottom:1px solid var(--line)}
+    .side-title{font-size:11px;font-weight:760;letter-spacing:.1em;color:#849087}
+    .side-actions{display:flex;align-items:center;gap:2px}
+    .side-project{padding:13px 12px 8px;display:flex;align-items:center;gap:8px;color:#66746a;font-size:11px;font-weight:680}
+    .project-caret{font-size:9px;color:#a5ada4}
+    .project-folder{width:17px;height:17px;color:#a58a68}
+    .file-list{padding:3px 7px 10px;overflow:auto;min-height:0;flex:1;scrollbar-width:thin;scrollbar-color:#d8ded6 transparent}
+    .file-row{height:34px;display:flex;align-items:center;gap:7px;padding:0 7px;border-radius:7px;color:#69756d;font-size:11px;cursor:pointer;position:relative;user-select:none}
+    .file-row:hover{background:#f1f3ed}.file-row.active{background:#eaf0e9;color:#4f6d5a;font-weight:680}
+    .file-type{width:23px;height:20px;display:grid;place-items:center;border-radius:5px;background:#edf0e9;color:#758b79;font:700 8px var(--mono);flex:0 0 auto}
+    .file-type.css{background:#edf1f5;color:#718ba0}.file-type.js{background:#f5f0e4;color:#a18b5e}.file-type.md{background:#f2edf4;color:#927e9c}.file-type.txt{background:#f0efeb;color:#888e87}
+    .file-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1}
+    .file-modified{width:5px;height:5px;border-radius:50%;background:#c49b72;opacity:0;flex:0 0 auto}.file-row.dirty .file-modified{opacity:1}
+    .file-menu{width:23px;height:24px;border:0;border-radius:5px;background:transparent;color:#9aa39a;opacity:0;display:grid;place-items:center;font-size:16px;line-height:1;flex:0 0 auto}
+    .file-row:hover .file-menu,.file-row.active .file-menu,.file-menu:focus-visible{opacity:1}.file-menu:hover{background:#fff;color:#5f7063}
+    .file-actions{position:absolute;z-index:20;right:4px;top:29px;display:flex;gap:3px;padding:4px;border:1px solid var(--line);border-radius:8px;background:#fffefa;box-shadow:0 7px 20px rgba(45,54,44,.12)}
+    .file-actions button{border:0;border-radius:5px;padding:5px 8px;background:transparent;color:#66736a;font-size:10px;white-space:nowrap}
+    .file-actions button:hover{background:#f1f3ed}.file-actions button[data-action=delete]:hover{background:#fbefec;color:#a66e5d}
+    .sidebar-bottom{padding:10px 12px 12px;border-top:1px solid var(--line);color:#9aa39b;font-size:9px;line-height:1.65}
+    .drop-note{display:flex;align-items:center;gap:7px}.drop-note svg{width:14px;height:14px;color:#9aac9c}
+    .editor-pane{position:relative}
+    .editor-head{height:58px;flex:0 0 58px;padding:0 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line);background:rgba(255,254,250,.96)}
+    .editor-heading{display:flex;align-items:center;gap:9px;min-width:0}
+    .head-icon{width:31px;height:31px;display:grid;place-items:center;border-radius:10px;background:var(--sage-soft);color:var(--sage-dark);flex:0 0 auto}.head-icon svg{width:16px;height:16px}
+    .head-copy{min-width:0}.head-title{font-size:12px;font-weight:740;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px}.head-caption{font-size:9px;color:var(--muted);margin-top:3px}
+    .head-actions{display:flex;align-items:center;gap:5px;flex:0 0 auto}
+    .editor-toolbar{min-height:43px;flex:0 0 auto;padding:6px 10px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;border-bottom:1px solid var(--line);background:#fcfbf7}
+    .editor-toolbar .btn{min-height:29px;padding:0 8px;font-size:10px}
+    .tool-divider{width:1px;height:19px;background:var(--line-2);margin:0 3px}
+    .tabbar{height:38px;flex:0 0 38px;display:flex;align-items:stretch;gap:2px;padding:0 8px;background:#f8f7f2;border-bottom:1px solid var(--line);overflow:auto;scrollbar-width:none}
+    .tabbar::-webkit-scrollbar{display:none}
+    .file-tab{position:relative;min-width:80px;max-width:175px;padding:0 10px;display:flex;align-items:center;gap:7px;border:0;border-right:1px solid #efede6;background:transparent;color:#849087;font-size:10px;white-space:nowrap;cursor:pointer}
+    .file-tab.active{background:var(--surface);color:#526b59;font-weight:680}.file-tab.active::after{content:"";position:absolute;bottom:-1px;left:0;right:0;height:2px;background:#8da793}
+    .tab-dot{width:5px;height:5px;border-radius:50%;background:#c49b72;opacity:0}.file-tab.dirty .tab-dot{opacity:1}
+    .tab-label{overflow:hidden;text-overflow:ellipsis}
+    .editor-wrap{flex:1;min-height:120px;display:flex;overflow:hidden;background:#fffefa;position:relative}
+    .gutter{position:relative;width:52px;flex:0 0 52px;overflow:hidden;border-right:1px solid #f0eee6;background:#faf9f4;color:#b1b8af;text-align:right;font:11px/21px var(--mono);user-select:none;white-space:pre}
+    .gutter-inner{position:absolute;top:0;left:0;right:0;padding-right:10px;will-change:transform}
+    .code{display:block;width:100%;height:100%;min-width:0;resize:none;border:0;outline:0;margin:0;padding:15px 17px 28px;overflow:auto;background:transparent;color:#46564b;caret-color:#668773;font:12px/21px var(--mono);letter-spacing:0;tab-size:2;white-space:pre;scrollbar-width:thin;scrollbar-color:#d5ddd4 transparent}
+    .code:focus-visible{outline:none}.code::selection{background:rgba(153,181,158,.34)}
+    .editor-status{height:31px;flex:0 0 31px;padding:0 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid var(--line);background:#fcfbf7;color:#929c93;font-size:9px}
+    .status-left,.status-right{display:flex;align-items:center;gap:12px;white-space:nowrap;min-width:0}.status-right{justify-content:flex-end}.status-item{overflow:hidden;text-overflow:ellipsis}
+    .save-dot{width:6px;height:6px;border-radius:50%;background:#8da993;display:inline-block;margin-right:5px}.save-dot.wait{background:#c6a477}
+    .preview-pane{position:relative}
+    .preview-head{min-height:58px;flex:0 0 58px;padding:0 13px;display:flex;align-items:center;justify-content:space-between;gap:9px;border-bottom:1px solid var(--line);background:rgba(255,254,250,.96)}
+    .preview-heading{display:flex;align-items:center;gap:9px;min-width:0}.preview-icon{background:var(--sand-soft);color:#a18764}
+    .preview-head .head-caption{max-width:210px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .preview-controls{display:flex;align-items:center;gap:5px;flex:0 0 auto}
+    .select-wrap{position:relative}.select-wrap::after{content:"";position:absolute;right:10px;top:12px;width:6px;height:6px;border-right:1px solid #89968d;border-bottom:1px solid #89968d;transform:rotate(45deg);pointer-events:none}
+    .select{height:31px;min-width:91px;padding:0 24px 0 8px;border:1px solid var(--line-2);border-radius:8px;color:#718076;background:#fffefa;appearance:none;font-size:10px}
+    .preview-stage{position:relative;flex:1;min-height:120px;overflow:hidden;background:#fff}
+    .preview-frame{display:block;width:100%;height:100%;border:0;background:#fff}
+    .preview-empty{position:absolute;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;gap:9px;padding:24px;text-align:center;background:#fff;color:#909a91}
+    .preview-empty.visible{display:flex}.preview-empty-mark{width:46px;height:46px;border-radius:15px;display:grid;place-items:center;background:#f0f3ed;color:#92a496}.preview-empty-mark svg{width:23px;height:23px}
+    .preview-empty strong{font-size:12px;font-weight:680;color:#6e7c71}.preview-empty span{font-size:10px;color:#9ba39b;line-height:1.7}
+    .preview-foot{height:34px;flex:0 0 34px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 11px;border-top:1px solid var(--line);background:#fcfbf7;color:#909a91;font-size:9px}
+    .preview-state{display:flex;align-items:center;gap:6px;white-space:nowrap}.preview-dot{width:6px;height:6px;border-radius:50%;background:#83a18b;box-shadow:0 0 0 3px #edf2eb}.preview-state.paused .preview-dot{background:#c49e73;box-shadow:0 0 0 3px #f6efe5}
+    .preview-description{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;text-align:center;flex:1}
+    .foot-actions{display:flex;align-items:center;gap:3px;flex:0 0 auto}
+    .foot-actions .btn{min-height:24px;padding:0 6px;font-size:9px}
+    .app-footer{height:24px;flex:0 0 24px;padding:0 clamp(14px,2.2vw,30px);display:flex;align-items:center;justify-content:space-between;gap:12px;color:#a3aaa2;font-size:9px}
+    .app-footer span:last-child{white-space:nowrap}
+    .toast-region{position:fixed;z-index:10000;left:50%;bottom:28px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:7px;pointer-events:none}
+    .toast{padding:9px 14px;border:1px solid #dce6dc;border-radius:999px;background:rgba(255,254,250,.97);box-shadow:0 8px 24px rgba(45,54,44,.12);color:#5f7967;font-size:11px;font-weight:620;animation:toast-in .18s ease both;white-space:nowrap}
+    @keyframes toast-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+    .modal-backdrop{display:none;position:fixed;z-index:11000;inset:0;align-items:center;justify-content:center;padding:18px;background:rgba(46,55,48,.28);backdrop-filter:blur(3px)}
+    .modal-backdrop.open{display:flex}.modal{width:min(420px,100%);padding:22px;border:1px solid var(--line);border-radius:17px;background:var(--surface);box-shadow:0 24px 70px rgba(34,42,34,.2)}
+    .modal h2{margin:0 0 7px;font-size:16px}.modal p{margin:0;color:#818c83;font-size:11px;line-height:1.8}
+    .modal-input{width:100%;height:39px;margin-top:16px;padding:0 11px;border:1px solid var(--line-2);border-radius:9px;background:#fff;color:#435147;font-size:12px;outline:none}
+    .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}
+    .hidden{display:none!important}.file-input{display:none}
+    .workbench.preview-hidden{grid-template-columns:218px minmax(0,1fr)}.workbench.preview-hidden .preview-pane{display:none}
+    .workbench.drag-over .sidebar{outline:2px dashed #90aa97;outline-offset:-7px;background:#f1f6ef}
+    @media(max-width:1160px){.workbench{grid-template-columns:190px minmax(340px,1.1fr) minmax(285px,.9fr);gap:10px;padding-left:12px;padding-right:12px}.preview-head{padding:0 9px}.preview-head .head-caption{max-width:145px}.editor-toolbar{gap:4px}.editor-toolbar .btn{padding:0 7px}}
+    @media(max-width:900px){
+      .file-menu{opacity:1}
+      .workbench{grid-template-columns:178px minmax(0,1fr);grid-template-rows:minmax(430px,1fr) minmax(330px,.7fr);overflow:auto}
+      .sidebar{grid-column:1;grid-row:1/3}.editor-pane{grid-column:2;grid-row:1}.preview-pane{grid-column:2;grid-row:2}
+      .workbench.preview-hidden{grid-template-columns:178px minmax(0,1fr);grid-template-rows:minmax(0,1fr)}
+    }
+    @media(max-width:620px){
+      html,body{height:auto;min-height:100%;overflow:auto}.app{height:auto;min-height:100dvh;overflow:visible}
+      .topbar{height:61px;flex-basis:61px;padding:0 12px}.brand-mark{width:35px;height:35px}.brand-name{font-size:14px}.brand-sub{font-size:8px}.top-hint{display:none}.local-pill{font-size:9px;padding:6px 8px}
+      .workbench,.workbench.preview-hidden{display:flex;flex-direction:column;overflow:visible;padding:10px;gap:10px}
+      .sidebar{min-height:0;height:148px;flex:0 0 148px}.side-head{height:43px;flex-basis:43px}.side-project{padding:8px 11px 3px}.file-list{display:flex;align-items:flex-start;gap:3px;overflow-x:auto;overflow-y:hidden;padding:2px 7px 8px}.file-row{height:37px;min-width:112px;max-width:160px;padding:0 6px}.file-menu{opacity:1}
+      .sidebar-bottom{display:none}.editor-pane{height:575px;min-height:540px;flex:0 0 575px}.preview-pane{height:440px;min-height:400px;flex:0 0 440px}.workbench.preview-hidden .editor-pane{height:calc(100dvh - 90px);min-height:520px;flex-basis:auto}
+      .editor-head,.preview-head{padding:0 9px}.head-caption{display:none}.head-title{max-width:160px}.editor-toolbar{min-height:42px;padding:5px 7px}.editor-toolbar .btn{font-size:9px;min-height:28px;padding:0 6px}.tabbar{height:36px;flex-basis:36px}.code{font-size:11px;padding-left:12px}.gutter{width:42px;flex-basis:42px;font-size:10px}.preview-head .head-caption{display:none}.preview-controls{gap:3px}.select{min-width:79px;font-size:9px}
+      .app-footer{height:auto;min-height:24px;padding:2px 12px 9px;font-size:8px}.app-footer span:last-child{display:none}
+    }
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+  </style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5z"/><path d="M8 8h8M8 12h5M8 16h8"/><path d="m15.5 12 1.5 1.5-1.5 1.5"/></svg></div>
+      <div><div class="brand-name">hincra editor</div><div class="brand-sub">A CALM SPACE TO BUILD THE WEB</div></div>
+    </div>
+    <div class="top-right"><span class="top-hint">書く・試す・仕上げる</span><button class="btn btn-soft" id="previewToggleTop" type="button" title="Previewの表示・非表示を切り替え">Previewを隠す</button><div class="local-pill"><span class="local-dot"></span>ブラウザ内で動作</div></div>
+  </header>
+
+  <main class="workbench" id="workbench">
+    <aside class="pane sidebar" id="sidebar" aria-label="ファイルエクスプローラー">
+      <div class="side-head"><span class="side-title">EXPLORER</span><div class="side-actions">
+        <button class="btn btn-quiet icon-btn" id="newFileBtn" type="button" title="新しいファイル" aria-label="新しいファイル"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+        <button class="btn btn-quiet icon-btn" id="importBtn" type="button" title="ファイルを読み込む" aria-label="ファイルを読み込む"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m-4 4 4-4 4 4"/><path d="M4 14v5a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-5"/></svg></button>
+      </div></div>
+      <div class="side-project"><svg class="project-folder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>MY WEBSITE</span><span class="project-caret">⌄</span></div>
+      <div class="file-list" id="fileList" aria-label="プロジェクトファイル"></div>
+      <div class="sidebar-bottom"><div class="drop-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m-4 4 4-4 4 4"/><path d="M4 14v5a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-5"/></svg>ファイルをここへドラッグして追加</div><div>対応形式：HTML / CSS / JS / TXT / MD</div></div>
+      <input class="file-input" id="fileInput" type="file" multiple accept=".html,.css,.js,.txt,.md,text/html,text/css,text/javascript,text/plain">
+    </aside>
+
+    <section class="pane editor-pane" aria-label="コードエディター">
+      <div class="editor-head">
+        <div class="editor-heading"><div class="head-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m8 7-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/></svg></div><div class="head-copy"><div class="head-title" id="activeFileTitle">index.html</div><div class="head-caption" id="activeFileCaption">HTML · ブラウザに自動保存</div></div></div>
+        <div class="head-actions"><button class="btn btn-quiet icon-btn" id="copyBtn" type="button" title="コードをコピー" aria-label="コードをコピー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg></button><button class="btn btn-soft" id="saveBtn" type="button" title="現在のファイルをダウンロード"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m-4-4 4 4 4-4M4 17v3h16v-3"/></svg><span>保存</span></button></div>
+      </div>
+      <div class="editor-toolbar" role="toolbar" aria-label="編集ツール">
+        <button class="btn" id="sampleBtn" type="button" title="サンプルプロジェクトを読み込む">サンプル</button>
+        <button class="btn" id="formatBtn" type="button" title="HTML / CSSを整形">整形</button>
+        <button class="btn" id="clearFileBtn" type="button" title="現在のファイルを空にする">内容を消去</button>
+        <span class="tool-divider"></span>
+        <button class="btn btn-quiet" id="previewToggleEditor" type="button" title="Previewを一時的に隠す">Previewを隠す</button>
+        <button class="btn btn-quiet" id="refreshBtn" type="button" title="Previewを今すぐ更新">更新</button>
+      </div>
+      <div class="tabbar" id="tabbar" role="tablist" aria-label="開いているファイル"></div>
+      <div class="editor-wrap"><div class="gutter" id="gutter" aria-hidden="true"><div class="gutter-inner" id="gutterInner">1</div></div><textarea class="code" id="codeEditor" aria-label="コード" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" wrap="off" placeholder="ここにコードを入力してください"></textarea></div>
+      <div class="editor-status"><div class="status-left"><span class="status-item" id="lineCount">1 行</span><span class="status-item" id="charCount">0 文字</span><span class="status-item" id="cursorPosition">Ln 1, Col 1</span></div><div class="status-right"><span class="status-item" id="fileTypeStatus">HTML</span><span class="status-item"><i class="save-dot" id="saveDot"></i><span id="saveState">自動保存済み</span></span></div></div>
+    </section>
+
+    <section class="pane preview-pane" id="previewPane" aria-label="ライブPreview">
+      <div class="preview-head"><div class="preview-heading"><div class="head-icon preview-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M7 6.5h.01M10 6.5h.01"/></svg></div><div class="head-copy"><div class="head-title">ライブ Preview</div><div class="head-caption">HTMLから参照したCSS・JavaScriptもPreviewに反映します</div></div></div><div class="preview-controls"><div class="select-wrap"><select class="select" id="viewportSelect" aria-label="Previewサイズ"><option value="auto">自動サイズ</option><option value="tablet">タブレット</option><option value="mobile">スマートフォン</option><option value="desktop">デスクトップ</option></select></div><button class="btn btn-quiet icon-btn" id="refreshPreviewBtn" type="button" title="Previewを更新" aria-label="Previewを更新"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M5.6 9a7 7 0 0 1 11.8-2L20 12M4 12l2.6 5a7 7 0 0 0 11.8-2"/></svg></button><button class="btn btn-primary" id="openPreviewTabBtn" type="button" title="Previewを新しいChromeタブで開く"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h5"/></svg><span>別タブ</span></button></div></div>
+      <div class="preview-stage" id="previewStage"><iframe class="preview-frame hidden" id="previewFrame" title="WebページPreview" sandbox="allow-scripts allow-forms allow-modals allow-downloads" referrerpolicy="no-referrer"></iframe><div class="preview-empty visible" id="previewEmpty"><div class="preview-empty-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 14h8m-8 3h5"/></svg></div><strong>Previewを表示します</strong><span>index.html を編集すると、ここにWebページが表示されます。<br>CSS・JavaScriptも別ファイルから反映できます。</span></div></div>
+      <div class="preview-foot"><div class="preview-state" id="previewState"><span class="preview-dot"></span><span id="previewStateText">待機中</span></div><div class="preview-description" id="previewInfo">index.html のPreview</div><div class="foot-actions"><button class="btn btn-quiet" id="autoPreviewBtn" type="button" title="自動Previewを停止">自動更新 ON</button></div></div>
+    </section>
+  </main>
+  <footer class="app-footer"><span>hincra editor · シンプルに、心地よく。</span><span>Tab：インデント　Ctrl + S：保存　Ctrl + Enter：Preview更新　F6：Preview切替</span></footer>
+</div>
+
+<div class="toast-region" id="toastRegion" aria-live="polite" aria-atomic="true"></div>
+<div class="modal-backdrop" id="fileModal" role="dialog" aria-modal="true" aria-labelledby="fileModalTitle"><div class="modal"><h2 id="fileModalTitle">新しいファイル</h2><p id="fileModalDescription">ファイル名と拡張子を入力してください。HTML・CSS・JavaScript・TXT・MDに対応しています。</p><input class="modal-input" id="fileNameInput" type="text" maxlength="90" autocomplete="off" spellcheck="false" placeholder="例：style.css"><div class="modal-actions"><button class="btn" id="fileModalCancel" type="button">キャンセル</button><button class="btn btn-primary" id="fileModalSubmit" type="button">作成</button></div></div></div>
+<div class="modal-backdrop" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle"><div class="modal"><h2 id="confirmTitle">確認</h2><p id="confirmDescription">この操作を実行しますか？</p><div class="modal-actions"><button class="btn" id="confirmCancel" type="button">キャンセル</button><button class="btn btn-primary" id="confirmAccept" type="button">実行する</button></div></div></div>
+
+<script>
+(() => {
+  'use strict';
+  const STORAGE_KEY = 'hincra-editor-project-v1';
+  const SAVE_DELAY = 700;
+  const SMALL_PREVIEW_DELAY = 550;
+  const MEDIUM_PREVIEW_DELAY = 950;
+  const LARGE_PREVIEW_DELAY = 1450;
+  const MEDIUM_SIZE = 90000;
+  const LARGE_SIZE = 300000;
+  const MAX_FILE_SIZE = 3 * 1024 * 1024;
+  const ALLOWED = new Set(['html','css','js','txt','md']);
+  const $ = id => document.getElementById(id);
+  const editor = $('codeEditor');
+  const workbench = $('workbench');
+  const fileList = $('fileList');
+  const tabbar = $('tabbar');
+  const gutterInner = $('gutterInner');
+  const previewFrame = $('previewFrame');
+  const previewEmpty = $('previewEmpty');
+  const toastRegion = $('toastRegion');
+  const fileModal = $('fileModal');
+  const confirmModal = $('confirmModal');
+
+  const STARTER_FILES = {
+    'index.html': `<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Little Website</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="welcome-card">
+    <span class="eyebrow">A LITTLE SPACE ON THE WEB</span>
+    <h1>はじめよう。</h1>
+    <p>HTMLで骨組みを作り、CSSでデザインを整え、JavaScriptで動きを加えていきましょう。</p>
+    <button id="welcomeButton" type="button">クリックしてみる</button>
+    <p class="message" id="welcomeMessage" aria-live="polite"></p>
+  </main>
+  <script src="script.js"><\/script>
+</body>
+</html>`,
+    'style.css': `* { box-sizing: border-box; }
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  color: #3d4b42;
+  background: radial-gradient(circle at 50% 20%, #fffdf7, #e9eee6 78%);
+  font-family: system-ui, sans-serif;
+}
+
+.welcome-card {
+  width: min(100%, 560px);
+  padding: 52px 36px;
+  text-align: center;
+  border: 1px solid rgba(128, 152, 137, .2);
+  border-radius: 26px;
+  background: rgba(255, 255, 250, .88);
+  box-shadow: 0 18px 55px rgba(65, 84, 68, .09);
+}
+
+.eyebrow {
+  color: #8a9d8d;
+  font-size: 10px;
+  letter-spacing: .18em;
+}
+
+h1 {
+  margin: 18px 0 12px;
+  font-family: Georgia, serif;
+  font-size: clamp(34px, 7vw, 52px);
+  font-weight: 500;
+}
+
+p { color: #77847a; line-height: 1.9; font-size: 14px; }
+
+button {
+  margin-top: 18px;
+  padding: 13px 25px;
+  border: 0;
+  border-radius: 999px;
+  color: white;
+  background: #809889;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+button:hover { background: #5d7868; }
+.message { min-height: 24px; color: #66816f; font-size: 12px; }`,
+    'script.js': `const button = document.querySelector('#welcomeButton');
+const message = document.querySelector('#welcomeMessage');
+
+button.addEventListener('click', () => {
+  message.textContent = 'いいですね。ここからWeb制作を始めましょう。';
+});`,
+    'README.md': `# My Little Website
+
+hincra editor のサンプルプロジェクトです。
+
+## ファイル構成
+
+- index.html — ページの構造
+- style.css — デザイン
+- script.js — ボタンの動き
+
+HTMLからCSSとJavaScriptを読み込むと、Previewにもまとめて反映されます。`
+  };
+
+  let project = { files: {}, activeFile: 'index.html' };
+  let dirtyFiles = new Set();
+  let saveTimer = 0;
+  let previewTimer = 0;
+  let statsTimer = 0;
+  let gutterFrame = 0;
+  let toastTimer = 0;
+  let liveEnabled = true;
+  let fileModalMode = 'create';
+  let renamingSource = '';
+  let pendingConfirm = null;
+  let viewportMode = 'auto';
+  let lastPreviewHtml = '';
+  let currentLineCount = 1;
+
+  function cloneFiles(source) { return Object.fromEntries(Object.entries(source).map(([name, value]) => [name, String(value)])); }
+  function extOf(name) { const index = name.lastIndexOf('.'); return index < 0 ? '' : name.slice(index + 1).toLowerCase(); }
+  function languageLabel(name) { return ({html:'HTML',css:'CSS',js:'JavaScript',txt:'プレーンテキスト',md:'Markdown'})[extOf(name)] || 'テキスト'; }
+  function typeClass(name) { const ext = extOf(name); return ALLOWED.has(ext) ? ext : 'txt'; }
+  function totalProjectSize() { let size = 0; for (const value of Object.values(project.files)) size += value.length; return size; }
+  function activeCode() { return project.files[project.activeFile] ?? ''; }
+  function toast(message) {
+    toastRegion.replaceChildren();
+    const node = document.createElement('div'); node.className = 'toast'; node.textContent = message; toastRegion.appendChild(node);
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => node.remove(), 2200);
+  }
+  function markDirty(name) {
+    dirtyFiles.add(name);
+    for (const row of fileList.children) if (row.dataset.file === name) row.classList.add('dirty');
+    for (const tab of tabbar.children) if (tab.dataset.file === name) tab.classList.add('dirty');
+  }
+  function updateSaveState(label, waiting = false) { $('saveState').textContent = label; $('saveDot').classList.toggle('wait', waiting); }
+
+  function loadProject() {
+    let stored = null;
+    try { stored = localStorage.getItem(STORAGE_KEY); } catch (_) { stored = null; }
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        const validFiles = parsed && parsed.files && typeof parsed.files === 'object' ? parsed.files : null;
+        if (validFiles && Object.keys(validFiles).length) {
+          const filtered = {};
+          for (const [name, value] of Object.entries(validFiles)) if (ALLOWED.has(extOf(name)) && typeof value === 'string') filtered[name] = value;
+          if (Object.keys(filtered).length) {
+            project.files = filtered;
+            project.activeFile = filtered[parsed.activeFile] !== undefined ? parsed.activeFile : (filtered['index.html'] !== undefined ? 'index.html' : Object.keys(filtered)[0]);
+            return;
+          }
+        }
+      } catch (_) { /* A damaged local draft is ignored; the starter project remains available. */ }
+    }
+    project.files = cloneFiles(STARTER_FILES);
+    project.activeFile = 'index.html';
+  }
+
+  function persistProject() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ files: project.files, activeFile: project.activeFile, updatedAt: Date.now() }));
+      updateSaveState('ブラウザに保存済み', false);
+      return true;
+    } catch (_) {
+      updateSaveState('保存容量を確認してください', true);
+      return false;
+    }
+  }
+  function scheduleSave() {
+    updateSaveState('保存中…', true);
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(persistProject, SAVE_DELAY);
+  }
+
+  function typeBadge(name) {
+    const ext = extOf(name).toUpperCase();
+    const badge = document.createElement('span'); badge.className = `file-type ${typeClass(name)}`; badge.textContent = ext === 'HTML' ? 'HTML' : ext; return badge;
+  }
+  function renderFileList() {
+    const names = Object.keys(project.files).sort((a,b) => {
+      const rank = n => n === 'index.html' ? 0 : n.toLowerCase().endsWith('.css') ? 1 : n.toLowerCase().endsWith('.js') ? 2 : n.toLowerCase().endsWith('.md') ? 3 : 4;
+      return rank(a) - rank(b) || a.localeCompare(b, 'ja');
+    });
+    fileList.replaceChildren();
+    for (const name of names) {
+      const row = document.createElement('div'); row.className = 'file-row' + (name === project.activeFile ? ' active' : '') + (dirtyFiles.has(name) ? ' dirty' : ''); row.dataset.file = name; row.setAttribute('role','button'); row.setAttribute('tabindex','0'); row.setAttribute('aria-current', name === project.activeFile ? 'page' : 'false');
+      row.append(typeBadge(name));
+      const label = document.createElement('span'); label.className = 'file-name'; label.textContent = name; row.appendChild(label);
+      const dot = document.createElement('span'); dot.className = 'file-modified'; dot.title = '変更あり'; row.appendChild(dot);
+      const menu = document.createElement('button'); menu.className = 'file-menu'; menu.type = 'button'; menu.textContent = '···'; menu.title = `${name} の操作`; menu.setAttribute('aria-label', `${name} の名前変更または削除`); menu.dataset.action = 'menu'; row.appendChild(menu);
+      fileList.appendChild(row);
+    }
+  }
+  function renderTabs() {
+    const openFiles = Object.keys(project.files);
+    tabbar.replaceChildren();
+    for (const name of openFiles) {
+      const tab = document.createElement('button'); tab.type = 'button'; tab.className = 'file-tab' + (name === project.activeFile ? ' active' : '') + (dirtyFiles.has(name) ? ' dirty' : ''); tab.setAttribute('role','tab'); tab.setAttribute('aria-selected', name === project.activeFile ? 'true' : 'false'); tab.dataset.file = name;
+      tab.appendChild(typeBadge(name));
+      const label = document.createElement('span'); label.className = 'tab-label'; label.textContent = name; tab.appendChild(label);
+      const dot = document.createElement('span'); dot.className = 'tab-dot'; tab.appendChild(dot);
+      tabbar.appendChild(tab);
+    }
+  }
+  function renderEditorHeader() {
+    const name = project.activeFile;
+    $('activeFileTitle').textContent = name;
+    $('activeFileCaption').textContent = `${languageLabel(name)} · ブラウザに自動保存`;
+    $('fileTypeStatus').textContent = languageLabel(name);
+  }
+  function switchFile(name) {
+    if (!(name in project.files) || name === project.activeFile) return;
+    commitActiveEditor();
+    project.activeFile = name;
+    editor.value = project.files[name]; editor.scrollTop = 0; editor.setSelectionRange(0,0);
+    renderFileList(); renderTabs(); renderEditorHeader(); updateStatsNow(); schedulePreview(); scheduleSave();
+  }
+  function commitActiveEditor() { if (project.activeFile in project.files) project.files[project.activeFile] = editor.value; }
+
+  function renderVisibleLineNumbers() {
+    const lineHeight = 21;
+    const paddingTop = 15;
+    const first = Math.max(1, Math.floor(editor.scrollTop / lineHeight) + 1);
+    const visible = Math.ceil(editor.clientHeight / lineHeight) + 5;
+    const last = Math.min(Math.max(1, currentLineCount), first + visible - 1);
+    const lines = [];
+    for (let i = first; i <= last; i++) lines.push(String(i));
+    gutterInner.textContent = lines.join('\n');
+    gutterInner.style.transform = `translateY(${paddingTop + (first - 1) * lineHeight - editor.scrollTop}px)`;
+  }
+  function scheduleGutter() {
+    if (gutterFrame) return;
+    gutterFrame = requestAnimationFrame(() => { gutterFrame = 0; renderVisibleLineNumbers(); });
+  }
+  function getCursorLineColumn() {
+    const value = editor.value; const pos = editor.selectionStart;
+    let line = 1;
+    for (let i = 0; i < pos; i++) if (value.charCodeAt(i) === 10) line++;
+    const previousBreak = value.lastIndexOf('\n', Math.max(0, pos - 1));
+    return { line, col: pos - previousBreak };
+  }
+  function updateStatsNow() {
+    const value = editor.value; let lines = 1;
+    for (let i = 0; i < value.length; i++) if (value.charCodeAt(i) === 10) lines++;
+    currentLineCount = lines;
+    const cursor = getCursorLineColumn();
+    $('lineCount').textContent = `${lines.toLocaleString('ja-JP')} 行`;
+    $('charCount').textContent = `${value.length.toLocaleString('ja-JP')} 文字`;
+    $('cursorPosition').textContent = `Ln ${cursor.line.toLocaleString('ja-JP')}, Col ${cursor.col.toLocaleString('ja-JP')}`;
+    renderVisibleLineNumbers();
+  }
+  function scheduleStats() { clearTimeout(statsTimer); statsTimer = setTimeout(updateStatsNow, 170); }
+
+  function escapeHtml(text) { return String(text).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
+  function markdownToHtml(source) {
+    const lines = source.split(/\r?\n/); const output = []; let inList = false; let inCode = false; let code = [];
+    const inline = text => escapeHtml(text).replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>').replace(/\*([^*]+)\*/g,'<em>$1</em>');
+    const closeList = () => { if (inList) { output.push('</ul>'); inList = false; } };
+    for (const line of lines) {
+      if (/^```/.test(line)) { closeList(); if (!inCode) { inCode = true; code = []; } else { output.push(`<pre><code>${escapeHtml(code.join('\n'))}</code></pre>`); inCode = false; } continue; }
+      if (inCode) { code.push(line); continue; }
+      const heading = line.match(/^(#{1,6})\s+(.*)$/);
+      const item = line.match(/^\s*[-*+]\s+(.*)$/);
+      if (heading) { closeList(); const level = heading[1].length; output.push(`<h${level}>${inline(heading[2])}</h${level}>`); }
+      else if (item) { if (!inList) { output.push('<ul>'); inList = true; } output.push(`<li>${inline(item[1])}</li>`); }
+      else if (!line.trim()) closeList();
+      else { closeList(); output.push(`<p>${inline(line)}</p>`); }
+    }
+    closeList(); if (inCode) output.push(`<pre><code>${escapeHtml(code.join('\n'))}</code></pre>`);
+    return output.join('\n');
+  }
+  function textPreviewDocument(name, content) {
+    const body = extOf(name) === 'md' ? markdownToHtml(content) : `<pre class="plain">${escapeHtml(content)}</pre>`;
+    return `<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(name)}</title><style>body{margin:0;padding:clamp(20px,5vw,48px);font:15px/1.9 system-ui,sans-serif;color:#435147;background:#fffefa}main{max-width:820px;margin:auto}h1,h2,h3{color:#536d5c;line-height:1.35;margin:1.4em 0 .55em}p{margin:.55em 0}li{margin:.3em 0}pre{padding:16px;border-radius:10px;overflow:auto;background:#f3f3ec;color:#536157;font:13px/1.7 ui-monospace,monospace}code{padding:2px 5px;border-radius:4px;background:#f0f2eb;font-family:ui-monospace,monospace}.plain{white-space:pre-wrap;overflow-wrap:anywhere;font:13px/1.75 ui-monospace,monospace}</style></head><body><main>${body}</main></body></html>`;
+  }
+  function getEntryHtmlName() {
+    const active = project.activeFile;
+    if (extOf(active) === 'html') return active;
+    if (project.files['index.html'] !== undefined) return 'index.html';
+    return Object.keys(project.files).find(name => extOf(name) === 'html') || '';
+  }
+  function assetNameFromReference(reference) {
+    if (!reference || /^(?:[a-z]+:|\/\/|#|data:|blob:)/i.test(reference)) return '';
+    let path = reference.split(/[?#]/, 1)[0];
+    try { path = decodeURIComponent(path); } catch (_) { /* Keep the original path. */ }
+    path = path.replace(/\\/g,'/').split('/').pop();
+    return Object.keys(project.files).find(name => name.toLowerCase() === path.toLowerCase()) || '';
+  }
+  function safeInlineStyle(css) { return css.replace(/<\/style/gi, '<\\/style'); }
+  function safeInlineScript(js) { return js.replace(/<\/script/gi, '<\\/script'); }
+  function composeProjectHtml(html, sourceName) {
+    const usedCss = new Set(); const usedJs = new Set(); const deferredJs = [];
+    let output = String(html);
+    output = output.replace(/<link\b[^>]*>/gi, tag => {
+      const rel = (tag.match(/\brel\s*=\s*(["'])(.*?)\1/i) || [,'',''])[2].toLowerCase();
+      const href = (tag.match(/\bhref\s*=\s*(["'])(.*?)\1/i) || [,'',''])[2];
+      if (!rel.split(/\s+/).includes('stylesheet')) return tag;
+      const name = assetNameFromReference(href);
+      if (!name || extOf(name) !== 'css') return tag;
+      usedCss.add(name);
+      const media = (tag.match(/\bmedia\s*=\s*(["'])(.*?)\1/i) || [,'',''])[2];
+      return `<style${media ? ` media="${escapeHtml(media)}"` : ''} data-hincra-file="${escapeHtml(name)}">\n${safeInlineStyle(project.files[name])}\n</style>`;
+    });
+    output = output.replace(/<script\b[^>]*\bsrc\s*=\s*(["'])(.*?)\1[^>]*>\s*<\/script\s*>/gi, tag => {
+      const match = tag.match(/\bsrc\s*=\s*(["'])(.*?)\1/i); const name = match ? assetNameFromReference(match[2]) : '';
+      if (!name || extOf(name) !== 'js') return tag;
+      usedJs.add(name);
+      const prefix = output.slice(0, output.indexOf(tag)).toLowerCase();
+      const headStart = prefix.lastIndexOf('<head');
+      const headEnd = prefix.lastIndexOf('</head');
+      const inHead = headStart > headEnd;
+      const deferScript = /\bdefer(?:\s|=|$)/i.test(tag) || inHead;
+      const attrs = tag.slice(7, tag.indexOf('>')).replace(/\s+src\s*=\s*(["']).*?\1/i,'').replace(/\s+(?:async|defer)(?=\s|$)/gi,'');
+      const inlineTag = `<script${attrs}>\n${safeInlineScript(project.files[name])}\n<\/script>`;
+      if (deferScript) { deferredJs.push(inlineTag); return ''; }
+      return inlineTag;
+    });
+    const scripts = deferredJs.join('\n');
+    if (scripts) {
+      if (/<\/body\s*>/i.test(output)) output = output.replace(/<\/body\s*>/i, `${scripts}\n</body>`);
+      else output = `${output}\n${scripts}`;
+    }
+    if (!/<title\b/i.test(output)) output = output.replace(/<head\b[^>]*>/i, match => `${match}<title>${escapeHtml(sourceName || 'Preview')}</title>`);
+    if (!/<meta\s+name=["']viewport/i.test(output)) output = output.replace(/<head\b[^>]*>/i, match => `${match}<meta name="viewport" content="width=device-width, initial-scale=1">`);
+    return output;
+  }
+  function getPreviewDocument() {
+    const active = project.activeFile; const ext = extOf(active);
+    if (ext === 'md' || ext === 'txt') {
+      if (!activeCode().trim()) return { html: '', label: active };
+      return { html: textPreviewDocument(active, activeCode()), label: active };
+    }
+    const entry = getEntryHtmlName();
+    if (!entry) return { html: '', label: 'HTMLファイルがありません' };
+    if (!project.files[entry].trim()) return { html: '', label: entry };
+    return { html: composeProjectHtml(project.files[entry], entry), label: entry };
+  }
+  function showPreviewEmpty(message) {
+    previewFrame.classList.add('hidden'); previewFrame.removeAttribute('srcdoc'); previewEmpty.classList.add('visible');
+    previewEmpty.querySelector('strong').textContent = 'Previewを表示します';
+    previewEmpty.querySelector('span').innerHTML = message || 'index.html を編集すると、ここにWebページが表示されます。<br>CSS・JavaScriptも別ファイルから反映できます。';
+  }
+  function updatePreviewNow(force = false) {
+    clearTimeout(previewTimer);
+    commitActiveEditor();
+    const result = getPreviewDocument();
+    if (!result.html) {
+      lastPreviewHtml = '';
+      const message = result.label === 'HTMLファイルがありません' ? 'HTMLファイルを作成すると、ここにWebページが表示されます。' : `${escapeHtml(result.label)} に内容を入力するとPreviewできます。`;
+      showPreviewEmpty(message); $('previewInfo').textContent = result.label; $('previewStateText').textContent = '待機中'; return;
+    }
+    if (!force && result.html === lastPreviewHtml) return;
+    lastPreviewHtml = result.html;
+    previewFrame.srcdoc = result.html; previewFrame.classList.remove('hidden'); previewEmpty.classList.remove('visible');
+    $('previewInfo').textContent = `${result.label} · ${result.html.length.toLocaleString('ja-JP')} 文字`;
+    $('previewStateText').textContent = 'Preview更新済み';
+  }
+  function schedulePreview() {
+    if (!liveEnabled) return;
+    clearTimeout(previewTimer);
+    const length = totalProjectSize();
+    const delay = length >= LARGE_SIZE ? LARGE_PREVIEW_DELAY : length >= MEDIUM_SIZE ? MEDIUM_PREVIEW_DELAY : SMALL_PREVIEW_DELAY;
+    $('previewStateText').textContent = '更新待ち';
+    previewTimer = setTimeout(() => updatePreviewNow(), delay);
+  }
+  function setLiveEnabled(enabled) {
+    liveEnabled = enabled;
+    $('autoPreviewBtn').textContent = enabled ? '自動更新 ON' : '自動更新 OFF';
+    $('previewState').classList.toggle('paused', !enabled);
+    $('previewStateText').textContent = enabled ? '自動更新 ON' : '自動更新 OFF';
+    if (enabled) { schedulePreview(); toast('自動Previewを再開しました'); }
+    else { clearTimeout(previewTimer); toast('自動Previewを停止しました'); }
+  }
+
+  function togglePreview() {
+    const hidden = workbench.classList.toggle('preview-hidden');
+    const label = hidden ? 'Previewを表示' : 'Previewを隠す';
+    $('previewToggleTop').textContent = label;
+    $('previewToggleEditor').textContent = label;
+    if (!hidden) { schedulePreview(); }
+    requestAnimationFrame(() => { renderVisibleLineNumbers(); });
+  }
+  function applyViewport() {
+    viewportMode = $('viewportSelect').value;
+    const width = ({auto:'100%',tablet:'820px',mobile:'390px',desktop:'1280px'})[viewportMode] || '100%';
+    previewFrame.style.width = width;
+    previewFrame.style.maxWidth = '100%';
+    previewFrame.style.margin = '0 auto';
+    previewFrame.style.display = 'block';
+    previewFrame.style.height = '100%';
+    previewFrame.style.minHeight = '100%';
+    previewFrame.style.boxShadow = viewportMode === 'auto' ? 'none' : '0 0 24px rgba(55,62,54,.08)';
+    previewFrame.style.width = width;
+  }
+
+  function downloadText(name, content) {
+    const mime = ({html:'text/html',css:'text/css',js:'text/javascript',txt:'text/plain',md:'text/markdown'})[extOf(name)] || 'text/plain';
+    const blob = new Blob([content], {type:`${mime};charset=utf-8`});
+    const url = URL.createObjectURL(blob); const anchor = document.createElement('a');
+    anchor.href = url; anchor.download = name; document.body.appendChild(anchor); anchor.click(); anchor.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
+  }
+  function saveActiveFile() { commitActiveEditor(); downloadText(project.activeFile, activeCode()); dirtyFiles.delete(project.activeFile); renderFileList(); renderTabs(); toast(`${project.activeFile} をダウンロードしました`); scheduleSave(); }
+  async function copyActiveCode() {
+    const value = activeCode(); if (!value) { toast('コピーするコードがありません'); return; }
+    try {
+      if (navigator.clipboard && window.isSecureContext) await navigator.clipboard.writeText(value);
+      else { editor.focus(); editor.select(); const ok = document.execCommand('copy'); editor.setSelectionRange(0,0); if (!ok) throw new Error('copy failed'); }
+      toast('コードをコピーしました');
+    } catch (_) { toast('コピーできませんでした。コードを選択してコピーしてください'); }
+  }
+  function openPreviewInNewTab() {
+    commitActiveEditor();
+    const result = getPreviewDocument();
+    if (!result.html) { toast('PreviewするHTMLファイルがありません'); return; }
+    const blob = new Blob([result.html], {type:'text/html;charset=utf-8'}); const url = URL.createObjectURL(blob);
+    const tab = window.open(url, '_blank');
+    if (!tab) { URL.revokeObjectURL(url); toast('新しいタブがブロックされました。Chromeでポップアップを許可してください'); return; }
+    try { tab.opener = null; } catch (_) { /* The tab can still render. */ }
+    toast('Previewを新しいChromeタブで開きました');
+  }
+
+  function insertTextAtCursor(text) {
+    const start = editor.selectionStart; const end = editor.selectionEnd;
+    editor.setRangeText(text, start, end, 'end');
+    editor.dispatchEvent(new Event('input', {bubbles:true})); editor.focus();
+  }
+  function handleEditorKeydown(event) {
+    if (event.key === 'Tab') {
+      event.preventDefault(); const start = editor.selectionStart; const end = editor.selectionEnd;
+      if (event.shiftKey) {
+        const lineStart = editor.value.lastIndexOf('\n', start - 1) + 1; const line = editor.value.slice(lineStart, start);
+        if (line.startsWith('  ')) editor.setRangeText('', lineStart, lineStart + 2, 'end');
+        else if (line.startsWith('\t')) editor.setRangeText('', lineStart, lineStart + 1, 'end');
+      } else if (start === end) { insertTextAtCursor('  '); return; }
+      else { const selected = editor.value.slice(start,end).split('\n').map(line => '  ' + line).join('\n'); editor.setRangeText(selected,start,end,'select'); }
+      editor.dispatchEvent(new Event('input',{bubbles:true})); return;
+    }
+    if (event.key === 'Enter' && editor.selectionStart === editor.selectionEnd) {
+      const start = editor.selectionStart; const lineStart = editor.value.lastIndexOf('\n',start - 1) + 1;
+      const indent = (editor.value.slice(lineStart,start).match(/^\s*/) || [''])[0];
+      const before = editor.value.slice(lineStart,start).trimEnd();
+      const extra = /[\[{:]$/.test(before) ? '  ' : '';
+      event.preventDefault(); insertTextAtCursor('\n' + indent + extra); return;
+    }
+    const pairs = {'(' : ')','[':']','{':'}','"':'"',"'":"'",'`':'`'};
+    if (pairs[event.key] && editor.selectionStart === editor.selectionEnd && !event.ctrlKey && !event.metaKey && !event.altKey) {
+      const start = editor.selectionStart; const next = editor.value[start];
+      if (event.key in {'"':1,"'":1,'`':1} && next === event.key) { event.preventDefault(); editor.setSelectionRange(start+1,start+1); return; }
+      event.preventDefault(); editor.setRangeText(event.key + pairs[event.key],start,start,'end'); editor.setSelectionRange(start+1,start+1); editor.dispatchEvent(new Event('input',{bubbles:true}));
+    }
+  }
+
+  function formatHtml(source) {
+    const tokens = source.match(/<!--[\s\S]*?-->|<![^>]*>|<\?(?:[\s\S]*?)\?>|<(script|style|pre|textarea)\b[^>]*>[\s\S]*?<\/\1\s*>|<\/?[a-zA-Z][^>]*>|[^<]+|</gi) || [];
+    const voidTags = new Set(['area','base','br','col','embed','hr','img','input','link','meta','param','source','track','wbr']);
+    const output = []; let depth = 0; const indent = level => '  '.repeat(Math.max(0,level));
+    const push = (text,level=depth) => { const clean = String(text).trim(); if (clean) output.push(indent(level)+clean); };
+    for (const token of tokens) {
+      if (!token.trim()) continue;
+      if (/^<(script|style|pre|textarea)\b/i.test(token)) {
+        const openEnd=token.indexOf('>')+1, closeStart=token.toLowerCase().lastIndexOf('</');
+        push(token.slice(0,openEnd)); const raw=token.slice(openEnd,closeStart);
+        if(raw.trim()) raw.replace(/^\n|\n$/g,'').split('\n').forEach(line=>output.push(indent(depth+1)+line));
+        push(token.slice(closeStart)); continue;
+      }
+      if (/^<\//.test(token)) { depth=Math.max(0,depth-1); push(token); }
+      else if (/^<!|^<\?/.test(token)) push(token);
+      else if (/^<[a-z]/i.test(token)) { push(token); const tag=(token.match(/^<([\w:-]+)/)||[,''])[1].toLowerCase(); if(!voidTags.has(tag)&&!/\/\s*>$/.test(token)) depth++; }
+      else push(token.replace(/\s+/g,' '));
+    }
+    return output.join('\n').trim()+'\n';
+  }
+  function formatCss(source) {
+    let out=''; let depth=0; let quote=''; let comment=false; let token='';
+    const writeLine = text => { const clean=text.trim(); if(clean) out += '  '.repeat(Math.max(0,depth)) + clean + '\n'; };
+    for(let i=0;i<source.length;i++){
+      const ch=source[i], next=source[i+1];
+      if(comment){token+=ch;if(ch==='*'&&next==='/'){token+='/';i++;comment=false;}continue;}
+      if(quote){token+=ch;if(ch==='\\'&&i+1<source.length){token+=source[++i];continue;}if(ch===quote)quote='';continue;}
+      if(ch==='/'&&next==='*'){if(token.trim())writeLine(token);token='/*';i++;comment=true;continue;}
+      if(ch==='"'||ch==="'"){quote=ch;token+=ch;continue;}
+      if(ch==='{'){if(token.trim())writeLine(token.trim()+' {');else writeLine('{');token='';depth++;}
+      else if(ch==='}'){if(token.trim())writeLine(token.trim());token='';depth=Math.max(0,depth-1);writeLine('}');}
+      else if(ch===';'){token+=';';writeLine(token);token='';}
+      else if(ch==='\n'||ch==='\r'){if(token.trim()&&token.trim().startsWith('@import'))writeLine(token);else if(token.trim()&&!token.includes('{'))token+=' ';}
+      else token+=ch;
+    }
+    if(token.trim())writeLine(token);
+    return out.trim()+'\n';
+  }
+  function formatCurrentFile() {
+    const ext = extOf(project.activeFile); let formatted = '';
+    if (ext === 'html') formatted = formatHtml(editor.value);
+    else if (ext === 'css') formatted = formatCss(editor.value);
+    else { toast('整形は現在 HTML と CSS に対応しています'); return; }
+    editor.value = formatted; editor.dispatchEvent(new Event('input',{bubbles:true})); toast(`${languageLabel(project.activeFile)}を整形しました`);
+  }
+
+  function validFileName(name) {
+    const trimmed = name.trim();
+    if (!trimmed || trimmed.length > 90 || /[\\/:*?"<>|]/.test(trimmed) || trimmed === '.' || trimmed === '..') return false;
+    return ALLOWED.has(extOf(trimmed));
+  }
+  function showFileModal(mode, oldName='') {
+    fileModalMode = mode; renamingSource = oldName;
+    $('fileModalTitle').textContent = mode === 'rename' ? 'ファイル名を変更' : '新しいファイル';
+    $('fileModalDescription').textContent = 'ファイル名と拡張子を入力してください。HTML・CSS・JavaScript・TXT・MDに対応しています。';
+    $('fileModalSubmit').textContent = mode === 'rename' ? '変更' : '作成';
+    $('fileNameInput').value = mode === 'rename' ? oldName : '';
+    fileModal.classList.add('open'); setTimeout(() => { $('fileNameInput').focus(); $('fileNameInput').select(); }, 30);
+  }
+  function hideFileModal() { fileModal.classList.remove('open'); $('newFileBtn').focus(); }
+  function submitFileModal() {
+    const name = $('fileNameInput').value.trim();
+    if (!validFileName(name)) { toast('対応する拡張子（html / css / js / txt / md）を付けてください'); $('fileNameInput').focus(); return; }
+    const existing = Object.keys(project.files).find(item => item.toLowerCase() === name.toLowerCase());
+    if (fileModalMode === 'create') {
+      if (existing) { toast('同じ名前のファイルがすでにあります'); return; }
+      commitActiveEditor(); project.files[name] = ''; project.activeFile = name; editor.value = ''; editor.scrollTop = 0;
+      dirtyFiles.add(name); renderFileList(); renderTabs(); renderEditorHeader(); updateStatsNow(); scheduleSave(); schedulePreview(); toast(`${name} を作成しました`);
+    } else {
+      if (name !== renamingSource && existing) { toast('同じ名前のファイルがすでにあります'); return; }
+      commitActiveEditor(); const content = project.files[renamingSource]; delete project.files[renamingSource]; project.files[name] = content;
+      if (project.activeFile === renamingSource) { project.activeFile = name; editor.value = content; renderEditorHeader(); }
+      if (dirtyFiles.has(renamingSource)) { dirtyFiles.delete(renamingSource); dirtyFiles.add(name); }
+      updateHtmlReferences(renamingSource, name);
+      renderFileList(); renderTabs(); scheduleStats(); scheduleSave(); schedulePreview(); toast(`ファイル名を ${name} に変更しました`);
+    }
+    hideFileModal();
+  }
+  function showConfirm(title, description, actionLabel, callback) {
+    $('confirmTitle').textContent = title; $('confirmDescription').textContent = description; $('confirmAccept').textContent = actionLabel;
+    pendingConfirm = callback; confirmModal.classList.add('open'); $('confirmAccept').focus();
+  }
+  function hideConfirm() { confirmModal.classList.remove('open'); pendingConfirm = null; }
+  function updateHtmlReferences(oldName, newName) {
+    let activeHtmlChanged = false;
+    for (const [htmlName, content] of Object.entries(project.files)) {
+      if (extOf(htmlName) !== 'html') continue;
+      const updated = content.replace(/(\b(?:href|src)\s*=\s*)(["'])(.*?)\2/gi, (whole, prefix, quote, reference) => {
+        const pathPart = reference.split(/[?#]/, 1)[0];
+        let decoded = pathPart;
+        try { decoded = decodeURIComponent(pathPart); } catch (_) { /* Preserve encoded paths as written. */ }
+        const normalized = decoded.replace(/\\/g, '/');
+        const basename = normalized.split('/').pop();
+        if (basename.toLowerCase() !== oldName.toLowerCase()) return whole;
+        const directory = pathPart.slice(0, Math.max(0, pathPart.lastIndexOf('/') + 1));
+        const suffix = reference.slice(pathPart.length);
+        return `${prefix}${quote}${directory}${newName}${suffix}${quote}`;
+      });
+      if (updated !== content) {
+        project.files[htmlName] = updated;
+        dirtyFiles.add(htmlName);
+        if (project.activeFile === htmlName) activeHtmlChanged = true;
+      }
+    }
+    if (activeHtmlChanged) { editor.value = project.files[project.activeFile]; updateStatsNow(); }
+  }
+
+  function deleteFile(name) {
+    if (!(name in project.files)) return;
+    showConfirm('ファイルを削除しますか？', `${name} をプロジェクトから削除します。この操作は元に戻せません。`, '削除する', () => {
+      const names = Object.keys(project.files); const index = names.indexOf(name); delete project.files[name]; dirtyFiles.delete(name);
+      if (!Object.keys(project.files).length) { project.files['index.html'] = '<!doctype html>\n<html lang="ja">\n<head>\n  <meta charset="UTF-8">\n  <title>My Page</title>\n</head>\n<body>\n\n</body>\n</html>'; }
+      if (project.activeFile === name) { const remaining = Object.keys(project.files); project.activeFile = remaining[Math.min(index,remaining.length-1)] || remaining[0]; editor.value = project.files[project.activeFile]; editor.scrollTop=0; renderEditorHeader(); updateStatsNow(); }
+      renderFileList(); renderTabs(); scheduleSave(); schedulePreview(); hideConfirm(); toast(`${name} を削除しました`);
+    });
+  }
+  function handleFileListClick(event) {
+    const row = event.target.closest('.file-row'); if (!row) return; const name = row.dataset.file;
+    const action = event.target.closest('[data-action]')?.dataset.action;
+    if (action === 'menu') {
+      const alreadyOpen = row.querySelector('.file-actions');
+      fileList.querySelectorAll('.file-actions').forEach(menu => menu.remove());
+      if (!alreadyOpen) {
+        const menu = document.createElement('div'); menu.className = 'file-actions';
+        const rename = document.createElement('button'); rename.type = 'button'; rename.dataset.action = 'rename'; rename.textContent = '名前変更';
+        const remove = document.createElement('button'); remove.type = 'button'; remove.dataset.action = 'delete'; remove.textContent = '削除';
+        menu.append(rename, remove); row.appendChild(menu);
+      }
+      return;
+    }
+    if (action === 'rename') { fileList.querySelectorAll('.file-actions').forEach(menu => menu.remove()); showFileModal('rename',name); return; }
+    if (action === 'delete') { fileList.querySelectorAll('.file-actions').forEach(menu => menu.remove()); deleteFile(name); return; }
+    fileList.querySelectorAll('.file-actions').forEach(menu => menu.remove());
+    switchFile(name);
+  }
+  function handleFileListKey(event) {
+    if ((event.key === 'Enter' || event.key === ' ') && event.target.classList.contains('file-row')) { event.preventDefault(); switchFile(event.target.dataset.file); }
+  }
+
+  async function importFiles(fileCollection) {
+    const files = Array.from(fileCollection || []); if (!files.length) return;
+    const accepted = files.filter(file => ALLOWED.has(extOf(file.name)));
+    const rejected = files.length - accepted.length;
+    if (!accepted.length) { toast('HTML・CSS・JS・TXT・MDファイルを選択してください'); return; }
+    const oversized = accepted.filter(file => file.size > MAX_FILE_SIZE);
+    if (oversized.length) { toast(`${oversized[0].name} は3MBを超えているため読み込めません`); return; }
+    try {
+      const loaded = await Promise.all(accepted.map(file => new Promise((resolve,reject) => { const reader=new FileReader(); reader.onload=()=>resolve([file.name,String(reader.result??'')]); reader.onerror=()=>reject(new Error(file.name)); reader.readAsText(file,'UTF-8'); })));
+      commitActiveEditor(); let first = '';
+      for (const [name, content] of loaded) {
+        const collision = Object.keys(project.files).find(existing => existing.toLowerCase() === name.toLowerCase());
+        if (collision && collision !== name) delete project.files[collision];
+        project.files[name] = content; dirtyFiles.add(name); if (!first) first = name;
+      }
+      if (first) { project.activeFile=first; editor.value=project.files[first]; editor.scrollTop=0; editor.setSelectionRange(0,0); renderEditorHeader(); updateStatsNow(); }
+      renderFileList(); renderTabs(); scheduleSave(); schedulePreview();
+      toast(`${loaded.length} 個のファイルを読み込みました${rejected ? `（${rejected} 個は未対応）` : ''}`);
+    } catch (error) { toast('ファイルを読み込めませんでした'); }
+  }
+  function loadSampleProject() {
+    showConfirm('サンプルを読み込みますか？','現在のファイル構成をサンプルプロジェクトに置き換えます。ブラウザに保存された現在の内容も更新されます。','読み込む',() => {
+      project.files=cloneFiles(STARTER_FILES); project.activeFile='index.html'; dirtyFiles.clear(); editor.value=project.files[project.activeFile]; editor.scrollTop=0; renderFileList(); renderTabs(); renderEditorHeader(); updateStatsNow(); persistProject(); lastPreviewHtml=''; updatePreviewNow(true); hideConfirm(); toast('サンプルプロジェクトを読み込みました');
+    });
+  }
+  function clearActiveFile() {
+    if (!editor.value) { toast('このファイルはすでに空です'); return; }
+    showConfirm('ファイルの内容を消去しますか？',`${project.activeFile} の内容をすべて削除します。`,`消去する`,() => {
+      editor.value=''; editor.setSelectionRange(0,0); editor.dispatchEvent(new Event('input',{bubbles:true})); hideConfirm(); toast('ファイルの内容を消去しました');
+    });
+  }
+
+  editor.addEventListener('input', () => {
+    commitActiveEditor(); markDirty(project.activeFile); scheduleStats(); scheduleSave(); schedulePreview();
+  });
+  editor.addEventListener('scroll', scheduleGutter, {passive:true});
+  editor.addEventListener('click', scheduleStats); editor.addEventListener('keyup', scheduleStats); editor.addEventListener('select', scheduleStats);
+  editor.addEventListener('keydown', handleEditorKeydown);
+  window.addEventListener('resize', scheduleGutter, {passive:true});
+  fileList.addEventListener('click',handleFileListClick); fileList.addEventListener('keydown',handleFileListKey);
+  document.addEventListener('click',event=>{if(!event.target.closest('.file-row'))fileList.querySelectorAll('.file-actions').forEach(menu=>menu.remove());});
+  tabbar.addEventListener('click',event => { const tab=event.target.closest('.file-tab'); if(tab) switchFile(tab.dataset.file); });
+
+  $('newFileBtn').addEventListener('click',()=>showFileModal('create'));
+  $('importBtn').addEventListener('click',()=>$('fileInput').click());
+  $('fileInput').addEventListener('change',event=>{ importFiles(event.target.files); event.target.value=''; });
+  $('fileModalCancel').addEventListener('click',hideFileModal); $('fileModalSubmit').addEventListener('click',submitFileModal);
+  $('fileNameInput').addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();submitFileModal();}if(event.key==='Escape')hideFileModal();});
+  fileModal.addEventListener('click',event=>{if(event.target===fileModal)hideFileModal();});
+  $('confirmCancel').addEventListener('click',hideConfirm); $('confirmAccept').addEventListener('click',()=>{const callback=pendingConfirm;if(callback)callback();});
+  confirmModal.addEventListener('click',event=>{if(event.target===confirmModal)hideConfirm();});
+  $('sampleBtn').addEventListener('click',loadSampleProject); $('formatBtn').addEventListener('click',formatCurrentFile); $('clearFileBtn').addEventListener('click',clearActiveFile);
+  $('saveBtn').addEventListener('click',saveActiveFile); $('copyBtn').addEventListener('click',copyActiveCode);
+  $('previewToggleTop').addEventListener('click',togglePreview); $('previewToggleEditor').addEventListener('click',togglePreview);
+  $('refreshBtn').addEventListener('click',()=>{updatePreviewNow(true);toast('Previewを更新しました');}); $('refreshPreviewBtn').addEventListener('click',()=>{updatePreviewNow(true);toast('Previewを更新しました');});
+  $('openPreviewTabBtn').addEventListener('click',openPreviewInNewTab); $('autoPreviewBtn').addEventListener('click',()=>setLiveEnabled(!liveEnabled));
+  $('viewportSelect').addEventListener('change',applyViewport);
+  workbench.addEventListener('dragover',event=>{event.preventDefault();workbench.classList.add('drag-over');});
+  workbench.addEventListener('dragleave',event=>{if(!workbench.contains(event.relatedTarget))workbench.classList.remove('drag-over');});
+  workbench.addEventListener('drop',event=>{event.preventDefault();workbench.classList.remove('drag-over');if(event.dataTransfer?.files?.length)importFiles(event.dataTransfer.files);});
+  document.addEventListener('keydown',event=>{
+    const isApple=/Mac|iPhone|iPad/.test(navigator.platform); const command=isApple?event.metaKey:event.ctrlKey;
+    if(command&&event.key.toLowerCase()==='s'){event.preventDefault();saveActiveFile();}
+    if(command&&event.key==='Enter'){event.preventDefault();updatePreviewNow(true);toast('Previewを更新しました');}
+    if(event.key==='F6'){event.preventDefault();togglePreview();}
+    if(event.altKey&&!event.ctrlKey&&!event.metaKey&&event.key.toLowerCase()==='n'){event.preventDefault();showFileModal('create');}
+    if(event.key==='Escape'){if(fileModal.classList.contains('open'))hideFileModal();else if(confirmModal.classList.contains('open'))hideConfirm();}
+  });
+  window.addEventListener('beforeunload',()=>{commitActiveEditor();try{localStorage.setItem(STORAGE_KEY,JSON.stringify({files:project.files,activeFile:project.activeFile,updatedAt:Date.now()}));}catch(_){}});
+
+  loadProject();
+  editor.value=project.files[project.activeFile] ?? '';
+  renderFileList();renderTabs();renderEditorHeader();updateStatsNow();applyViewport();
+  updateSaveState('ブラウザに保存済み',false);
+  lastPreviewHtml='';updatePreviewNow(true);
+})();
+</script>
+</body>
+</html>
