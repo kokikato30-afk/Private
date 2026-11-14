@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#f4f2ec">
+  <meta name="theme-color" id="themeColorMeta" content="#f4f2ec">
   <meta name="description" content="hincra editor — HTML・CSS・JavaScriptを心地よく編集できる、軽量なブラウザ内コードエディター。">
   <title>hincra editor</title>
   <style>
@@ -133,6 +133,100 @@
       .app-footer{height:auto;min-height:24px;padding:2px 12px 9px;font-size:8px}.app-footer span:last-child{display:none}
     }
     @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+    @media(max-width:620px){
+      .theme-toggle{width:33px;min-width:33px;padding:0}
+      .theme-label{display:none}
+      .top-right{gap:6px}
+    }
+
+    /* Dark theme: pure-black workspace with soft neutral surfaces and text. */
+    :root[data-theme="dark"]{
+      color-scheme:dark;
+      --page:#000000;--surface:#171717;--surface-2:#202020;--surface-3:#292929;
+      --ink:#e7e7e7;--muted:#a1a1a1;--muted-2:#858585;--line:#303030;--line-2:#414141;
+      --sage:#829b8b;--sage-dark:#a4b9aa;--sage-soft:#26332b;--sand:#b9a58a;--sand-soft:#302b24;
+      --rose:#d49a89;--blue:#91aabd;--shadow:0 12px 36px rgba(0,0,0,.34);
+    }
+    :root[data-theme="dark"] body{background:#000000;color:var(--ink)}
+    :root[data-theme="dark"] .topbar{background:rgba(18,18,18,.96);border-bottom-color:#292929}
+    :root[data-theme="dark"] .brand-mark{background:linear-gradient(145deg,#718b79,#526c5c);box-shadow:0 5px 13px rgba(0,0,0,.35)}
+    :root[data-theme="dark"] .local-pill{border-color:#304237;background:#1b2920;color:#aec2b2}
+    :root[data-theme="dark"] .local-dot{background:#8eae98}
+    :root[data-theme="dark"] .btn{background:#202020;border-color:#414141;color:#d0d0d0}
+    :root[data-theme="dark"] .btn:hover{background:#2b2b2b;border-color:#555}
+    :root[data-theme="dark"] .btn-primary{background:#718b79;border-color:#718b79;color:#fff}
+    :root[data-theme="dark"] .btn-primary:hover{background:#829d89;border-color:#829d89}
+    :root[data-theme="dark"] .btn-soft{background:#26332b;border-color:#34483a;color:#b8cabb}
+    :root[data-theme="dark"] .btn-quiet{background:transparent;border-color:transparent;color:#bcbcbc}
+    :root[data-theme="dark"] .btn-quiet:hover{background:#292929;border-color:transparent}
+    :root[data-theme="dark"] .btn-danger:hover{background:#382522;color:#e0a091}
+    :root[data-theme="dark"] .theme-toggle{color:#d5d5d5}
+    :root[data-theme="dark"] .sidebar{background:#141414}
+    :root[data-theme="dark"] .side-head{border-bottom-color:#2b2b2b}
+    :root[data-theme="dark"] .side-title{color:#a0a0a0}
+    :root[data-theme="dark"] .side-project{color:#c2c2c2}
+    :root[data-theme="dark"] .project-caret{color:#888}
+    :root[data-theme="dark"] .project-folder{color:#b5a184}
+    :root[data-theme="dark"] .file-list{scrollbar-color:#414141 transparent}
+    :root[data-theme="dark"] .file-row{color:#c0c0c0}
+    :root[data-theme="dark"] .file-row:hover{background:#242424}
+    :root[data-theme="dark"] .file-row.active{background:#26332b;color:#c5d9ca}
+    :root[data-theme="dark"] .file-type{background:#29332c;color:#a9c0ae}
+    :root[data-theme="dark"] .file-type.css{background:#252e38;color:#a6bdd2}
+    :root[data-theme="dark"] .file-type.js{background:#352f23;color:#d0b98a}
+    :root[data-theme="dark"] .file-type.md{background:#302937;color:#c2afd0}
+    :root[data-theme="dark"] .file-type.txt{background:#2b2b2b;color:#b9b9b9}
+    :root[data-theme="dark"] .file-menu{color:#a2a2a2}
+    :root[data-theme="dark"] .file-menu:hover{background:#303030;color:#e0e0e0}
+    :root[data-theme="dark"] .file-actions{background:#202020;border-color:#414141;box-shadow:0 7px 20px rgba(0,0,0,.45)}
+    :root[data-theme="dark"] .file-actions button{color:#d0d0d0}
+    :root[data-theme="dark"] .file-actions button:hover{background:#303030}
+    :root[data-theme="dark"] .file-actions button[data-action=delete]:hover{background:#382522;color:#e0a091}
+    :root[data-theme="dark"] .sidebar-bottom{color:#929292}
+    :root[data-theme="dark"] .drop-note svg{color:#91aa97}
+    :root[data-theme="dark"] .editor-head{background:rgba(23,23,23,.98);border-bottom-color:#303030}
+    :root[data-theme="dark"] .head-icon{background:#26332b;color:#afc4b4}
+    :root[data-theme="dark"] .head-title{color:#e2e2e2}
+    :root[data-theme="dark"] .head-caption{color:#999}
+    :root[data-theme="dark"] .editor-toolbar{background:#141414;border-bottom-color:#303030}
+    :root[data-theme="dark"] .tool-divider{background:#414141}
+    :root[data-theme="dark"] .tabbar{background:#101010;border-bottom-color:#303030}
+    :root[data-theme="dark"] .file-tab{border-right-color:#292929;color:#a0a0a0}
+    :root[data-theme="dark"] .file-tab.active{background:#171717;color:#c4d7c9}
+    :root[data-theme="dark"] .file-tab.active::after{background:#8da895}
+    :root[data-theme="dark"] .editor-wrap{background:#111111}
+    :root[data-theme="dark"] .gutter{background:#171717;border-right-color:#303030;color:#777}
+    :root[data-theme="dark"] .code{color:#d2ddd5;caret-color:#a8c8b0;scrollbar-color:#484848 transparent}
+    :root[data-theme="dark"] .code::selection{background:rgba(145,177,152,.34)}
+    :root[data-theme="dark"] .editor-status{background:#141414;border-top-color:#303030;color:#999}
+    :root[data-theme="dark"] .save-dot{background:#8eae98}
+    :root[data-theme="dark"] .save-dot.wait{background:#c6a477}
+    :root[data-theme="dark"] .preview-head{background:rgba(23,23,23,.98);border-bottom-color:#303030}
+    :root[data-theme="dark"] .preview-icon{background:#302b24;color:#c1a984}
+    :root[data-theme="dark"] .select-wrap::after{border-color:#aaa}
+    :root[data-theme="dark"] .select{background:#202020;border-color:#414141;color:#d0d0d0;color-scheme:dark}
+    :root[data-theme="dark"] .select option{background:#202020;color:#e0e0e0}
+    :root[data-theme="dark"] .preview-stage{background:#080808}
+    :root[data-theme="dark"] .preview-empty{background:#101010;color:#a0a0a0}
+    :root[data-theme="dark"] .preview-empty-mark{background:#26332b;color:#a9c2af}
+    :root[data-theme="dark"] .preview-empty strong{color:#d1d1d1}
+    :root[data-theme="dark"] .preview-empty span{color:#999}
+    :root[data-theme="dark"] .preview-foot{background:#141414;border-top-color:#303030;color:#999}
+    :root[data-theme="dark"] .preview-dot{background:#8eae98;box-shadow:0 0 0 3px #26332b}
+    :root[data-theme="dark"] .preview-state.paused .preview-dot{background:#c49e73;box-shadow:0 0 0 3px #352e23}
+    :root[data-theme="dark"] .app-footer{color:#777}
+    :root[data-theme="dark"] .toast{background:rgba(35,35,35,.98);border-color:#46564a;box-shadow:0 8px 24px rgba(0,0,0,.4);color:#c0d3c4}
+    :root[data-theme="dark"] .modal-backdrop{background:rgba(0,0,0,.72)}
+    :root[data-theme="dark"] .modal{background:#1b1b1b;border-color:#393939;box-shadow:0 24px 70px rgba(0,0,0,.65)}
+    :root[data-theme="dark"] .modal h2{color:#e5e5e5}
+    :root[data-theme="dark"] .modal p{color:#a2a2a2}
+    :root[data-theme="dark"] .modal-input{background:#111;border-color:#444;color:#e5e5e5}
+    :root[data-theme="dark"] .modal-input::placeholder{color:#777}
+    :root[data-theme="dark"] .workbench.drag-over .sidebar{background:#1b2920;outline-color:#829b8b}
+    :root[data-theme="dark"] button:focus-visible,
+    :root[data-theme="dark"] input:focus-visible,
+    :root[data-theme="dark"] select:focus-visible,
+    :root[data-theme="dark"] textarea:focus-visible{outline-color:rgba(151,190,160,.42)}
   </style>
 </head>
 <body>
@@ -142,7 +236,7 @@
       <div class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5z"/><path d="M8 8h8M8 12h5M8 16h8"/><path d="m15.5 12 1.5 1.5-1.5 1.5"/></svg></div>
       <div><div class="brand-name">hincra editor</div><div class="brand-sub">A CALM SPACE TO BUILD THE WEB</div></div>
     </div>
-    <div class="top-right"><span class="top-hint">書く・試す・仕上げる</span><button class="btn btn-soft" id="previewToggleTop" type="button" title="Previewの表示・非表示を切り替え">Previewを隠す</button><div class="local-pill"><span class="local-dot"></span>ブラウザ内で動作</div></div>
+    <div class="top-right"><span class="top-hint">書く・試す・仕上げる</span><button class="btn btn-soft" id="previewToggleTop" type="button" title="Previewの表示・非表示を切り替え">Previewを隠す</button><button class="btn btn-quiet theme-toggle" id="themeToggle" type="button" title="ダークモードに切り替え" aria-label="ダークモードに切り替え" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.2 15.4A8.5 8.5 0 0 1 8.6 3.8 8.5 8.5 0 1 0 20.2 15.4Z"/></svg><span class="theme-label">ダーク</span></button><div class="local-pill"><span class="local-dot"></span>ブラウザ内で動作</div></div>
   </header>
 
   <main class="workbench" id="workbench">
@@ -192,6 +286,7 @@
 (() => {
   'use strict';
   const STORAGE_KEY = 'hincra-editor-project-v1';
+  const THEME_STORAGE_KEY = 'hincra-editor-theme-v1';
   const SAVE_DELAY = 700;
   const SMALL_PREVIEW_DELAY = 550;
   const MEDIUM_PREVIEW_DELAY = 950;
@@ -201,6 +296,37 @@
   const MAX_FILE_SIZE = 3 * 1024 * 1024;
   const ALLOWED = new Set(['html','css','js','txt','md']);
   const $ = id => document.getElementById(id);
+  function applyTheme(theme) {
+    const dark = theme === 'dark';
+    document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+    const button = $('themeToggle');
+    if (button) {
+      button.innerHTML = dark
+        ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg><span class="theme-label">ライト</span>'
+        : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.2 15.4A8.5 8.5 0 0 1 8.6 3.8 8.5 8.5 0 1 0 20.2 15.4Z"/></svg><span class="theme-label">ダーク</span>';
+      const label = dark ? 'ライトモードに切り替え' : 'ダークモードに切り替え';
+      button.title = label;
+      button.setAttribute('aria-label', label);
+      button.setAttribute('aria-pressed', String(dark));
+    }
+    const themeColor = $('themeColorMeta');
+    if (themeColor) themeColor.setAttribute('content', dark ? '#000000' : '#f4f2ec');
+  }
+
+  function setTheme(theme, notify = false) {
+    const nextTheme = theme === 'dark' ? 'dark' : 'light';
+    applyTheme(nextTheme);
+    try { localStorage.setItem(THEME_STORAGE_KEY, nextTheme); } catch (_) { /* Theme preference remains available for this session. */ }
+    if (notify) toast(nextTheme === 'dark' ? 'ダークモードに切り替えました' : 'ライトモードに切り替えました');
+  }
+
+  function loadTheme() {
+    try {
+      const saved = localStorage.getItem(THEME_STORAGE_KEY);
+      if (saved === 'dark' || saved === 'light') return saved;
+    } catch (_) { /* Use the default light theme when storage is unavailable. */ }
+    return 'light';
+  }
   const editor = $('codeEditor');
   const workbench = $('workbench');
   const fileList = $('fileList');
@@ -845,6 +971,7 @@ HTMLからCSSとJavaScriptを読み込むと、Previewにもまとめて反映�
   $('sampleBtn').addEventListener('click',loadSampleProject); $('formatBtn').addEventListener('click',formatCurrentFile); $('clearFileBtn').addEventListener('click',clearActiveFile);
   $('saveBtn').addEventListener('click',saveActiveFile); $('copyBtn').addEventListener('click',copyActiveCode);
   $('previewToggleTop').addEventListener('click',togglePreview); $('previewToggleEditor').addEventListener('click',togglePreview);
+  $('themeToggle').addEventListener('click',()=>setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark',true));
   $('refreshBtn').addEventListener('click',()=>{updatePreviewNow(true);toast('Previewを更新しました');}); $('refreshPreviewBtn').addEventListener('click',()=>{updatePreviewNow(true);toast('Previewを更新しました');});
   $('openPreviewTabBtn').addEventListener('click',openPreviewInNewTab); $('autoPreviewBtn').addEventListener('click',()=>setLiveEnabled(!liveEnabled));
   $('viewportSelect').addEventListener('change',applyViewport);
@@ -861,6 +988,7 @@ HTMLからCSSとJavaScriptを読み込むと、Previewにもまとめて反映�
   });
   window.addEventListener('beforeunload',()=>{commitActiveEditor();try{localStorage.setItem(STORAGE_KEY,JSON.stringify({files:project.files,activeFile:project.activeFile,updatedAt:Date.now()}));}catch(_){}});
 
+  applyTheme(loadTheme());
   loadProject();
   editor.value=project.files[project.activeFile] ?? '';
   renderFileList();renderTabs();renderEditorHeader();updateStatsNow();applyViewport();
